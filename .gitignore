@@ -1,0 +1,12 @@
+# 含密码的本地配置,绝不进 Git
+application-dev.yml
+
+# 构建产物
+target/
+out/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
