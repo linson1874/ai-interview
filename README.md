@@ -19,8 +19,7 @@ ai-interview/
 # 1. 起基础设施
 docker start ai-mysql ai-redis    # 首次:见 sql/ 与 README 历史说明
 # 2. 配 backend/src/main/resources/application-dev.yml (数据库账号密码,不进Git)
-# 3. 启动
-cd backend && ./mvnw spring-boot:run   # 或 IDEA 运行 AiInterviewApplication
+# 3. 启动: IDEA 运行 AiInterviewApplication (推荐) 或 mvn spring-boot:run
 # 4. 验证
 curl http://localhost:8080/hello
 ```

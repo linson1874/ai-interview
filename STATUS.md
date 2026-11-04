@@ -21,10 +21,11 @@
   User实体 / UserMapper / MyMetaObjectHandler / UserMapperTest
 - 根资产：sql/01_schema.sql(幂等化) / AGENTS.md / README.md / .gitignore
 
-## 待验证 🔄（导师正在跑）
-- [ ] mvn test 插入测试通过
-- [ ] 服务启动 + GET /hello 返回 200
-- [ ] git init + 首次提交
+## 已验证 ✅（2026-11-04 晚，导师本机 Maven 实测）
+- [x] mvn test：插入 t_user 成功（ID=1），自动填充时间生效，查询自动带 `WHERE deleted=0`
+- [x] 服务启动：Tomcat 8080，`GET /hello` 返回 200 + 文案
+- [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
+- 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
 ## 学员下一步（读码+业务起步，不再搭架子）
 - [ ] IDEA 打开 backend，通读 9 个生成文件，能说出每个注解的作用（验收会提问）
