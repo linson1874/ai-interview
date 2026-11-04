@@ -28,4 +28,9 @@ public class Result<T> {
     public static <T> Result<T> invalidParam(String msg){
         return new Result<>(2,msg,null);
     }
+
+    //系统异常:code=500
+    public static <T> Result<T> serverError(String msg){
+        return new Result<>(500,msg,null);
+    }
 }

@@ -1,4 +1,4 @@
-package com.itlzy.aiinterview.service.Impl;
+package com.itlzy.aiinterview.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.itlzy.aiinterview.dto.RegisterDTO;
@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
+
+    // BCrypt编码器是无状态的，全部注册共用一个实例（避免每次请求都 new）
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public UserServiceImpl(UserMapper userMapper) {
         this.userMapper = userMapper;
@@ -31,7 +34,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(dto.getUsername());
         // 规则2：BCrypt 加密，绝不存明文
-        user.setPassword(new BCryptPasswordEncoder().encode(dto.getPassword()));
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setNickname(dto.getNickname());
         user.setStatus(1);
 

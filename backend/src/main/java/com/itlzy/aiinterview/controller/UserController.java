@@ -20,7 +20,7 @@ public class UserController {
     }
 
     //用户注册
-    @PostMapping("/user/register")
+    @PostMapping("/register")
     public Result<Void> register(@Valid@RequestBody RegisterDTO dto){
         boolean ok = userService.register(dto);
         return ok ? Result.ok("ok") : Result.fail("用户名已存在");

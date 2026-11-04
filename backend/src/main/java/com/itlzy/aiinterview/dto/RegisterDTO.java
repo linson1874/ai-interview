@@ -8,7 +8,7 @@ import lombok.Data;
 public class RegisterDTO {
 
     @NotBlank(message = "用户名不能为空")
-    @Size(min = 3,max = 32,message = "用户名长度3-32")
+    @Size(min = 3,max = 32,message = "用户名长度为3-32")
     private String username;
 
     @NotBlank(message = "密码不能为空")
