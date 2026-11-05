@@ -14,23 +14,13 @@ public class Result<T> {
         this.data = data;
     }
 
+    /** 通用装盘入口：码值统一来自 ResultCode 枚举（收口魔法数字） */
+    public static <T> Result<T> of(ResultCode resultCode, String msg){
+        return new Result<>(resultCode.getCode(),msg,null);
+    }
+
     //成功：code=0
     public static <T> Result<T> ok(String msg){
-        return new Result<>(0,msg,null);
-    }
-
-    //业务失败：code=1
-    public static <T> Result<T> fail(String msg){
-        return new Result<>(1,msg,null);
-    }
-
-    //参数检验失败:code=2
-    public static <T> Result<T> invalidParam(String msg){
-        return new Result<>(2,msg,null);
-    }
-
-    //系统异常:code=500
-    public static <T> Result<T> serverError(String msg){
-        return new Result<>(500,msg,null);
+        return of(ResultCode.SUCCESS,msg);
     }
 }

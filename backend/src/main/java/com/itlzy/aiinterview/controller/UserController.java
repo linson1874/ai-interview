@@ -19,10 +19,10 @@ public class UserController {
         this.userService = userService;
     }
 
-    //用户注册
+    //用户注册：成功就 ok；业务失败由 Service 抛异常，全局 handler 翻译装盘（Controller 不再判 boolean）
     @PostMapping("/register")
-    public Result<Void> register(@Valid@RequestBody RegisterDTO dto){
-        boolean ok = userService.register(dto);
-        return ok ? Result.ok("ok") : Result.fail("用户名已存在");
+    public Result<Void> register(@Valid @RequestBody RegisterDTO dto){
+        userService.register(dto);
+        return Result.ok("ok");
     }
 }
