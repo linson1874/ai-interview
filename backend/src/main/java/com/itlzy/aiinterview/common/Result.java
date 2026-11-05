@@ -23,4 +23,9 @@ public class Result<T> {
     public static <T> Result<T> ok(String msg){
         return of(ResultCode.SUCCESS,msg);
     }
+
+    /** 成功且携带数据（msg 固定 "ok"，data 放 VO） */
+    public static <T> Result<T> okData(T data){
+        return new Result<>(ResultCode.SUCCESS.getCode(), "ok", data);
+    }
 }
