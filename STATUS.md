@@ -27,9 +27,10 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（Day3 已验收，进入 Day4）
-- [ ] 提交重构：`git add backend && git commit -m "refactor: 错误码枚举化+注册异常驱动; feat: 400 handler(裁决#3)"`（400 handler 加上后一起交）
-- [ ] Day4：登录接口（Session vs JWT 方案先想好倾向，课上裁决）
+## 学员下一步（Day4 登录接口）
+- [ ] 补 Day3 尾账：400 handler(裁决#3) + 把重构与它一起 commit
+- [ ] Day4 主菜：登录/注销/me，按 docs/api/02-auth-api.md 合同实现（JWT+Redis 已裁决）
+- [ ] 选做：Knife4j 接口文档页
 - [ ] （欠账）Day2 五道读码题 + docker-compose 三问
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 
