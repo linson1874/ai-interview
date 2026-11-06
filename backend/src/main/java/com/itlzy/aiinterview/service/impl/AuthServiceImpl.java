@@ -11,6 +11,7 @@ import com.itlzy.aiinterview.util.JwtUtil;
 import com.itlzy.aiinterview.vo.LoginVO;
 import com.itlzy.aiinterview.vo.UserVO;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +20,17 @@ import java.time.Duration;
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    public static final String TOKEN_KEY_PREFIX = "login:token:";  // 合同1约定的key格式
+    public static final String USER_KEY_PREFIX = "login:user:";  // 合同1约定的key格式
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final StringRedisTemplate redisTemplate;   // data-redis  starter 自带，application-dev.yml 里有连接配置
+
+
+    // TTL 与 JWT 过期同源：只认 application-dev.yml 里的 jwt.expire-minutes
+    @Value("${jwt.expire-minutes}")
+    private long expireMinutes;
 
     public AuthServiceImpl(UserMapper userMapper, PasswordEncoder passwordEncoder,
                            JwtUtil jwtUtil, StringRedisTemplate redisTemplate) {
@@ -45,10 +51,10 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "用户名或密码错误");
         }
 
-        // 规则3：签票 + 留存根（双保险：JWT 2h 自带过期，Redis TTL 2h 管"可注销"）
+        // 规则3：签票 + 覆盖写"人→票"存根，覆盖即踢掉旧设备的票
         String token = jwtUtil.createToken(user.getId());
-        redisTemplate.opsForValue().set(TOKEN_KEY_PREFIX + token,
-                String.valueOf(user.getId()), Duration.ofHours(2));
+        redisTemplate.opsForValue().set(USER_KEY_PREFIX + user.getId(),
+                token, Duration.ofMinutes(expireMinutes));
 
         // 规则4：回执只给 token+nickname，password 从头到尾不在候选名单上
         LoginVO vo = new LoginVO();
@@ -75,8 +81,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout(String token) {
-        // 合同4：撕存根。key 不存在 delete 也返回 false 不报错——天然幂等，无需判存在
-        redisTemplate.delete(TOKEN_KEY_PREFIX + token);
+    public void logout(Long userId) {
+        // 合同4(v0.2)：按"人"撕根。key 不存在 delete 也不报错——天然幂等
+        redisTemplate.delete(USER_KEY_PREFIX + userId);
     }
 }

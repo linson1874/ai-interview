@@ -8,5 +8,5 @@ public interface AuthService {
     LoginVO login(LoginDTO dto);
 
     UserVO me(Long userId);
-    void logout(String token);
+    void logout(Long userId);
 }

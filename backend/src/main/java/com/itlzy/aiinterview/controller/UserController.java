@@ -41,10 +41,10 @@ public class UserController {
         return Result.okData(authService.me(userId));
     }
 
-    //注销
+    //注销：userId 由拦截器验票时别在工牌上，Controller 全程不碰 token
     @PostMapping("/logout")
-    public Result<Void> logout(@RequestHeader("Authorization") String auth) {
-        authService.logout(auth.substring(7));   // 剥掉 "Bearer "
+    public Result<Void> logout(@RequestAttribute("userId") Long userId) {
+        authService.logout(userId);
         return Result.ok("ok");
     }
 }

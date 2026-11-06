@@ -40,8 +40,9 @@ public class LoginInterceptor implements HandlerInterceptor {
             return reject(response);
         }
 
-        // 3. 第二关：查存根（注销过的票，票面依然真，但存根没了 → 拒）
-        if (!Boolean.TRUE.equals(redisTemplate.hasKey(AuthServiceImpl.TOKEN_KEY_PREFIX + token))) {
+        // 3. 第二关：存根必须存在，且值 == 本次带来的票（票不对人 = 已注销或被互踢）
+        String cachedToken = redisTemplate.opsForValue().get(AuthServiceImpl.USER_KEY_PREFIX + userId);
+        if (!token.equals(cachedToken)) {
             return reject(response);
         }
 
