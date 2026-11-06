@@ -1,84 +1,78 @@
-# 接口文档草案 — 简历模块 v0.1-DRAFT（待五个决策点填空后评审放行）
+# 接口文档 — 简历模块 v1.0（正式版）
 
-> 状态：**草案**。骨架由导师完成；标 🔶 的决策点由学员拍板，填完交导师评审，放行后才准写 Java。
-> 通用约定（Result 包装、错误码规则、鉴权方式）继承 01/02 文档。
+> 学员起草五个决策点 → 导师评审修订放行（评审记录见文末）。自本版起生效，可进入实现。
+> 通用约定（Result 包装、错误码规则、鉴权）继承 01/02 文档。
 
-## 1. 总则（骨架，已定）
+## 1. 总则
 
 - 路径统一 `/resume/**`，全部纳入登录拦截（`WebMvcConfig` 给 `/resume/**` 加 `addPathPatterns`，无免检项）
 - 软删除语义：`deleted=1` 后一切读接口都当它不存在（@TableLogic 自动兜底）
-- 分页参数约定：`page` 从 1 起；`size` 默认 10 —— 上限与越界行为由 🔶D2 决定
+- 分页参数：`page` 从 1 起；`size` 默认 10，**上限 50**（MP 分页插件无默认上限，`maxLimit` 必须显式配置——不配就是裸奔）
 
-## 2. 数据字段（骨架对齐 DDL，校验规则见 🔶D3）
+### 错误码补充说明（v1.0 裁决，纳入 01 文档码表的适用范围）
 
-| 字段 | 对应列 | 约束上限 |
+| code | 本模块内新增语义 |
+|---|---|
+| 404 | 同时覆盖"路由不存在"与"**目标资源不存在/不属于当前用户/已删除**"，msg 统一为"资源不存在或已删除"（防资源枚举；不区分具体原因，不给探测者留信息） |
+
+## 2. 数据字段
+
+| 字段 | 对应列 | 规则（v1.0 定稿） |
 |---|---|---|
-| realName | real_name VARCHAR(32) | 32 |
-| targetJob | target_job VARCHAR(64) | 64 |
-| education | education VARCHAR(64) | 64 |
-| skills | skills VARCHAR(1024) | 存 JSON 数组字符串，元素规则由 🔶D3 定 |
-| selfIntro | self_intro TEXT | 应用层上限由 🔶D3 定（TEXT 物理上很大，但 API 不该无限收） |
+| realName | real_name VARCHAR(32) | 必填；2-20 个字符；白名单：中英文、空格、"·"（民族/外籍姓名兼容，**不得过严拒真实姓名**）；提示语见 4 |
+| targetJob | target_job VARCHAR(64) | 必填；2-50 字符；"目标岗位名称过短或过长" |
+| education | education VARCHAR(64) | 选填；≤64 |
+| skills | skills VARCHAR(1024) | 必填；JSON 字符串数组存库；**≤10 条、单条≤20 字符、去空白**；接口出入参为数组，序列化/解析在服务层完成；提示语见 4 |
+| selfIntro | self_intro TEXT | 选填；**允许为 null；若提供则 10-1000 字符**（可选≠空字符串也合法的语义歧义已封死） |
 
-## 3. 接口清单（骨架，已定）
+## 3. 接口清单
 
 | 接口 | 方法/路径 | 语义 |
 |---|---|---|
-| 新建简历 | POST /resume | 为当前登录用户创建 |
-| 修改简历 | PUT /resume/{id} | 只能改"自己的"——规则由 🔶D1 定 |
-| 删除简历 | DELETE /resume/{id} | 逻辑删；越权规则同 D1 |
-| 分页列表 | GET /resume/page?page=&size= | 只回自己的——规则由 🔶D1 定 |
-| 查看详情 | GET /resume/{id} | 查他人/查已删的响应由 🔶D5 定 |
+| 新建简历 | POST /resume | 为当前登录用户创建（userId 取自凭证，见 D1） |
+| 修改简历 | PUT /resume/{id} | 仅当 id 属于当前用户才生效；否则按"资源不存在"（D1b，404） |
+| 删除简历 | DELETE /resume/{id} | 逻辑删；越权同样按 404；删成功返回 code=0（对已删/不存在的 id 幂等返回 code=0） |
+| 分页列表 | GET /resume/page?page=&size= | 只回自己的；size 越界报错（D2） |
+| 查看详情 | GET /resume/{id} | 不存在/非本人/已删 → 统一 404（D5） |
 
-## 🔶D1 归属与越权（本合同的灵魂，两问各答一两句）
+## 4. 决策记录（学员拍板 + 导师修订）
 
-a) 接口里 userId 从哪里取？`请求参数/body/登录凭证` 三选一，并写一句"为什么另两个不行"。
-b) 当 `PUT /resume/{id}` 的 id 不是当前用户的，响应是什么？（用错误码表里的码回答；注意：这属于"用户改不了、只有拿到别人票才能触发"的哪一类，按编码规则归队）
-
-## 🔶D2 分页边界
-
-a) size 上限定为多少？
-b) 前端传 size=99999 时，服务端行为二选一：静默钳制到上限 / 报错 code=2。你选哪个，写一句理由。
-
-## 🔶D3 校验规则表（把空填满）
-
-| 字段 | 必填? | 规则 | 失败提示语 |
-|---|---|---|---|
-| realName | ____ | ____ | ____ |
-| targetJob | ____ | ____ | ____ |
-| skills | ____ | （几条上限？单条多长？） | ____ |
-| selfIntro | ____ | ____ | ____ |
-
-## 🔶D4 响应形状
-
-列表接口的 `data` 应该长什么样？把空补全（分页元信息要能让前端画页码条）：
+- **D1a（学员答，原文保留）**：userId 从登录凭证取。请求参数/body 传 userId 均可被篡改→水平越权。✅
+- **D1b**：~~学员答 401~~ → **修订为 HTTP 404 + code=404，msg"资源不存在或已删除"**。理由：请求者票是真的（已过拦截器），不是"未认证"；与 D5 防枚举策略统一，且实现上"按 userId 限定后查询为空"与"不存在"同一条代码路径。⚠️ 评审发现其与学员 D5 答案自相矛盾，已按 D5 精神修正——用例互洽是合同评审的本分。
+- **D2**：size 上限 **50**（~~学员记的"MP 默认 500"为讹传：MP 无默认上限，需显式 maxLimit~~）；越界**报错 code=2**（学员选，理由采纳：静默钳制会让前端误判拿到全量数据，API 不撒谎）。
+- **D3**：定稿见第 2 节表。两处评审修订：姓名规则放宽防误伤；selfIntro"选填+长度"的 null 语义封死。
+- **D4**：列表项 = id/realName/targetJob/skills(数组)/createTime。**删除学员虚构的 status 字段（t_resume 无此列——合同字段必须可溯源）**。不含 selfIntro（取舍理由：列表只需要识别度高的摘要字段；全文只在详情有意义）。
 
 ```json
 { "code": 0, "msg": "ok", "data": {
-    "list": [ ____ ],          ← 列表项包含哪些字段？（提示：列表页需要看到什么？含不含 selfIntro 全文？写一句取舍理由）
-    "total": ____,
-    "page": ____,
-    "size": ____
+    "list": [ { "id": 101, "realName": "张三", "targetJob": "Java后端开发",
+                "skills": ["Java","Spring Boot","MySQL"],
+                "createTime": "2026-11-06 10:00:00" } ],
+    "total": 45, "page": 1, "size": 10
 } }
 ```
 
-## 🔶D5 查不到的语义
+- **D5（学员思路保留）**："查不到"三种成因（不存在/非本人/已删）**统一返回**，防资源枚举，不回 403。✅ 定稿：HTTP 404 + code=404。
 
-`GET /resume/{id}` 的 id 不存在（或已删/或别人的），返回什么？错误码选表里的哪个？写一句理由。（对照场景：Day5 的 `me()` P2 瑕疵——你觉得"查无此资源"该 HTTP 200+业务码还是镜像 404？说说你的倾向）
-
-## 4. 验收用例（骨架已定，期望值列等你填——它们必须由你的 D1~D5 推出）
-
-先登录拿 token（用 F 用例方式），设当前用户 userId=5，另备 userId=3 的简历 id 作"他人资源"。
+## 5. 验收用例（期望值由 D1/D2/D5 推出，导师代填——这列本来就是决策的推论，决策对了它自己会填）
 
 | # | 场景 | 期望 |
 |---|---|---|
-| R1 | 新建合法简历 | code=0，库中多一行 user_id=5 |
-| R2 | 新建时 selfIntro 超长(>D3 上限) | ____ |
-| R3 | PUT 他人简历的 id | ____（由 D1b 推出） |
-| R4 | GET /resume/page?size=99999 | ____（由 D2 推出） |
-| R5 | 列表只含自己的、不含他人 | code=0 且 data 内无 user_id≠5 的行 |
-| R6 | DELETE 自己简历 → 再 GET 详情 | ____（由 D5 推出） |
-| R7 | 未带 token 调任一接口 | HTTP 401 + code=3（继承合同02，无需决策） |
+| R1 | 新建合法简历 | code=0，库中多一行 user_id=当前用户 |
+| R2 | selfIntro 传 1001 字 | code=2，"自我介绍不能超过1000个字"，库无新增 |
+| R2b | selfIntro 不传(null) | **code=0**（选填语义验证） |
+| R3 | PUT 他人简历 id | HTTP 404 + code=404，"资源不存在或已删除"，且对方数据未被改动 |
+| R4 | size=99999 | code=2，提示 size 越界；**不是**钳制后 200 |
+| R5 | 列表含他人/已删简历？ | code=0 且 list 内无 user_id≠本人、无 deleted=1 的行 |
+| R6 | DELETE 成功后再 GET 详情 | HTTP 404 + code=404（同 D5 路径）；对同 id 再 DELETE 幂等 code=0 |
+| R7 | 未带 token 调任一接口 | HTTP 401 + code=3（继承合同02） |
 
-## 5. 放行条件
+## 6. 实现清单（放行后可动工）
 
-五处 🔶 填完 + 用例期望值填完 → 导师评审 → 改标题为 v1.0 → 进入实现清单（实体/Mapper/分页拦截器/Service 归属过滤/Controller）。
+1. `entity/Resume` + `mapper/ResumeMapper`（照 User 手感，练自己敲）
+2. `config/MybatisPlusConfig`：注册 `MybatisPlusInterceptor` + `PaginationInnerInterceptor(DbType.MYSQL)` 并 **setMaxLimit(50)**（合同 1 的依据就在这）
+3. `dto/ResumeSaveDTO`（新建/修改共用一个，校验全在第 2 节）
+4. `vo/ResumeListItemVO`（五字段）/ `vo/ResumeDetailVO`（含 education/selfIntro）——**两个 VO 形状不同，正是 D4 的落地**
+5. Service：所有查询/更新条件都带 `user_id = 凭证userId`（越权天然查不到→统一 404 的代码路径）；skills 字符串↔数组转换
+6. Controller：REST 风格五端点；`WebMvcConfig` 把 `/resume/**` 纳入拦截
+7. 验收：跑 R1~R7（R2b/R6 的幂等别漏）

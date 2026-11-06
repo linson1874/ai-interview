@@ -27,10 +27,10 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（Day5 已验收：阶段一收尾在即）
-- [ ] **Day6 升级玩法：你起草合同**——`docs/api/03-resume-api.md`（简历 CRUD+分页），我评审放行后你再写码
-- [ ] Day6 实现清单：Resume 实体/ResumeMapper/分页拦截器/归属校验(防越权)/UpsertDTO
-- [ ] 交合同时必须同时交清欠账：Day2 五道读码题、compose 三问、"注销后JWT为何失效"双层答案
+## 学员下一步（Day6 实现：合同 v1.0 已放行）
+- [ ] 按 03-resume-api.md 第 6 节实现清单做简历 CRUD（R1~R7 含 R2b）自验后交
+- [ ] 交验收时同交欠账：Day2 五道读码题、compose 三问、JWT 失效双层答案
+- [ ] 简历模块过后 → 阶段一收官 → 阶段二开课前需裁决：大模型供应商选型(API key)
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 
 ## 欠账清单
@@ -44,6 +44,7 @@
 | 3 | Day3 导师验收实测发现：curl 在 Git Bash 发中文触发 Jackson `Invalid UTF-8 middle byte`（GBK 字节），`HttpMessageNotReadableException` 被 Exception 兜底吞成 500"系统繁忙"，真凶一度被误判为"MySQL挂了" | 导师实测 | **裁决**：补录 `code=400`（镜像规则）；新增 `HttpMessageNotReadableException` handler | ✅ 学员已完成(e0b4d23) |
 | 4 | Knife4j 接口文档页要不要接（Day4 选做项，属依赖口径） | 学员/支持窗口 | **批准接入文档能力，但选型更换**：实测 springdoc-openapi 2.8.6 × Boot 3.5.3 全绿(启动0错、/v3/api-docs 200、swagger-ui 200)；knife4j 4.5.0 内封老 springdoc(Boot 3.0/3.1 时代)，硬配兼容雷区——先用官方 springdoc，knife4j 新版适配后再考虑换壳。拦截器只护 /user/**，文档路径无需放行 | ✅ 完成(b7c0f8b)：实测 /v3/api-docs 200、swagger-ui 200 |
 | 5 | 单端互踢做不做（同账号新登录使旧 token 失效） | 学员/支持窗口 | **做**。设计：Redis 单键 `login:user:{userId}`=当前token，登录覆盖写=天然踢旧，校验"存根等于本token"，logout 按属性 userId 删键；顺带修复审查瑕疵A(Redis TTL 硬编码 Duration.ofHours(2) 与 yml jwt.expire-minutes 双本账→同源注入)。合同02已升 **v0.2**(用例L生效)。多端在线(SET方案)作为面试谈资留档不做 | ✅ 完成(b7c0f8b)：实测用例L(旧票401/新票200)、TTL=7199≈同源120min、注销K通过。遗留观察：旧格式键 login:token:* 靠TTL自然死亡，生产级键迁移(双读/灰度)记为面试谈资 |
+| 6 | 简历模块合同：学员首次起草(D1-D5) | 学员 | **评审放行 v1.0(e290f44→本版)**。采纳:D1a/D2b/D5防枚举思路;修正4处:①D1b误答401(与自身D5矛盾,改统一404) ②"MP默认上限500"为讹传(实为无默认,合同钉50+maxLimit显式) ③D4虚构字段status(t_resume无此列,删) ④姓名正则过严+selfIntro选填null语义封死 | 合同生效,学员进入实现 |
 
 ## 问题日志
 - 2026-11-04 | 3306 bind 失败 | 本机 MySQL 服务占用 | 停服务后用 Docker 独占 3306
