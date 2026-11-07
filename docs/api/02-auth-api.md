@@ -1,6 +1,7 @@
-# 接口文档 — 认证模块 v0.2（Day4 登录/注销/当前用户）
+# 接口文档 — 认证模块 v0.2.1（Day4 登录/注销/当前用户）
 
 > 合同性质同 01 文档；版本变更由裁决人记录。通用约定（Result 包装、错误码规则）继承用户模块文档 v0.3。
+> v0.2.1（2026-11-06，学员复审发现，导师订正）：F 用例 Redis key 名更新为 Day5 互踢后的 `login:user:*`。
 > v0.2 变更（2026-11-05，裁决#5）：Redis 存根改单键 `login:user:{userId}`(值=当前token)，天然**单端在线、重登互踢**；TTL 与 JWT 过期同源注入；新增用例 L。
 > 方案：**JWT(2h) + Redis 登录态**。JWT 负责携带 userId 与防伪，Redis key `login:user:{userId}`（值=当前有效 token）负责"可注销、可互踢、单端在线"。
 
@@ -54,7 +55,7 @@
 
 | # | 场景 | 期望 |
 |---|---|---|
-| F | 正确账密登录（用库里已有的 lisi_3650 / 123456） | code=0，拿到 token；Redis 里 `keys login:token:*` 可见 |
+| F | 正确账密登录（用库里已有的 lisi_3650 / 123456） | code=0，拿到 token；Redis 里 `keys login:user:*` 可见（值=当前有效token，v0.2.1订正） |
 | G | 密码错 | code=1，"用户名或密码错误" |
 | H | 不存在的用户名 | code=1，**文案与 G 完全一致**（不许泄露"用户不存在"） |
 | I | 带 token GET /user/me | code=0，返回 UserVO，**响应 JSON 里搜不到 password 字样** |
