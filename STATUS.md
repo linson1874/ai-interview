@@ -27,11 +27,11 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（阶段二第1课：接入大模型）
-- [ ] **第0步(欠两次的账)**：清尾活(19行import/37行注释) → Day6b改动 commit("refactor: 合同v1.2落地D6/D7...") → 然后才准碰新代码
-- [ ] Day7 门票(当堂)：JWT两问——①注销后票面没过期为何失效 ②互踢与注销在"第二关"判据上的区别
-- [ ] 其余8题顺延至阶段二中期验收前（最后一次放宽）
-- [ ] Day7 主课：Spring AI 接入 DeepSeek(OpenAI兼容) → /ai/chat 问答端点(受登录保护)
+## 学员下一步（Day8：合同05拍板日）
+- [x] Day7 全绿收官：/ai/chat 四件套+拦截+上游收口(NonTransientAiException handler,优于建议方案)+@Disabled；S1-S4 实测通过；**发现配置 deepseek-chat 实际应答 deepseek-flash 的漂移**（model 回显字段首战立功）
+- [x] 门票两问已交（批红两处：存根两种死法；失效统一判据=存根≠本票）
+- [ ] **合同05五个🔶拍板**（Q1无简历抉择 / Q2题数成本算术 / Q3要不要refAnswer / Q4格式失败策略+Converter原理 / Q5 system-user分工+prompt文案）→ 逐字评审 → v1.0 → 实现
+- [ ] 中期硬账：剩余八题（Day2读码5+compose3）+ deepseek-chat/flash 关系调研回填
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 
 ## 欠账清单
