@@ -27,10 +27,10 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（Day6b：按合同03 §6.5 修复清单五项，完成后阶段一收官）
-- [ ] IGNORED策略开关 / 条件删除一条SQL / msg统一ok / 清理无用import / 回归R1~R8b
-- [ ] 欠账十题：**学员申请延期，导师批准改挂**——作为"阶段二第一课门票"，交齐前不开 Spring AI 新课（2026-11-06 约定）
-- [ ] 阶段二预习：大模型供应商调研（见交付报告）
+## 学员下一步（阶段一功能面收官 ✅ 2026-11-06 Day6b 实测 R1~R8b 九项全绿）
+- [ ] 尾活：删 `ResumeServiceImpl` 第19行无用 import + `ResumeController` 第37行过期注释 → **学员自行 commit**（建议 "style: 代码卫生清理,Day6b收口"）
+- [ ] 阶段二第一课门票：十道欠题（Day2读码5 + compose3 + JWT双层2）——交票开新课
+- [ ] 阶段二预习：四家大模型供应商调研表（免费额度 / token定价 / OpenAI兼容性）
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 
 ## 欠账清单
