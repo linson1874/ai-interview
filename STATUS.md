@@ -27,10 +27,11 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（阶段一功能面收官 ✅ 2026-11-06 Day6b 实测 R1~R8b 九项全绿）
-- [ ] 尾活：删 `ResumeServiceImpl` 第19行无用 import + `ResumeController` 第37行过期注释 → **学员自行 commit**（建议 "style: 代码卫生清理,Day6b收口"）
-- [ ] 阶段二第一课门票：十道欠题（Day2读码5 + compose3 + JWT双层2）——交票开新课
-- [ ] 阶段二预习：四家大模型供应商调研表（免费额度 / token定价 / OpenAI兼容性）
+## 学员下一步（阶段二第1课：接入大模型）
+- [ ] **第0步(欠两次的账)**：清尾活(19行import/37行注释) → Day6b改动 commit("refactor: 合同v1.2落地D6/D7...") → 然后才准碰新代码
+- [ ] Day7 门票(当堂)：JWT两问——①注销后票面没过期为何失效 ②互踢与注销在"第二关"判据上的区别
+- [ ] 其余8题顺延至阶段二中期验收前（最后一次放宽）
+- [ ] Day7 主课：Spring AI 接入 DeepSeek(OpenAI兼容) → /ai/chat 问答端点(受登录保护)
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 
 ## 欠账清单
