@@ -1,5 +1,6 @@
 package com.itlzy.aiinterview.common;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -15,12 +16,15 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice       // 声明：全项目 Controller 的异常都归我翻译
 public class GlobalExceptionHandler {
 
-    /** 业务失败（Service 主动鸣哨，如用户名已存在）→ 按异常自带的码装盘，预期内结果不记错误日志 */
+    /** 业务失败（Service 主动鸣哨）→ 按异常自带码装盘
+     *  v1.1配套：码值≥400（镜像HTTP家族）时同步设置HTTP状态，如NOT_FOUND→HTTP 404；业务码0~3仍走HTTP 200 */
     @ExceptionHandler(BusinessException.class)
-    public Result<Void> handleBusiness(BusinessException e) {
+    public Result<Void> handleBusiness(BusinessException e, HttpServletResponse response) {
+        if (e.getResultCode().getCode() >= 400) {
+            response.setStatus(e.getResultCode().getCode());
+        }
         return Result.of(e.getResultCode(), e.getMessage());
     }
-
     /** 参数校验失败 → code=2，把第一条校验提示语带出去 */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Result<Void> handleValidation(MethodArgumentNotValidException e) {

@@ -1,4 +1,9 @@
 package com.itlzy.aiinterview.mapper;
 
-public class ResumeMapper {
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.itlzy.aiinterview.entity.Resume;
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public interface ResumeMapper extends BaseMapper<Resume> {
 }
