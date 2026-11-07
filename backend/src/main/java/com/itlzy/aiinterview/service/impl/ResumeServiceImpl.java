@@ -16,7 +16,6 @@ import com.itlzy.aiinterview.vo.ResumeListItemVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -123,22 +122,10 @@ public class ResumeServiceImpl implements ResumeService {
 
     @Override
     public void delete(Long userId, Long id) {
-        // 第一查：本人的活跃简历在不在？在→直接删，完事 code=0
-        Resume mine = resumeMapper.selectOne(
+        resumeMapper.delete(
                 new LambdaQueryWrapper<Resume>()
                         .eq(Resume::getId, id)
                         .eq(Resume::getUserId, userId));
-        if (mine != null) {
-            resumeMapper.deleteById(id);        // @TableLogic 自动翻译成 UPDATE deleted=1，不是真删
-            return;
-        }
-        // 第二查（只在第一查落空时才走到）：这个 id 是不是"别人的活跃简历"？
-        Resume others = resumeMapper.selectOne(
-                new LambdaQueryWrapper<Resume>().eq(Resume::getId, id));
-        if (others != null) {
-            throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");   // 越权→404
-        }
-        // 既不是我的、也不存在（或已删）→ 幂等：静默成功
     }
 
     @Override

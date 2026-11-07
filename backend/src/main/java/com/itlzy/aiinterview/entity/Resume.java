@@ -18,10 +18,12 @@ public class Resume {
 
     private String targetJob;
 
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String education;
 
     private String skills;
 
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String selfIntro;
 
     @TableField(fill = FieldFill.INSERT)
@@ -32,5 +34,6 @@ public class Resume {
 
     @TableLogic
     private Integer deleted;
+
 
 }

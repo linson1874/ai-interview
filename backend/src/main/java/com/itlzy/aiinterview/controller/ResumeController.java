@@ -34,7 +34,7 @@ public class ResumeController {
     public Result<Void> create(@RequestAttribute("userId") Long userId,
                                @Valid @RequestBody ResumeSaveDTO dto) {
         resumeService.create(userId, dto);
-        return Result.ok("简历保存成功");        // 成功 msg 合同未定稿，暂拟；失败文案才受§2.1约束
+        return Result.ok("ok");        // 成功msg统一"ok"（合同03 v1.2 §2.1：业务文案归前端拥有）
     }
 
     /** 修改：PUT /resume/{id} —— id 在路径上（REST 风格），不在 body */
@@ -43,15 +43,15 @@ public class ResumeController {
                                @PathVariable Long id,
                                @Valid @RequestBody ResumeSaveDTO dto) {
         resumeService.update(userId, id, dto);
-        return Result.ok("简历更新成功");
+        return Result.ok("ok");
     }
 
-    /** 删除：DELETE /resume/{id} —— 幂等语义见 Service 的 R6 判决表 */
+    /** 删除：DELETE /resume/{id} —— 幂等+防枚举：不论归属/存在/已删，一律 code=0（D7，v1.2裁决已废弃旧双查鉴别版） */
     @DeleteMapping("/{id}")
     public Result<Void> delete(@RequestAttribute("userId") Long userId,
                                @PathVariable Long id) {
         resumeService.delete(userId, id);
-        return Result.ok("简历删除成功");
+        return Result.ok("ok");
     }
 
     /** 分页：GET /resume/page?page=1&size=10 —— defaultValue 兜住"不传"，越界校验在 Service */
