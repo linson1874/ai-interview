@@ -2,6 +2,7 @@ package com.itlzy.aiinterview.common;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -45,6 +46,15 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> handleUnreadable(HttpMessageNotReadableException e){
         return Result.of(ResultCode.BAD_REQUEST, "请求体不是合法JSON");
+    }
+
+    /** 上游大模型异常（key失效/欠费/超时/网络）→ HTTP 200 + code 500 + 固定文案
+     *  ⚠️关键：①绝不加 @ResponseStatus——合同04要求HTTP仍是200(见下)；②绝不把e.getMessage()透传(泄露上游URL/request_id)；
+     *  ③真实堆栈只进log。就近匹配抢在Exception兜底前，把"下游坏了"和"系统崩了"的文案分开 */
+    @ExceptionHandler(NonTransientAiException.class)
+    public Result<Void> handleAiUpstream(NonTransientAiException e) {
+        log.error("AI上游异常", e);   // 对内：全量堆栈可查（Day5纪律延续）
+        return Result.of(ResultCode.SERVER_ERROR, "AI 服务暂时不可用，请稍后重试");  // 对外：固定人话，不带e.getMessage()
     }
 
     /** 并发重复注册漏网到这一层的 → code=1（Service 内已必做处理，这里给其他未来自查漏写的 Service 兑底） */
