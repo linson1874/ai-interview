@@ -48,9 +48,7 @@ public class GlobalExceptionHandler {
         return Result.of(ResultCode.BAD_REQUEST, "请求体不是合法JSON");
     }
 
-    /** 上游大模型异常（key失效/欠费/超时/网络）→ HTTP 200 + code 500 + 固定文案
-     *  ⚠️关键：①绝不加 @ResponseStatus——合同04要求HTTP仍是200(见下)；②绝不把e.getMessage()透传(泄露上游URL/request_id)；
-     *  ③真实堆栈只进log。就近匹配抢在Exception兜底前，把"下游坏了"和"系统崩了"的文案分开 */
+    /** 上游大模型异常（key失效/欠费/超时/网络）→ HTTP 200 + code 500 + 固定文案 */
     @ExceptionHandler(NonTransientAiException.class)
     public Result<Void> handleAiUpstream(NonTransientAiException e) {
         log.error("AI上游异常", e);   // 对内：全量堆栈可查（Day5纪律延续）
