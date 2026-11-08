@@ -28,11 +28,11 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（Day8 验收通过 ✅，阶段三开工）
-- [x] 合同05 v1.1：实现审查通过（门序/三级漏斗/免疫拼接/nullSafe/复用03的404门/per-call options 全对）；G1~G6 导师实跑全绿（真实出题质量超预期）；§2.1 学员回填批准+R7 模型正名入档
-- [ ] **交代一件事**：库里老用户 lisi_3650 被删（导师回归差点被打挂）——数据可以清，但要留说明；教训：**测试夹具现场造、不依赖"上次那个账号"**（导师的 e2e 脚本这次就是这么活下来的）
-- [ ] 小尾巴两条：① JwtUtilTest 的 `assert` 裸关键字改 Assertions.assertEquals（-ea 不开就静默假绿），补一条篡改 token 的负路径；② **converter 纯单测**（喂"```json 围栏串"验 L2，免费、无需 mock，5分钟）+ L3 mock 改造随阶段三中期交
-- [ ] 阶段三第1课预告：Redis Stream 异步出题 + POST /interview 资源模型落地（05 合同的两笔赊账）；届时八题门票结清
+## 学员下一步（阶段三第1课：合同06拍板）
+- [x] 预习题（消费者宕机任务去哪）已答：PEL/XAUTOCLAIM/定时清扫机制全对，B+——批注两处盲区入合同06设计种子：①at-least-once→重复执行→幂等门(H3) ②delivery-count 死信需自建(H4)
+- [ ] **合同06 H1~H6 拍板**（H3 幂等门是灵魂，必须写出 UPDATE 形状+抢输者ACK与否的理由）→ 评审 v1.0 → 实现
+- [ ] 实现后必跑 T4 故障演练（kill -9 验证幂等）与 T5 毒消息演练——**本课的验收一半在"故意把系统弄坏"**
+- [ ] 小尾巴（Day8遗留，随本课交）：JwtUtilTest 断言整改+负路径 / converter 纯单测 / 八题门票
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 
 ## 欠账清单
