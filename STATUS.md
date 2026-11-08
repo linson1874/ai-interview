@@ -28,11 +28,11 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（Day8：合同05拍板日）
-- [x] Day7 全绿收官：/ai/chat 四件套+拦截+上游收口(NonTransientAiException handler,优于建议方案)+@Disabled；S1-S4 实测通过；**发现配置 deepseek-chat 实际应答 deepseek-flash 的漂移**（model 回显字段首战立功）
-- [x] 门票两问已交（批红两处：存根两种死法；失效统一判据=存根≠本票）
-- [ ] **合同05五个🔶拍板**（Q1无简历抉择 / Q2题数成本算术 / Q3要不要refAnswer / Q4格式失败策略+Converter原理 / Q5 system-user分工+prompt文案）→ 逐字评审 → v1.0 → 实现
-- [ ] 中期硬账：剩余八题（Day2读码5+compose3）+ deepseek-chat/flash 关系调研回填
+## 学员下一步（Day8 合同05已放行 v1.0，实现+验收 G1~G6）
+- [x] 合同05评审：学员 Q1b/Q4/Q5 高分采纳；导师执法 R1端点命名诚实原则 / R3 refAnswer代拍不要 / R4 count改选填 / R5幽灵字段第三次违规(experience不存在) / R6 prompt一致性
+- [ ] 按合同05 §7 实现清单开工（重点：复用03的getOwnResumeOr404、per-call max_tokens、L2/L3策略、mock思考题）
+- [ ] 回归 G1~G6 全绿（G1 顺带回填 §2 usage 实测）+ 文案逐字 diff
+- [ ] 中期硬账：剩余八题 + chat/flash 关系调研回填
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 
 ## 欠账清单
