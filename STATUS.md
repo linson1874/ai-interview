@@ -8,6 +8,8 @@
 1 骨架与用户体系 ✅ → 2 Spring AI 问答（进行中） → 3 Stream 异步出题+评分+报告 → 4 pgvector RAG+离线题池 → **5 差异化：提分闭环(ZSET间隔重复) → 追问决策器(CAT-lite)** → 6 选做(PDF解析/语音)
 设计快照：`docs/product/differentiation.md`（D1-D3 已裁决）、`ai-feature-map.md`
 
+**前端定档（2026-11-09 补，回应学员提问）**：不随功能同步做；**阶段三收尾后插一周"前端冲刺周"**——届时核心闭环（注册登录→简历→异步面试→作答→评分报告）完整，页面才有演示价值；阶段四/五功能逐个回填页面。技术栈 Vue3+ElementPlus，页面骨架 AI 辅助生成，**接口对接与状态逻辑必须学员亲手写**。冲刺周前置资产=工单⑥ `scripts/e2e.sh`（回归脚本入仓，在此之前它就是"验收面"）。
+
 ## 版本决策记录（重要，勿反复）
 - 2026-11-04 查证：start.spring.io 当前默认 Boot 4.1.0；Boot 4.1.2 在 Central 存在；
   Spring AI 2.0.1 需 Boot>=4.0；**但 MyBatis-Plus 官方最新仍只有 spring-boot3-starter(3.5.7)，无 Boot4 starter**
@@ -32,6 +34,8 @@
 - [x] 工单① sql/02 已交(76ca012)；工单②进行中；学员自曝 count 异步泄漏→R5 裁决A(表列 question_count)，合同升 v1.1，T9 入表
 - [x] 导师纪律事故一起：git add 误裹学员工单②文件进 docs 提交——reset 回退，教训入问题日志。**学员的活学员 commit，导师只提自己的纸**
 - [ ] 工单顺序固化：sql/03 → 生产侧(带count落库+MAXLEN) → 消费侧(读列+H2恢复模式) → 清扫 → retry → T1~T9，T4 留证据
+- [ ] 工单⑥（新）：`scripts/e2e.sh` 回归脚本入仓——导师历次验收脚本为原型，一键可跑，改完代码跑一遍即回归；前端冲刺周的前置资产
+- [ ] 事故升级记录（导师，第二次同类）：git commit 吞掉学员**暂存区**三个文件——教训从"git add 别用通配"升级为"提交前必须看 git status 的 staged 段"；索引是共享的，谁的分支谁结账
 - [ ] 中期结账：八题 + JwtUtilTest整改 + converter纯单测（T4/T5 后一并）
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 ## 欠账清单
