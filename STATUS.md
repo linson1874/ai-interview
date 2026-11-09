@@ -28,18 +28,12 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（阶段三第1课：合同06 v1.0 已放行，开工令）
-- [x] H1~H6 评审完毕：本项目最高水位答卷（H3/H4/H5/H6 多段原文入宪）；导师执法 R1中间态4(R3抢单撞状态机语义)/R2护栏按上沿5000(用学员自己的"碰平口径"原则)/R3 T6T8代填/R4 MAXLEN修剪补刀
-- [ ] 按 §5 顺序实现：sql/02 增量脚本打头；T4 kill -9 演练必须留证据
-- [ ] 中期结账：八题 + JwtUtilTest整改 + converter纯单测
+## 学员下一步（阶段三第1课：合同06 v1.1，工单③已解锁）
+- [x] 工单① sql/02 已交(76ca012)；工单②进行中；学员自曝 count 异步泄漏→R5 裁决A(表列 question_count)，合同升 v1.1，T9 入表
+- [x] 导师纪律事故一起：git add 误裹学员工单②文件进 docs 提交——reset 回退，教训入问题日志。**学员的活学员 commit，导师只提自己的纸**
+- [ ] 工单顺序固化：sql/03 → 生产侧(带count落库+MAXLEN) → 消费侧(读列+H2恢复模式) → 清扫 → retry → T1~T9，T4 留证据
+- [ ] 中期结账：八题 + JwtUtilTest整改 + converter纯单测（T4/T5 后一并）
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
-
-- [x] 预习题（消费者宕机任务去哪）已答：PEL/XAUTOCLAIM/定时清扫机制全对，B+——批注两处盲区入合同06设计种子：①at-least-once→重复执行→幂等门(H3) ②delivery-count 死信需自建(H4)
-- [ ] **合同06 H1~H6 拍板**（H3 幂等门是灵魂，必须写出 UPDATE 形状+抢输者ACK与否的理由）→ 评审 v1.0 → 实现
-- [ ] 实现后必跑 T4 故障演练（kill -9 验证幂等）与 T5 毒消息演练——**本课的验收一半在"故意把系统弄坏"**
-- [ ] 小尾巴（Day8遗留，随本课交）：JwtUtilTest 断言整改+负路径 / converter 纯单测 / 八题门票
-- [ ] 日常：开机后 `docker start ai-mysql ai-redis`
-
 ## 欠账清单
 - [ ] docker-compose 小作业三问（旧教程项目：起了几个服务 / rustfs 存什么 / 为何还留 MySQL）
 
@@ -58,6 +52,8 @@
 | 10 | Day7 审查补充裁决：学员对"中立单key命名"提出反驳（目标=多厂商key并存+模型可选） | 学员 | **修正#9的环境变量规则**：厂商前缀命名合法（多key并存场景），老红线不变；补分层注解：部署级切换（现在）vs 运行时多模型路由（Day8 与简历出题一起设计，合同04升v0.2） | ✅ 生效；Day7缺口清单 A四件套/B拦截/C上游收口/E付费测试@Disabled 仍待学员交付 |
 
 ## 问题日志
+- 2026-11-09 | count 事实异步化途中丢失(H1×H6 组合缝) | 同步参数未外化为状态 | R5 表列方案;入宪教训:异步化=把参数变成状态
+- 2026-11-09 | 导师 git add 误裹学员工单②文件提交 | 提交前未 git status 核对+通配过宽 | reset --soft 回退保留工作区;规矩:导师只提 docs/STATUS,代码归学员
 - 2026-11-04 | 3306 bind 失败 | 本机 MySQL 服务占用 | 停服务后用 Docker 独占 3306
 - 2026-11-04 | `^[[200~` 粘贴乱码 | Git Bash 不识别 bracketed paste | 复制命令/关 bracketed paste
 - 2026-11-04 | `MYSQL_ DATABASE` 空格 | invalid reference format | 多行命令用复制，读报错定位镜像名异常
