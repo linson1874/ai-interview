@@ -19,8 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -116,6 +118,27 @@ public class InterviewServiceImpl implements InterviewService {
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "生成进行中，无需重试");   // code=1（导师 T6 口径，非 400）
         }
         enqueueWithCompensation(id);   // 重投同一 interviewId，消费者见 IN(0,4) 接活
+    }
+
+    /** R7（v1.2 裁决）事务性发件箱补投：系统动作救"丢失(0不碰)"——每60s扫 status=0 且
+     *  update_time 60s 没动的行，复用 enqueueWithCompensation 重上输送带（不改状态、不碰状态机边）。
+     *  若消息其实已在飞，消费者抢单CAS+先删后插自然去重。覆盖两类孤魂：insert与XADD之间崩溃、
+     *  演练DEL火化消息（活标本 id=1、2：部署后 60s 内自愈即为其验收）。
+     *  与 retry 分工：retry=用户动作救"失败(3→0)"；补投=系统动作救"丢失(0)" */
+    @Scheduled(fixedDelay = 60_000)
+    public void outboxResend() {
+        List<Interview> orphans = interviewMapper.selectList(new LambdaQueryWrapper<Interview>()
+                .eq(Interview::getStatus, 0)
+                .lt(Interview::getUpdateTime, LocalDateTime.now().minusSeconds(60)));
+        for (Interview o : orphans) {
+            log.info("发件箱补投：status=0 且 60s 无动静的孤魂行 re-enqueue interviewId={}", o.getId());
+            try {
+                enqueueWithCompensation(o.getId());
+            } catch (Exception e) {
+                // 单行失败不炸整批：enqueueWithCompensation 内部已把该行补偿翻3，这里只需继续救下一魂
+                log.warn("发件箱补投失败（内部已补偿为失败态）interviewId={}", o.getId());
+            }
+        }
     }
 
     /** XADD 带 MAXLEN~（R4）；双写无分布式事务，XADD 失败→就地翻3，不留"永远排队"的孤魂（决策③，F组演练验真） */
