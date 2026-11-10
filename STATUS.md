@@ -30,11 +30,11 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（合同06 v1.2：R6/R7/R8 裁决完毕，工单清单如下）
-- [x] 工单③消费者+④清扫+⑤retry 代码审查通过（@PostConstruct 顺序编排/BUSYGROUP幂等/enqueueWithCompensation 都是好代码）；编译绿
-- [ ] **v1.2 落地四件**：①sweep min-idle 300→600s（R8）②outbox 补投任务（R7，@Scheduled 60s）③ensureGroup catch 归因修正 ④死信边判影响行数再报日志（各两行）
-- [ ] 重跑 T1~T9 + 新增 T10（outbox 自愈验证：id=1、2 应在一个 60s 周期内复活流转）；T4 kill -9 用 taskkill //F //PID（IDEA Stop 有断点放行陷阱）
-- [ ] 工单⑥ scripts/e2e.sh（含 T 系列）；中期结账：八题 + JwtUtilTest整改 + converter纯单测
+## 学员下一步（阶段三上半场收官 ✅，下半场=合同07）
+- [x] v1.2 四件落地，导师实测：T1 秒回 0.093s / T2 三题=count 全旅程证实(R5闭环) / T10 活标本 id=1,2 已复活 status=1(outbox 在学员上一轮运行中完成自愈)
+- [x] 异步出题链路（06 全剧本）验收通过——阶段三上半场收官
+- [ ] 下半场：合同07（作答·评分·报告）J1~J5 拍板，J5 注入攻击题必须真跑不接受纸面防御
+- [ ] **中期硬账（本窗口到期，阶段四门票）**：Day2 五读码题 + compose 三问 + JwtUtilTest 仍裸 assert + converter 纯单测仍缺
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 ## 欠账清单
 - [ ] docker-compose 小作业三问（旧教程项目：起了几个服务 / rustfs 存什么 / 为何还留 MySQL）
