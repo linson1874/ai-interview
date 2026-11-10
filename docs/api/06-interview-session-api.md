@@ -1,4 +1,4 @@
-# 接口文档 — 面试场次与异步出题 v1.1（评审放行版；v1.1=R5 堵 count 异步泄漏窟窿）
+# 接口文档 — 面试场次与异步出题 v1.2（评审放行版；v1.2=R6 抢单死锁裁决/R7 发件箱补投/R8 min-idle 修正）
 
 > 通用约定继承 01/02/05；鉴权 `/interview/**` 纳入拦截区。**本版兑现两笔旧账**：合同05 R1（资源模型 POST /interview——现在它真的创建资源了，配得上这个名字）与 §1（异步化，30-60s 同步等待改后台任务）。
 > 设计种子鸣谢：故障转移骨架来自学员预习问答（PEL + XAUTOCLAIM + 定时清扫），导师批注补齐两处盲区（at-least-once 幂等、delivery-count 死信）。
@@ -15,7 +15,23 @@ t_interview.status（R1 裁决新增中间态 4，理由见 §6）：
 五条转义边，全部是"WHERE 带前置状态"的原子 UPDATE——学员 H3 的形状不只是一道门，
 它从此统治整个生命周期（这就是状态机的正确画法：每条边都是一个条件 UPDATE）：
 
-  抢单:   UPDATE t_interview SET status=4 WHERE id=? AND status=0        影响1=去调AI; 0=ACK走人
+  抢单:   UPDATE t_interview SET status=4 WHERE id=? AND (status=0 OR status=4)
+          影响1=去调AI(0=首抢, 4=接管死者现场); 0=ACK走人
+          ——R6(v1.2 裁决)：原 WHERE status=0 在"崩溃后行永停4"场景死锁(重投CAS恒0→ACK→
+          永卡)，学员以 D1 演练证据上报补丁。此补丁成立靠三根柱子，缺一即塌：
+          ①消费者单线程串行(poll/sweep/recover 同调度线程，无双抢窗口)
+          ②min-idle > 最坏合法处理时长(R8：300→600s)
+          ③先删后插收敛终态(就算两跑，结果恒 N 题)
+          扩容前置条件(写死在此)：一旦加线程/加实例，必须先换租约式CAS——
+          WHERE status=0 OR (status=4 AND update_time < NOW()-INTERVAL :lease SECOND)
+          (t_interview.update_time 的 ON UPDATE CURRENT_TIMESTAMP 是天然免费租约基底)
+
+  补投:   R7(v1.2 裁决) 事务性发件箱(outbox)：@Scheduled 每60s
+          SELECT id FROM t_interview WHERE status=0 AND update_time < NOW()-INTERVAL 60 SECOND
+          → 逐条复用 enqueueWithCompensation(id) 重投。不改状态，只补输送带：
+          若消息其实已在飞，消费者 CAS+先删后插自然去重。覆盖两类孤魂：
+          insert与XADD之间崩溃、演练DEL火化消息(id=1、2 活标本——部署后应自愈，即为其验收)
+          与 retry 的分工：retry=用户动作救"失败(3→0)"；补投=系统动作救"丢失(0不碰)"
   完成:   (批量写 t_interview_question 后)
           UPDATE t_interview SET status=1 WHERE id=? AND status=4
   死信:   UPDATE t_interview SET status=3 WHERE id=? AND status=4         (delivery≥3, 见H4)
@@ -39,7 +55,7 @@ retry 天然沿用原值（返工的是"这一场"，不重新约定题数）。
 |---|---|
 | `POST /interview` | 创建面试：校验 resumeId 归属(沿03 D5)→落库 status=0→XADD→**立刻返回** interviewId（不等待生成） |
 | `GET /interview/{id}` | 查场次：status +（**status=1 才附题目列表**；4=生成中不附——R1 把"题目窗口"消灭）；用户的轮询面 |
-| `POST /interview/{id}/retry`? | **H5 决定要不要这个端点**（见下） |
+| `POST /interview/{id}/retry` | H5 已裁决：要。3→0 原子边+重投（enqueueWithCompensation 复用），双击防抖白送；归属校验内嵌 WHERE user_id |
 
 **内部（非 HTTP 合同，但验收可观测）**：Stream key/group/消费者命名与消费者线程模型=H1/H2；清扫任务=已定（@Scheduled 周期 XAUTOCLAIM，周期与 min-idle 由 H4 定）；幂等门=H3。
 
@@ -120,3 +136,7 @@ H1~H6 拍板齐（H3 写出 SQL 形状 ✅）+ T 表互洽（T6/T8 由导师代�
 | R4 | H1 采纳（PII 进流的安全加分漂亮）；运维补刀：XADD 必须带 MAXLEN 修剪，否则"存全量历史"从论据变成事故 | 采纳+补充 |
 | R5 | **异步路径 count 泄漏窟窿**（学员工单②演练期发现并上报）：DTO 校验了 1-10，但表无列、H1 定稿消息只带线索 → 消费者无从决定题数。裁决 A：加列 `question_count`（场次属性论）；B 否决（消息寄生业务事实，违 H1 且经不起修剪）；T9 入表；工单③解锁条件=sql/03 先行 | 裁决+学员上报 |
 | — | H2（固定 consumer 名+启动恢复 PEL）、H4（≥3 阈值推导/毒消息也 ACK/300s"宁可晚救不可错抢"）、H5（3→0 返工边/先删后插/双击防抖白送）——学员原文即定稿 | 全文采纳 |
+| R6 | 抢单死锁补丁 IN(0,4) **批准**（学员 D1 演练证据；原边在"崩溃后行永停4"死锁）——三柱条件与租约升级路径写死在 §1 抢单边：单线程串行是地基，加线程/加实例前必须先换 update_time 租约式 CAS | 裁决 |
+| R7 | 0 孤儿行三选项全否（0→0 retry 边混淆用户/系统动作、手工 XADD 不可演示、接受死亡与 enqueueWithCompensation 自家哲学矛盾）；裁定**事务性发件箱补投**（§1 补投边）；活标本 id=1、2 部署后自愈即验收 | 裁决 |
+| R8 | min-idle 300→600s（由 R6 证据链算出）：L3 双发×10题×max_tokens5000 尾部 ~240s+排队抖动，300s 安全垫仅 60s——"不误抢活人"不能靠运气；sweep 周期 300s 不变 | 裁决修正 |
+| — | NOGROUP 自愈双层（启动 ensureGroup+poll 运行期自愈，不赌未验证的 MKSTREAM 字节码行为）批准为架构行为；批注微瑕两处待修：①ensureGroup catch 把"启动时 key 不存在"误归"BUSYGROUP 幂等"日志 ②⓪死信边未判影响行数可虚报"处死"——各两行 | 备案批准+批注 |

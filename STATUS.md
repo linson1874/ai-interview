@@ -30,13 +30,11 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（阶段三第1课：合同06 v1.1，工单③已解锁）
-- [x] 工单① sql/02 已交(76ca012)；工单②进行中；学员自曝 count 异步泄漏→R5 裁决A(表列 question_count)，合同升 v1.1，T9 入表
-- [x] 导师纪律事故一起：git add 误裹学员工单②文件进 docs 提交——reset 回退，教训入问题日志。**学员的活学员 commit，导师只提自己的纸**
-- [ ] 工单顺序固化：sql/03 → 生产侧(带count落库+MAXLEN) → 消费侧(读列+H2恢复模式) → 清扫 → retry → T1~T9，T4 留证据
-- [ ] 工单⑥（新）：`scripts/e2e.sh` 回归脚本入仓——导师历次验收脚本为原型，一键可跑，改完代码跑一遍即回归；前端冲刺周的前置资产
-- [ ] 事故升级记录（导师，第二次同类）：git commit 吞掉学员**暂存区**三个文件——教训从"git add 别用通配"升级为"提交前必须看 git status 的 staged 段"；索引是共享的，谁的分支谁结账
-- [ ] 中期结账：八题 + JwtUtilTest整改 + converter纯单测（T4/T5 后一并）
+## 学员下一步（合同06 v1.2：R6/R7/R8 裁决完毕，工单清单如下）
+- [x] 工单③消费者+④清扫+⑤retry 代码审查通过（@PostConstruct 顺序编排/BUSYGROUP幂等/enqueueWithCompensation 都是好代码）；编译绿
+- [ ] **v1.2 落地四件**：①sweep min-idle 300→600s（R8）②outbox 补投任务（R7，@Scheduled 60s）③ensureGroup catch 归因修正 ④死信边判影响行数再报日志（各两行）
+- [ ] 重跑 T1~T9 + 新增 T10（outbox 自愈验证：id=1、2 应在一个 60s 周期内复活流转）；T4 kill -9 用 taskkill //F //PID（IDEA Stop 有断点放行陷阱）
+- [ ] 工单⑥ scripts/e2e.sh（含 T 系列）；中期结账：八题 + JwtUtilTest整改 + converter纯单测
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 ## 欠账清单
 - [ ] docker-compose 小作业三问（旧教程项目：起了几个服务 / rustfs 存什么 / 为何还留 MySQL）
@@ -54,8 +52,13 @@
 | 8 | Day6 实现评审：①PUT null清空语义留白 ②分页文案暂拟 ③排序未明写（学员提报）+ 实测新发现④删他人活跃简历→404 构成枚举侧信道（与学员自身D5矛盾）| 学员/导师实测 | **①全量替换**(D6: 表单提交场景"删空再存"是真需求; MP updateById 跳null实测复现, 落地开关=FieldStrategy.IGNORED) **②文案定稿入§2.1** **③批准createTime desc+id desc**(次键防翻页漂移) **④D7: 条件删除一条SQL,一律code0**(双查竞态+侧信道一并消除)；另批注: 学员handler"码值≥400同步HTTP状态"写法予以认可；学员改§2.1 min文案获追认；成功msg统一"ok"新约定 | 合同v1.2生效，Day6b修复清单见§6.5 |
 | 9 | 阶段二供应商选型：学员提议百炼为主、后续加 DeepSeek/GLM 选项 | 学员 | **批准**。架构原则定档：**只依赖 OpenAI 兼容协议，不绑定厂商**（切供应商=改配置）。百炼 compatible-mode + qwen-plus 起步；百炼模型广场自带 deepseek/glm 等第三方模型，可能一个 key 通吃——三个模型 ID 待学员控制台实测回填。key 走环境变量 AI_API_KEY（红线延续）；成本护栏第一档=登录保护+max-tokens512，限流留阶段三前裁决 | 合同04 v0.1生效，Day7实现 |
 | 10 | Day7 审查补充裁决：学员对"中立单key命名"提出反驳（目标=多厂商key并存+模型可选） | 学员 | **修正#9的环境变量规则**：厂商前缀命名合法（多key并存场景），老红线不变；补分层注解：部署级切换（现在）vs 运行时多模型路由（Day8 与简历出题一起设计，合同04升v0.2） | ✅ 生效；Day7缺口清单 A四件套/B拦截/C上游收口/E付费测试@Disabled 仍待学员交付 |
+| 11 | 抢单边 IN(0,4) 补丁（原 0 单边在崩溃恢复死锁，D1 演练实锤永卡4） | 学员（带证据） | R6 批准——单线程串行+min-idle裕量+先删后插三柱撑腰；扩容前必须换 update_time 租约CAS（合同06 v1.2 §1 写死）；连带 R8 min-idle 300→600s | ✅ 裁决入合同06 v1.2；学员改参数 |
+| 12 | poll NOGROUP 自愈 vs 显式 MKSTREAM | 学员 | 批准为架构行为（双层防御：启动 ensureGroup + 运行期自愈；不赌未验证字节码）；微瑕两处批注（catch 归因日志/死信边虚报）随工单修 | ✅ 裁决入合同06 v1.2 |
+| 13 | status=0 孤儿行（DEL 火化消息，活标本 id=1、2） | 学员 | 三选项全否，裁 R7 **事务性发件箱补投**（@Scheduled 60s 扫 0+stale → enqueueWithCompensation）；retry 保持用户语义；id=1、2 自愈即验收 | ✅ 裁决入合同06 v1.2；待实现 |
 
 ## 问题日志
+- 2026-11-09 | 演练陷阱①：IDEA Stop 按钮在断点挂起时先放行线程——"假死"实锤，D1第一次演练活干完才停 | 停止≠kill -9 | 演练杀进程一律 taskkill //F //PID（AGENTS工具口径已钉）
+- 2026-11-09 | 演练陷阱②：DEL 流 key=消息+消费组+PEL 一锅端（组是key附属品，NOGROUP血案与两具孤儿标本） | 演练工具过猛 | 收尾靠 ensureGroup/自愈或 XGROUP CREATE MKSTREAM；运维禁用 DEL，用 XTRIM
 - 2026-11-09 | count 事实异步化途中丢失(H1×H6 组合缝) | 同步参数未外化为状态 | R5 表列方案;入宪教训:异步化=把参数变成状态
 - 2026-11-09 | 导师 git add 误裹学员工单②文件提交 | 提交前未 git status 核对+通配过宽 | reset --soft 回退保留工作区;规矩:导师只提 docs/STATUS,代码归学员
 - 2026-11-04 | 3306 bind 失败 | 本机 MySQL 服务占用 | 停服务后用 Docker 独占 3306

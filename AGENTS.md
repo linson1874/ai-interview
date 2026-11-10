@@ -30,6 +30,7 @@
 - **表设计**：`t_user`/`t_resume`/`t_interview`/`t_interview_question`；逻辑删除 `deleted`（MP 全局配置）；`t_user.username` 唯一索引 `uk_username`；无物理外键
 - **配置口径**：`application.yml` 只放中性配置（profile 激活、端口）；含密码的 `application-dev.yml` 在 `.gitignore` 中——**密码绝不进 Git**
 - **工具**：数据库 GUI = Navicat；终端 = Git Bash；不要建议换用 CMD/PowerShell 跑教程命令
+- **命令行 JDK 口径（学员实锤，违者 Lombok 静默毒害）**：本机系统 java 指向 Temurin 25——用 JAVA_HOME 未钉 ms-17.0.19 的 shell 跑 mvn 会满屏"找不到符号"假案。任何命令行构建/测试前必须 `export JAVA_HOME="C:/Users/Lying/.jdks/ms-17.0.19"`；杀进程演练用 `taskkill //F //PID`（IDEA Stop 在断点挂起时会先放行线程=假死实锤两次）
 - **无 Maven Wrapper**：本机未装独立 mvn，IDEA 用自带 Bundled Maven 构建；命令行验证用 `~/.m2/wrapper/dists/apache-maven-3.10.0/*/apache-maven-3.10.0/bin/mvn`
 
 ## 禁动清单（红线）
