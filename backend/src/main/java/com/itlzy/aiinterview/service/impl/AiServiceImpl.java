@@ -28,7 +28,7 @@ public class AiServiceImpl implements AiService {
     private final ResumeService resumeService;    // 清单4"复用别复制粘贴"：404门+skills解析全借detail()
 
     /** 出题专属输出预算：5题×500×1.2（§2 定稿），与 /ai/chat 的全局 512 分离 */
-    private static final int GEN_MAX_TOKENS = 3000;
+    private static final int GEN_MAX_TOKENS = 5000;
     private static final int DEFAULT_COUNT = 5;   // R4 缺省，唯一出处
 
     /** §5 system prompt 定稿——与合同逐字一致（含 R6 修正），一个字都不许顺手改。
@@ -43,7 +43,6 @@ public class AiServiceImpl implements AiService {
             5. 题干使用中文。
             6. 只输出一个 JSON 对象，禁止输出任何解释文字、前后缀，禁止使用 markdown 代码块符号。
             """;
-
     /** L3 重试的纠错强化句（§3 定稿文案，追加在 system 末尾——重试必须带增量信息） */
     private static final String RETRY_REMINDER =
             "\n上一次输出包含非法内容。本次只输出一个符合 schema 的 JSON 对象，禁止 markdown 代码块，禁止任何解释文字。";

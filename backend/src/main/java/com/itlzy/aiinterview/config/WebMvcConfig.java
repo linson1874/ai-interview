@@ -23,7 +23,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new LoginInterceptor(jwtUtil, redisTemplate, objectMapper))
-                .addPathPatterns("/user/me", "/resume/**","/ai/**")
+                .addPathPatterns("/user/me", "/resume/**","/ai/**","/interview/**")
                 .excludePathPatterns("/user/register", "/user/login"); // 免检通道
     }
 }
