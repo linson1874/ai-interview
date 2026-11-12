@@ -5,16 +5,20 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.itlzy.aiinterview.common.BusinessException;
 import com.itlzy.aiinterview.common.InterviewStream;
 import com.itlzy.aiinterview.common.ResultCode;
+import com.itlzy.aiinterview.dto.AnswerDTO;
 import com.itlzy.aiinterview.dto.CreateInterviewDTO;
 import com.itlzy.aiinterview.entity.Interview;
 import com.itlzy.aiinterview.entity.InterviewQuestion;
 import com.itlzy.aiinterview.mapper.InterviewMapper;
 import com.itlzy.aiinterview.mapper.InterviewQuestionMapper;
+import com.itlzy.aiinterview.service.AiService;
 import com.itlzy.aiinterview.service.InterviewService;
 import com.itlzy.aiinterview.service.ResumeService;
+import com.itlzy.aiinterview.vo.AnswerScoreVO;
 import com.itlzy.aiinterview.vo.InterviewCreateVO;
 import com.itlzy.aiinterview.vo.InterviewDetailVO;
 import com.itlzy.aiinterview.vo.QuestionItemVO;
+import com.itlzy.aiinterview.vo.ScoringSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.RedisStreamCommands;
@@ -34,15 +38,18 @@ public class InterviewServiceImpl implements InterviewService {
     private final InterviewMapper interviewMapper;
     private final InterviewQuestionMapper questionMapper;
     private final ResumeService resumeService;
+    private final AiService aiService;            // 合同07 评分链路入口（同步链路直调，不走流——J1 拍板）
     private final StringRedisTemplate redisTemplate;   // 和门票存根同款模板，String 序列化=XRANGE 肉眼可读（H1 排障纪律吃到红利）
 
     public InterviewServiceImpl(InterviewMapper interviewMapper,
                                 InterviewQuestionMapper questionMapper,
                                 ResumeService resumeService,
+                                AiService aiService,
                                 StringRedisTemplate redisTemplate) {
         this.interviewMapper = interviewMapper;
         this.questionMapper = questionMapper;
         this.resumeService = resumeService;
+        this.aiService = aiService;
         this.redisTemplate = redisTemplate;
     }
 
@@ -90,6 +97,7 @@ public class InterviewServiceImpl implements InterviewService {
                             .orderByAsc(InterviewQuestion::getOrderNo))
                     .stream().map(q -> {
                         QuestionItemVO item = new QuestionItemVO();
+                        item.setId(q.getId());               // 07 作答端点的引用键（形状漏项补齐）
                         item.setCategory(q.getCategory());
                         item.setDifficulty(q.getDifficulty());
                         item.setQuestion(q.getQuestionContent());   // 表的长名回 VO 的短名，边界翻译在此
@@ -118,6 +126,65 @@ public class InterviewServiceImpl implements InterviewService {
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "生成进行中，无需重试");   // code=1（导师 T6 口径，非 400）
         }
         enqueueWithCompensation(id);   // 重投同一 interviewId，消费者见 IN(0,4) 接活
+    }
+
+    /** 作答并同步评分（合同07 J1/J2/S2 的实体化，六步对应工单③卡 e 段） */
+    @Override
+    public AnswerScoreVO answer(Long userId, Long interviewId, Long questionId, AnswerDTO dto) {
+        // ① 场次归属+状态门：非"进行中"不许作答——P5 的 status=2 封卷闸、题目未就绪闸，同一处收口
+        Interview own = interviewMapper.selectOne(new LambdaQueryWrapper<Interview>()
+                .eq(Interview::getId, interviewId)
+                .eq(Interview::getUserId, userId));
+        if (own == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");
+        }
+        if (own.getStatus() != 1) {
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "当前场次不可作答");
+        }
+
+        // ② 题目归属门：qid 必须属于本场——P3"作答他人题目"的 404 三态统一在此兑现
+        InterviewQuestion q = questionMapper.selectOne(new LambdaQueryWrapper<InterviewQuestion>()
+                .eq(InterviewQuestion::getId, questionId)
+                .eq(InterviewQuestion::getInterviewId, interviewId));
+        if (q == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");
+        }
+
+        // ③ 先落答案 + 同发清分（S2 语义定稿的实体化）：评分窗口里库内是"已作答待评分"，
+        //    绝不出现"新答案旧分数"——这就是 P4 断言的前半段
+        questionMapper.update(null, new LambdaUpdateWrapper<InterviewQuestion>()
+                .eq(InterviewQuestion::getId, questionId)
+                .set(InterviewQuestion::getUserAnswer, dto.getAnswer())
+                .set(InterviewQuestion::getScore, null));
+
+        // ④ 评分调用（~10s）：炸了走降级边——答案保住、score 留在 null、不阻塞下一题（J1）
+        ScoringSchema scored;
+        try {
+            scored = aiService.scoreQuestion(q.getQuestionContent(), q.getDifficulty(), dto.getAnswer());
+        } catch (Exception e) {
+            log.warn("评分失败，答案已保留待重评 questionId={}", questionId, e);
+            return new AnswerScoreVO();                    // 三字段全 null：提交成功、评分待补（重交同答案=重评）
+        }
+
+        // ⑤ 三值回写 + S2 一致性闸：WHERE user_answer=被评原文——这10秒里用户又重交的话，
+        //    新答案已覆盖库，这条迟到评分等值不匹配→0行→丢弃（P9 的 stale 分支）
+        int fresh = questionMapper.update(null, new LambdaUpdateWrapper<InterviewQuestion>()
+                .eq(InterviewQuestion::getId, questionId)
+                .eq(InterviewQuestion::getUserAnswer, dto.getAnswer())
+                .set(InterviewQuestion::getScore, scored.getScore())
+                .set(InterviewQuestion::getScoreComment, scored.getComment())
+                .set(InterviewQuestion::getRefAnswer, scored.getRefAnswer()));
+        if (fresh == 0) {
+            log.warn("stale 评分丢弃 questionId={}", questionId);
+            return new AnswerScoreVO();                    // 这一发被更新版取代，用户会收到后到那份新分
+        }
+
+        // ⑥ 同步返回三值（P1"三值同列原子落库"的镜像面）
+        AnswerScoreVO vo = new AnswerScoreVO();
+        vo.setScore(scored.getScore());
+        vo.setComment(scored.getComment());
+        vo.setRefAnswer(scored.getRefAnswer());
+        return vo;
     }
 
     /** R7（v1.2 裁决）事务性发件箱补投：系统动作救"丢失(0不碰)"——每60s扫 status=0 且

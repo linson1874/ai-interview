@@ -1,20 +1,23 @@
 package com.itlzy.aiinterview.controller;
 
 import com.itlzy.aiinterview.common.Result;
+import com.itlzy.aiinterview.dto.AnswerDTO;
 import com.itlzy.aiinterview.dto.CreateInterviewDTO;
 import com.itlzy.aiinterview.service.InterviewService;
+import com.itlzy.aiinterview.vo.AnswerScoreVO;
 import com.itlzy.aiinterview.vo.InterviewCreateVO;
 import com.itlzy.aiinterview.vo.InterviewDetailVO;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 面试场次模块（合同06 §2 三端点齐：POST 创建 / GET 轮询 / retry 返工） */
+/** 面试场次模块（合同06 §2 三端点 + 合同07 J1 作答评分端点） */
 @RestController
 @RequestMapping("/interview")
 public class InterviewController {
@@ -44,5 +47,14 @@ public class InterviewController {
     public Result<Void> retry(@RequestAttribute("userId") Long userId, @PathVariable Long id) {
         interviewService.retry(userId, id);
         return Result.ok("ok");
+    }
+
+    /** 作答并同步评分：PUT /interview/{id}/answer/{qid}（合同07 J1，单发~10s；
+     *  评分失败不阻断提交——code=0 + score=null 的降级边见 Service） */
+    @PutMapping("/{id}/answer/{qid}")
+    public Result<AnswerScoreVO> answer(@RequestAttribute("userId") Long userId,
+                                        @PathVariable Long id, @PathVariable Long qid,
+                                        @Valid @RequestBody AnswerDTO dto) {
+        return Result.okData(interviewService.answer(userId, id, qid, dto));
     }
 }

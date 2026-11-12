@@ -26,6 +26,8 @@ public class InterviewQuestion {
 
     private Integer score;
 
+    private String scoreComment;
+
     private Integer orderNo;
 
     @TableField(fill = FieldFill.INSERT)
