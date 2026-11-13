@@ -31,6 +31,11 @@
 - **配置口径**：`application.yml` 只放中性配置（profile 激活、端口）；含密码的 `application-dev.yml` 在 `.gitignore` 中——**密码绝不进 Git**
 - **工具**：数据库 GUI = Navicat；终端 = Git Bash；不要建议换用 CMD/PowerShell 跑教程命令
 - **命令行 JDK 口径（学员实锤，违者 Lombok 静默毒害）**：本机系统 java 指向 Temurin 25——用 JAVA_HOME 未钉 ms-17.0.19 的 shell 跑 mvn 会满屏"找不到符号"假案。任何命令行构建/测试前必须 `export JAVA_HOME="C:/Users/Lying/.jdks/ms-17.0.19"`；杀进程演练用 `taskkill //F //PID`（IDEA Stop 在断点挂起时会先放行线程=假死实锤两次）
+- **时钟单源（裁决 R9/案#15，2026-11-13 起为设计基线）**：`ai-mysql` 容器必须以 `-e TZ=Asia/Shanghai` 运行——让 MySQL `NOW()`/`ON UPDATE CURRENT_TIMESTAMP` 与 Java `LocalDateTime.now()` 同挂一个墙钟。DATETIME 不存时区，"同列两时钟"是慢性病不是急症（qid61 案：update 比 create 早 8 小时）。全链 UTC 为国际替代方案，记秋招后演进议题
+- **无路径前缀（案#19 定稿）**：本项目 API 无 context-path（双 yml 实查 + git 全史 grep 零命中）；对外口径一律 `/user/ /resume/ /ai/ /interview/`；commit message 若声称与现状不符按"预支未实施计划"立案纠正
+- **交接纪律（案#23）**：任何一方"敲完交给对方构建/验收"前必须 Ctrl+S Save All——IDEA buffer 与磁盘分叉已双向烧过两次（11-05 导师读旧缓冲案 / 11-12 学员三连编译错案）
+- **mvn 路径口径（案#24）**：真实 mvn 路径含 64 位 hash，一律 `MVN=$(find ~/.m2/wrapper/dists -name mvn -path "*/bin/mvn" | head -1)` 取值后用，**禁止手敲或抄省略号占位路径**（实案×2）
+- **异常身份证口径（案#21）**：Lettuce/Spring Data 异常是套娃，BUSYGROUP/NOGROUP 等关键字在 Caused by 链里——字符串归因必须沿 cause 链遍历（causeContains 模式）；**从未被演练命中过的防御代码视同未验证**（NOGROUP 自愈案：刷屏实靠手动 XGROUP CREATE 救场）
 - **无 Maven Wrapper**：本机未装独立 mvn，IDEA 用自带 Bundled Maven 构建；命令行验证用 `~/.m2/wrapper/dists/apache-maven-3.10.0/*/apache-maven-3.10.0/bin/mvn`
 
 ## 禁动清单（红线）

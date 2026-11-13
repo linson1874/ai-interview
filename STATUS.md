@@ -30,11 +30,12 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（合同07 v1.0 放行，阶段三下半场开工）
-- [x] v1.2 四件落地实测全绿（T1 秒回 0.093s / T2 count 全旅程 / T10 孤儿自愈）——上半场收官
-- [x] 合同07 J1~J5 评审放行 v1.0（学员论证大面积入宪；S1-S6 执法见合同修订表）
-- [ ] 按 §6 开工：sql/04 → ScoringSchema+Lenient评分件 → **computeOverallScore 纯函数+边界三条款单测（converter 欠账并案归还）** → 作答端点(S2 闸) → finish+报告流 → 消费者 → rebuild → P1~P11+INJ 五发真跑截图
-- [ ] **中期硬账（阶段四门票，到期）**：Day2 五读码题 + compose 三问 + JwtUtilTest 仍裸 assert + converter 纯单测并案
+## 学员下一步（#15-24 批裁完毕，α 先行，④-3 解锁）
+- [ ] **第0步 α**：重建 ai-mysql 带 `-e TZ=Asia/Shanghai`（卷不动数据无损，命令见交付报告）→ `SELECT NOW(), @@system_time_zone` 自证
+- [ ] **T12**：新场次两时钟同钟、qid61 案不复发；outbox 对 status=4 不碰、对真孤魂 60s 施救——D2 定论看这里
+- [ ] **T13**：运行中 DEL 流 key，看 NOGROUP 自愈首战实弹（此前从未命中=未验证防线）
+- [ ] 07 §6 照常推进：报告流/rebuild/评分件（§4.1 报告 prompt 已入宪定稿）→ P1~P11+INJ 五发
+- [ ] **中期硬账（阶段四门票）**：Day2 五题 + compose 三问 + JwtUtilTest 整改 + converter 单测并案
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 ## 欠账清单
 - [ ] docker-compose 小作业三问（旧教程项目：起了几个服务 / rustfs 存什么 / 为何还留 MySQL）
@@ -56,8 +57,21 @@
 | 12 | poll NOGROUP 自愈 vs 显式 MKSTREAM | 学员 | 批准为架构行为（双层防御：启动 ensureGroup + 运行期自愈；不赌未验证字节码）；微瑕两处批注（catch 归因日志/死信边虚报）随工单修 | ✅ 裁决入合同06 v1.2 |
 | 13 | status=0 孤儿行（DEL 火化消息，活标本 id=1、2） | 学员 | 三选项全否，裁 R7 **事务性发件箱补投**（@Scheduled 60s 扫 0+stale → enqueueWithCompensation）；retry 保持用户语义；id=1、2 自愈即验收 | ✅ 已实现，导师实测 id=1、2 自愈通过(2865677 验收) |
 | 14 | 合同07 J1~J5 学员拍板（附 6 项请示） | 学员 | **评审放行 v1.0**：J1 混合形态/J2-a 同批评分"同头口径"王牌/J4 三条款+演示口径表/J5 本体论序言+三不+五层——全文入宪；执法：S1 三字段纠"4字段"笔误、S2 连点窗口裁**答案一致性闸**（否 version 列、否裸 LWW）、S3 evidence 带、S4 手动重生、S5 权重 1:2:3、S6 XSS 移交前端合同 | ✅ v1.0 生效，开工顺序见合同 §6 |
+| 15 | **时区暗雷（头号案，④-3 开工前置）**：MySQL 容器时区=UTC，update_time 由表上 `ON UPDATE CURRENT_TIMESTAMP`（服务端 UTC）写，create_time 由 MP fill（Java 本地）写——同列两时钟差 8h（实锤：qid61 create=20:00:53 / update=12:19:37）。波及：①消费者 sweep min-idle 600s **形同虚设**（update_time 永远"老8小时"，入 PEL 即可被抢——D2 演练 40s 抢单真因，见 #20 翻案）②R7 发件箱 `lt(now-60s)` 恒真（靠 status=0 条件才没误伤）③展示时间失真。选项：α 容器加 TZ=Asia/Shanghai（一处根治，动 ai-mysql=设计基线）/ β 所有 wrapper UPDATE 手动 set updateTime / γ 接受 UTC 全链换算（最绕）。技术窗口推荐 α | 技术支持窗口（带验尸证据） | ⏸ 待裁；④-3 消费者 sweep 写法取决于本条 |
+| 16 | **报告 prompt 初稿评审**：合同07 §4 只定稿了评分 prompt，报告 prompt 属合同空白。技术窗口按 J3 骨架代拟6条初稿（含：不做算术声明/四值枚举/`<attempted_answers>` 定界=J5①②平移到报告链二次注入面/材料模板不含 refAnswer）+weakPoints 复数拼写统一（schema/prompt/JSON 三方一致）。冒烟实测首轮即过、质量佳 | 技术支持窗口 | ⏸ 请导师逐字评审，通过后入合同成逐字件（同 §4 纪律） |
+| 17 | **评分 temperature=0.2**：P1 同答案重评 4→5 分漂移（采样模型非函数，4/5 边界本就模糊）。落地：评分调用锁 0.2（可复现性优先），出题保持默认（要多样性）——callUpstream 第四参。合同未规定 temperature 口径 | 技术支持窗口（学员拍板选 a） | ⏸ 知情追认；另建议入 J5 诚实边界注记（LLM-as-judge 公认局限，简历加分点） |
+| 18 | **06 §2 questions[] 形状勘误**：轮询面题目对象缺 `id` 字段——07 作答端点 `/answer/{qid}` 的隐含推论（列表要可引用必带身份证），代码已落地（工单③ QuestionItemVO+装配补 setId），文档未改 | 技术支持窗口 | ⏸ 请导师补录 06 §2 形状说明（非新决策，是漏项） |
+| 19 | **Day7 提交信息"context-path 改 /api"与现状不符**：两份 yml 均无 context-path，/api 前缀不存在；本窗口据此误导验收 URL 打空 404"接口不存在"。请导师核查历史（是否后来撤了/提交信息预支未实施计划），并统一口径：本项目无路径前缀 | 技术支持窗口 | ⏸ 待核 |
+| 20 | **T5 演练方式注记 + D2 翻案**：①prompt 投毒≠毒消息（删 §2 第6条后 JSON 仍有四层保险：prompt指令/getFormat/JSON mode/Lenient解析，正品埋法=代码入口 throw）；②D2 三集里 40s 即发生抢单，当时归因"清扫周期到"，实为 #15 时区差使 min-idle 恒满足——演练结论有效但机理需注记 | 技术支持窗口 | ⏸ 请导师在 06 D2 条款补注（演练资产保留，机理改写） |
+| 21 | **causeContains 异常链修复 + NOGROUP 自愈翻案**：v1.2 微瑕①原方案 `e.getMessage().contains("BUSYGROUP")` 实测无效——Lettuce 错误被 Spring Data 包成 `RedisSystemException("Error in execution")`，字样在 cause 根因；已改沿 cause 链遍历。连带翻案：poll 的 NOGROUP 自愈同款判断从未命中过（昨日刷屏案实靠手动 XGROUP CREATE 救场） | 技术支持窗口（已落地编译绿） | ⏸ 请导师更新 06 微瑕批注；纪律入库：判断异常看 Caused by 身份证 |
+| 22 | **S7 score_comment 列**：合同 P1"三值同列"但题目表无 comment 容身列（R5 同款案件开工日发现），sql/04 已连带补 `t_interview_question.score_comment VARCHAR(512)`（列名避开 MySQL 关键字） | 技术支持窗口 | ⏸ 请导师追认进 07 修订表（开工日发现 vs 合同未点破） |
+| 23 | **交接纪律新增：敲完先 Ctrl+S Save All**：11-12 ④-2 三连编译错（接口找不到声明/converter 空壳），实为 IDEA buffer（新）与磁盘（旧）分叉——Read 工具见 buffer、mvn 见磁盘，SearchReplace 三连匹配失败同根。与 11-05"导师 Read 到未保存旧缓冲"案互为镜像 | 技术支持窗口 | ⏸ 请导师追加进 AGENTS.md："你敲完→我编译/验收"交接点必须先保存 |
+| 24 | **CommandLine JAVA_HOME 口径重申**（旧提未落）：命令行 mvn 必须前缀 `$env:JAVA_HOME="C:\Users\Lying\.jdks\ms-17.0.19"`（系统默认 JDK25 毒 Lombok），且 mvn 真值路径含 64 位 hash 永不手敲（省略号占位符被拄进命令实案×2）；建议 AGENTS.md 工具栏补这两条 bash/powershell 口径 | 技术支持窗口 | ✅ 已入 AGENTS（2026-11-13 五条口径：时钟单源/无前缀/SaveAll/mvn路径/异常身份证） |
+| 15-24 | **批裁（导师，2026-11-13；证据实查：容器 date=UTC05:45 vs Java13:45 / qid61 两时钟 / git 全史无 /api / score_comment 有 sql/04 可溯）** | 导师 | **#15=α** 容器带 TZ=Asia/Shanghai 重建（β 否：人肉纪律不如机制根治；γ 记国际演进）。**机制勘误：①sweep min-idle 用 Redis PEL 计时与 DB 时区无关——此罪不成立；②outbox 实为 Java 写钟行恒假(救不到新孤魂)/DB 写钟行正常——D2 翻案不背书，T12 复测再定**。**#16 批准**：报告 prompt 定稿入 07 §4.1（五要点+三注：摘录150截断/空数组语义/护栏句），逐字稿有出入持原文碰平。**#17 追认**+J5 边界⑤。**#18 补录** 06 §2。**#19 定稿**无路径前缀，举证按预支事实立案。**#20 采纳** T5 勘误入 06。**#21 追认** causeContains；自愈从未命中→T13 DEL 实弹。**#22 追认** S7 入 07+comment≤50字附注。**#23/24 入 AGENTS** | ✅ 全清；④-3 解锁（前置=α+T12/T13） |
 
 ## 问题日志
+- 2026-11-12 | ④-2 三连编译错：接口"没有"generateReport 声明、converter "没有"getFormat——但 Read 明明见到完整版 | IDEA 未保存 buffer（新）与磁盘（旧）分叉：Read 见 buffer、mvn/SearchReplace 见磁盘 | 交接 Ctrl+S 纪律（待确认 #23）；与 11-05 旧缓冲案互为镜像，同一课上了两次
+- 2026-11-12 | 报告冒烟材料暴露 update_time 比 create_time 早 8h（12:19 vs 20:00） | MySQL 容器 UTC 时区经 `ON UPDATE CURRENT_TIMESTAMP` 写库，MP fill 用 Java 本地时间——同列两时钟 | 立案 #15 待裁；连带翻案 D2 演练 40s 抢单真因（#20），sweep min-idle 至今形同虚设
 - 2026-11-10 | 导师脚本二连坑：python heredoc 内半角引号 SyntaxError ×2；且换行分隔导致脚本失败后 git commit 照跑，提交信息先行描述了未发生的 STATUS 修改 | 链式命令未用 && fail-fast；文档修改误用 python 处理中文 | 补正提交落地事实；纪律更新：改中文文档一律 Edit 工具，脚本链必须 &&，提交信息不许预支未发生的事实
 - 2026-11-09 | 演练陷阱①：IDEA Stop 按钮在断点挂起时先放行线程——"假死"实锤，D1第一次演练活干完才停 | 停止≠kill -9 | 演练杀进程一律 taskkill //F //PID（AGENTS工具口径已钉）
 - 2026-11-09 | 演练陷阱②：DEL 流 key=消息+消费组+PEL 一锅端（组是key附属品，NOGROUP血案与两具孤儿标本） | 演练工具过猛 | 收尾靠 ensureGroup/自愈或 XGROUP CREATE MKSTREAM；运维禁用 DEL，用 XTRIM
