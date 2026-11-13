@@ -55,7 +55,7 @@ public class InterviewGenConsumer {
     /** 验错误身份证而非外衣：Lettuce 业务错误（BUSYGROUP/NOGROUP）会被 Spring Data 包成
      *  RedisSystemException("Error in execution")，顶层 message 查不到字样——必须沿 cause 链找根因。
      *  实锤两次：11:10 启动真 BUSYGROUP 被误判"非 BUSYGROUP"；昨日刷屏案里 NOGROUP 自愈同款判断从未命中 */
-    private static boolean causeContains(Throwable e, String token) {
+    static boolean causeContains(Throwable e, String token) {
         for (Throwable t = e; t != null; t = t.getCause()) {
             if (String.valueOf(t.getMessage()).contains(token)) {
                 return true;

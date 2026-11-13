@@ -2,6 +2,7 @@ package com.itlzy.aiinterview.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itlzy.aiinterview.common.BusinessException;
 import com.itlzy.aiinterview.common.InterviewStream;
 import com.itlzy.aiinterview.common.ResultCode;
@@ -14,11 +15,7 @@ import com.itlzy.aiinterview.mapper.InterviewQuestionMapper;
 import com.itlzy.aiinterview.service.AiService;
 import com.itlzy.aiinterview.service.InterviewService;
 import com.itlzy.aiinterview.service.ResumeService;
-import com.itlzy.aiinterview.vo.AnswerScoreVO;
-import com.itlzy.aiinterview.vo.InterviewCreateVO;
-import com.itlzy.aiinterview.vo.InterviewDetailVO;
-import com.itlzy.aiinterview.vo.QuestionItemVO;
-import com.itlzy.aiinterview.vo.ScoringSchema;
+import com.itlzy.aiinterview.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.RedisStreamCommands;
@@ -39,18 +36,21 @@ public class InterviewServiceImpl implements InterviewService {
     private final InterviewQuestionMapper questionMapper;
     private final ResumeService resumeService;
     private final AiService aiService;            // 合同07 评分链路入口（同步链路直调，不走流——J1 拍板）
+    private final ObjectMapper objectMapper;
     private final StringRedisTemplate redisTemplate;   // 和门票存根同款模板，String 序列化=XRANGE 肉眼可读（H1 排障纪律吃到红利）
 
     public InterviewServiceImpl(InterviewMapper interviewMapper,
                                 InterviewQuestionMapper questionMapper,
                                 ResumeService resumeService,
                                 AiService aiService,
-                                StringRedisTemplate redisTemplate) {
+                                StringRedisTemplate redisTemplate,
+                                ObjectMapper objectMapper) {
         this.interviewMapper = interviewMapper;
         this.questionMapper = questionMapper;
         this.resumeService = resumeService;
         this.aiService = aiService;
         this.redisTemplate = redisTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -185,6 +185,95 @@ public class InterviewServiceImpl implements InterviewService {
         vo.setComment(scored.getComment());
         vo.setRefAnswer(scored.getRefAnswer());
         return vo;
+    }
+
+    @Override
+    public void finish(Long userId, Long id) {
+        Interview own = interviewMapper.selectOne(new LambdaQueryWrapper<Interview>()
+                .eq(Interview::getId, id).eq(Interview::getUserId, userId));
+        if (own == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");
+        }
+        // 1→2 原子边（06 §1 预埋今天兑现）；双击第二下 CAS 0 行=防抖，与 retry 同构
+        int won = interviewMapper.update(null, new LambdaUpdateWrapper<Interview>()
+                .eq(Interview::getId, id)
+                .eq(Interview::getStatus, 1)
+                .set(Interview::getStatus, 2));
+        if (won == 0) {
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "已交卷或场次未完成，请勿重复提交");
+        }
+        enqueueReport(id);   // 输送带收口：XADD+0→3 补偿见 enqueueReport（S4 注记随方法走）
+    }
+
+    @Override
+    public ReportVO getReport(Long userId, Long interviewId) {
+        Interview iv = interviewMapper.selectOne(new LambdaQueryWrapper<Interview>()
+                .eq(Interview::getId, interviewId).eq(Interview::getUserId, userId));
+        if (iv == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");   // 06 归属三态
+        }
+        // P6 交卷门：未交卷(状态≠2)拒绝——与作答端点同闸（分母保护，status=2 后作答也被弹死）
+        if (iv.getStatus() != 2) {
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "请先交卷生成报告");
+        }
+        // 分级响应：0排队/1生成中/3失败都是合法状态——只回 reportStatus，前端据此轮询或引导 rebuild；
+        // 2就绪才回全套（report_json 是消费者本地拼好的完整快照，GET 零计算——J1"模型不算数"的存储面）
+        if (iv.getReportStatus() != 2 || iv.getReportJson() == null) {
+            ReportVO shell = new ReportVO();
+            shell.setReportStatus(iv.getReportStatus());
+            return shell;
+        }
+        try {
+            ReportVO vo = objectMapper.readValue(iv.getReportJson(), ReportVO.class);
+            vo.setReportStatus(2);
+            return vo;
+        } catch (Exception e) {
+            // S9 脏报告永不入库，理论读不炸——防御不吞：真炸了引导用户一键自救
+            log.error("report_json 反序列化失败 interviewId={}", interviewId, e);
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "报告数据异常，请点击重新生成");
+        }
+    }
+
+    @Override
+    public void rebuildReport(Long userId, Long interviewId) {
+        Interview iv = interviewMapper.selectOne(new LambdaQueryWrapper<Interview>()
+                .eq(Interview::getId, interviewId).eq(Interview::getUserId, userId));
+        if (iv == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");
+        }
+        if (iv.getStatus() != 2) {
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "请先交卷生成报告");
+        }
+        // S4 防抖（retry 同构）：正在生成(1)时 CAS 0 行弹死。
+        // IN(0,2,3) 比 S4 原文(2/3)多一个 0：救"CAS后XADD前崩溃"的孤魂——report 链没有 outbox，
+        // rebuild 是唯一救路；重复投不烧双份钱，因消费者抢单 CAS IN(0,1) 天然幂等。⚠ 扩展项，验收时报导师过目
+        int won = interviewMapper.update(null, new LambdaUpdateWrapper<Interview>()
+                .eq(Interview::getId, interviewId)
+                .in(Interview::getReportStatus, 0, 2, 3)
+                .set(Interview::getReportStatus, 0));
+        if (won == 0) {
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "报告正在生成中，无需重复操作");
+        }
+        enqueueReport(interviewId);
+    }
+
+    /** 报告输送带（finish 与 rebuild 共用——同一条 XADD+补偿边不许有两个副本）：
+     *  XADD 失败→0→3 补偿（3 是 rebuild 合法入口，一键自救，不上发件箱——S4） */
+    private void enqueueReport(Long interviewId) {
+        try {
+            redisTemplate.opsForStream().add(
+                    InterviewStream.REPORT_STREAM_KEY,
+                    Map.of("interviewId", String.valueOf(interviewId)),
+                    RedisStreamCommands.XAddOptions.maxlen(InterviewStream.MAX_LEN)
+                            .approximateTrimming(true));
+        } catch (Exception e) {
+            log.error("报告XADD失败，report_status置3待rebuild interviewId={}", interviewId, e);
+            interviewMapper.update(null, new LambdaUpdateWrapper<Interview>()
+                    .eq(Interview::getId, interviewId)
+                    .eq(Interview::getReportStatus, 0)
+                    .set(Interview::getReportStatus, 3));
+            throw new BusinessException(ResultCode.SERVER_ERROR, "系统繁忙，请稍后重试");
+        }
     }
 
     /** R7（v1.2 裁决）事务性发件箱补投：系统动作救"丢失(0不碰)"——每60s扫 status=0 且

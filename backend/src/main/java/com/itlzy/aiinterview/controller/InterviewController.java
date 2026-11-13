@@ -7,6 +7,7 @@ import com.itlzy.aiinterview.service.InterviewService;
 import com.itlzy.aiinterview.vo.AnswerScoreVO;
 import com.itlzy.aiinterview.vo.InterviewCreateVO;
 import com.itlzy.aiinterview.vo.InterviewDetailVO;
+import com.itlzy.aiinterview.vo.ReportVO;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,5 +57,27 @@ public class InterviewController {
                                         @PathVariable Long id, @PathVariable Long qid,
                                         @Valid @RequestBody AnswerDTO dto) {
         return Result.okData(interviewService.answer(userId, id, qid, dto));
+    }
+
+    /** 交卷：POST /interview/{id}/finish（合同07 J3，1→2 边 + 报告异步启动，秒回） */
+    @PostMapping("/{id}/finish")
+    public Result<Void> finish(@RequestAttribute("userId") Long userId, @PathVariable Long id) {
+        interviewService.finish(userId, id);
+        return Result.ok("已交卷，报告生成中");
+    }
+
+    /** 查报告：GET /interview/{id}/report（合同07 §2，按 report_status 分级响应；
+     *  未交卷 P6 → code=1"请先交卷生成报告"，归属边沿 06 三态 404） */
+    @GetMapping("/{id}/report")
+    public Result<ReportVO> getReport(@RequestAttribute("userId") Long userId,
+                                      @PathVariable Long id) {
+        return Result.okData(interviewService.getReport(userId, id));
+    }
+
+    /** 手动重生报告：POST /interview/{id}/report/rebuild（S4：防抖与 retry 同构，秒回） */
+    @PostMapping("/{id}/report/rebuild")
+    public Result<Void> rebuildReport(@RequestAttribute("userId") Long userId, @PathVariable Long id) {
+        interviewService.rebuildReport(userId, id);
+        return Result.ok("报告重新生成中");
     }
 }
