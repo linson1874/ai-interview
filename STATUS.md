@@ -30,11 +30,10 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（阶段四开机：合同08 决策日）
-- [ ] **前置三债（放行硬闸，第十一次挂牌）**：三个新测试文件自提 commit + Day2 五读码题 + compose 三问 + 工单⑥ scripts/e2e.sh
-- [ ] K1~K7 拍板：K2（双 DataSource 接线，墙一，须带调研笔记）、K4（托管 vs 自建+审核闸层次，墙二）、K3（embedding 牌价数字）、K6（推荐 d 起步，反推荐带论证）
-- [ ] 拍板评审通过 → v1.0 → 开工顺序 sql/05→容器(自带TZ!)→双源→检索→K6 接线→V1~V7
-- [ ] 已就绪的事实：pgvector:pg16 镜像本地缓存 ✅、11 条已评分作答可作评测种子数据 ✅、BAILIAN 多key格局=R10 预言兑现日
+## 学员下一步（08 评审已结：v0.2-REVIEWED，开工令=三债唯一门槛）
+- [x] K1~K7 拍板评审完毕：K1/K2/K3/K4/K6/K7 批准（K4 全场最佳），K5 裁 E1 tags双轴纠正(骨架埋雷导师认账)+E2 distance-max 命名，K7 追加 E3 ask链走J5纵深
+- [ ] **三债，债清即放行（无新谈判）**：①三个测试文件 commit；② scripts/e2e.sh；③ 八道题面
+- [ ] 放行后开工：sql/05(kb_question+tags+CHECK) → ai-pgvector 容器(5433+TZ!) → 双 DataSource → 检索 DAO(单出口) → /ai/kb/ask(E3 防线) → V1~V7
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 
 ## 欠账清单
