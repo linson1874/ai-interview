@@ -30,13 +30,14 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（#15-24 批裁完毕，α 先行，④-3 解锁）
-- [ ] **第0步 α**：重建 ai-mysql 带 `-e TZ=Asia/Shanghai`（卷不动数据无损，命令见交付报告）→ `SELECT NOW(), @@system_time_zone` 自证
-- [ ] **T12**：新场次两时钟同钟、qid61 案不复发；outbox 对 status=4 不碰、对真孤魂 60s 施救——D2 定论看这里
-- [ ] **T13**：运行中 DEL 流 key，看 NOGROUP 自愈首战实弹（此前从未命中=未验证防线）
-- [ ] 07 §6 照常推进：报告流/rebuild/评分件（§4.1 报告 prompt 已入宪定稿）→ P1~P11+INJ 五发
-- [ ] **中期硬账（阶段四门票）**：Day2 五题 + compose 三问 + JwtUtilTest 整改 + converter 单测并案
+## 学员下一步（阶段三收官：四洞修复单 → 门票 → 阶段四开机）
+- [ ] 四洞修复单（半天）：#29 HttpRequestMethodNotSupportedException→405+code405 handler；#30 降级返回 code=1（S13）；#31 SCORING_MAX_TOKENS 1200+prompt 加 ref≤200 句（S14）；#32 报告材料 150 字截断落地
+- [ ] 每洞配免费单测（MockMvc 打错方法测 405；S13/S14 断言；截断纯函数）——converter 式测试债顺势全还
+- [ ] 工单⑥ scripts/e2e.sh 入仓（收编 A~R/P/INJ 剧本）
+- [ ] **阶段四门票**：Day2 五读码题 + compose 三问 + JwtUtilTest 裸 assert（第六次点名，surefire 带 -ea 会掩盖它在 IDE 里的假绿）
+- [ ] 门票+四洞齐 → 合同 08 发布：pgvector 题池+检索+embedding 选型（J4 的 CAT 校准话从这开始兑现）
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
+
 ## 欠账清单
 - [ ] docker-compose 小作业三问（旧教程项目：起了几个服务 / rustfs 存什么 / 为何还留 MySQL）
 
@@ -68,8 +69,19 @@
 | 23 | **交接纪律新增：敲完先 Ctrl+S Save All**：11-12 ④-2 三连编译错（接口找不到声明/converter 空壳），实为 IDEA buffer（新）与磁盘（旧）分叉——Read 工具见 buffer、mvn 见磁盘，SearchReplace 三连匹配失败同根。与 11-05"导师 Read 到未保存旧缓冲"案互为镜像 | 技术支持窗口 | ⏸ 请导师追加进 AGENTS.md："你敲完→我编译/验收"交接点必须先保存 |
 | 24 | **CommandLine JAVA_HOME 口径重申**（旧提未落）：命令行 mvn 必须前缀 `$env:JAVA_HOME="C:\Users\Lying\.jdks\ms-17.0.19"`（系统默认 JDK25 毒 Lombok），且 mvn 真值路径含 64 位 hash 永不手敲（省略号占位符被拄进命令实案×2）；建议 AGENTS.md 工具栏补这两条 bash/powershell 口径 | 技术支持窗口 | ✅ 已入 AGENTS（2026-11-13 五条口径：时钟单源/无前缀/SaveAll/mvn路径/异常身份证） |
 | 15-24 | **批裁（导师，2026-11-13；证据实查：容器 date=UTC05:45 vs Java13:45 / qid61 两时钟 / git 全史无 /api / score_comment 有 sql/04 可溯）** | 导师 | **#15=α** 容器带 TZ=Asia/Shanghai 重建（β 否：人肉纪律不如机制根治；γ 记国际演进）。**机制勘误：①sweep min-idle 用 Redis PEL 计时与 DB 时区无关——此罪不成立；②outbox 实为 Java 写钟行恒假(救不到新孤魂)/DB 写钟行正常——D2 翻案不背书，T12 复测再定**。**#16 批准**：报告 prompt 定稿入 07 §4.1（五要点+三注：摘录150截断/空数组语义/护栏句），逐字稿有出入持原文碰平。**#17 追认**+J5 边界⑤。**#18 补录** 06 §2。**#19 定稿**无路径前缀，举证按预支事实立案。**#20 采纳** T5 勘误入 06。**#21 追认** causeContains；自愈从未命中→T13 DEL 实弹。**#22 追认** S7 入 07+comment≤50字附注。**#23/24 入 AGENTS** | ✅ 全清；④-3 解锁（前置=α+T12/T13） |
+| 25-32 | **批裁（导师，2026-11-14，iid=23 实弹全链复验）** | 导师/实弹 | **#25 追认**：@Size(1000) 已在码，三层防御成形，J5③注记更新。**#26 追认**（S11 rebuild 0边合法：report 链唯一救路+抢单防双钱）。**#27 结案背书**：D2=人肉重启链路耗时，sweep/时区两被告均无罪。**#28 盖章**：§4.1 换实弹文本为逐字件（三处差异勘平，S12）。**#29 新立**：方法不匹配 POST 撞 GET /{id} 被兜底吞 500——违"框架错镜像 HTTP"家法，裁 405 handler，01 升 v0.4。**#30 新立**：q96 降级返回 code=0 三null=静默欺骗，裁 S13（code=1+可重评语）。**#31 新立**：q96 病根=SCORING_MAX_TOKENS 800 腰斩 refAnswer（JsonEOF 铁证；05 复测注预言三期重演），裁 S14（1200+ref≤200字句）。**#32 新立**：§4.1 注①材料150字截断代码未兑现——合同撒谎，落地或当日改注 | ✅ 四洞入修复单 |
+| 25 | **J5③"长度护栏"合同文字与实现的 gap**：INJ-4 实弹（三百余字复读）畅通直达模型（code=0 非校验拒，2.65s 被消化为"弃答"评 0 分）——AnswerDTO 现仅 @NotBlank，参数层无 @Size 上限；prompt 层护栏实测够用 | 技术支持窗口（带 INJ-4 截图） | ⏸ 是否补 @Size(max=?) 属设计基线，请导师裁：补参数护栏 / 维持现状并在 07 J5③ 注记"护栏在 prompt 层" |
+| 26 | **rebuild CAS `IN(0,2,3)→0` 扩展申报**：S4 原文只列 2/3 两入口，实现多了 0——救"CAS 后 XADD 前崩溃"的孤魂（report 链无发件箱，rebuild 是唯一救路；消费者抢单 CAS IN(0,1) 保证不烧双份钱）。代码注释已写明理由 | 技术支持窗口 | ⏸ 请导师过目追认（07 S4 修订表补 0 边，或裁掉 0 改配 outbox） |
+| 27 | **D2 定论提交（#20 留置半句的结案证据）**：α 重建后 T12/T13/D2 三演练全过——新场次两时钟同钟(13:57:30/35)、outbox 60s 施救祭品19、对 status=4 免疫(布景130s 沉默=正证)、NOGROUP 自愈首战实弹(144ms 会师)、恢复模式 3s 接管(死亡14:21:25→接管14:22:22)。旧"40s 抢单"案结案=当年"杀进程→IDEA 重启→恢复模式接管"人肉链路耗时，与 sweep 周期和时区均无关 | 技术支持窗口（带日志时间戳） | ⏸ 请导师在 #20 项下结案背书（当时原话"翻案不背书，T12 复测再定"——复测已交卷） |
+| 28 | **§4.1 报告 prompt 实战验证反馈**：定稿后首战三场（18/22/20）全部首轮过闸零 L3 重试；INJ 五发三不全过（伪造定界符被当数据、指令零执行、报告链把注入写进薄弱点评估"规范意识存在问题"）；golden rule 反证双场吻合（22场 53.33、20场 7.50 手工复算分毫不差）。建议 §4.1 加注"经实战验证(2026-11-13)" | 技术支持窗口（带六张截图档） | ⏸ 请导师盖章追认 |
 
 ## 问题日志
+## 问题日志
+- 2026-11-14 | q96 评分降级根因：JsonEOF expecting closing quote | SCORING 800 护栏腰斩长 refAnswer——护栏即故障源（05 复测注预言的重演） | S14: 1200+简洁条款+截断落地
+- 2026-11-14 | POST /interview/finish 路径歧义撞 GET /{id} 被吞 500 | HttpRequestMethodNotSupported 无专属 handler，违框架镜像家法 | #29→01 v0.4 405 行+handler，配 MockMvc 测试
+- 2026-11-14 | 实弹正面案 iid=23：2 评 1 降级→overall=NULL 走样本闸、报告只定性、renormalize 生效 | J4 三条款实战首验通过 | —（条款活着）
+- 2026-11-13 | 工单④收官日三案：①α重建后捞 dev.yml 密码正则二次取用 1045（卷内原密码与 yml 新密码分裂，全新初始化卷时会引爆）②ReportDetailVO 改型时手术刀滑到隔壁 ReportVO（overallScore 误杀成 Integer score），编译器当场逮住③第二刀 buffer/磁盘分叉二进宫（敲完未再存） | ①已存在卷不认 MYSQL_ROOT_PASSWORD 新值 ②同名相似字段跨文件误改 ③#23 纪律案重演 | ④密码以卷内真值为准；改型清单按文件路径逐项核对+编译器哨兵价值实证；交接 Ctrl+S 纪律二次验证
+- 2026-11-13 | ④-3 验收全绿：18号白捡首报(P10 总分null)/22号 53.33+20号 7.50 手工复算吻合(J4/J11)/INJ五发三不全过/交卷封卷闸实弹/误触重发撞出 P4 覆盖重评活剧本 | — | #25-28 立案待裁；提交 9717659（含补收 Day10 漏网 LenientScoringConverter——git status 核对拦漏裹）
 - 2026-11-12 | ④-2 三连编译错：接口"没有"generateReport 声明、converter "没有"getFormat——但 Read 明明见到完整版 | IDEA 未保存 buffer（新）与磁盘（旧）分叉：Read 见 buffer、mvn/SearchReplace 见磁盘 | 交接 Ctrl+S 纪律（待确认 #23）；与 11-05 旧缓冲案互为镜像，同一课上了两次
 - 2026-11-12 | 报告冒烟材料暴露 update_time 比 create_time 早 8h（12:19 vs 20:00） | MySQL 容器 UTC 时区经 `ON UPDATE CURRENT_TIMESTAMP` 写库，MP fill 用 Java 本地时间——同列两时钟 | 立案 #15 待裁；连带翻案 D2 演练 40s 抢单真因（#20），sweep min-idle 至今形同虚设
 - 2026-11-10 | 导师脚本二连坑：python heredoc 内半角引号 SyntaxError ×2；且换行分隔导致脚本失败后 git commit 照跑，提交信息先行描述了未发生的 STATUS 修改 | 链式命令未用 && fail-fast；文档修改误用 python 处理中文 | 补正提交落地事实；纪律更新：改中文文档一律 Edit 工具，脚本链必须 &&，提交信息不许预支未发生的事实
