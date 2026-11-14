@@ -30,15 +30,12 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（四洞收官，距阶段四开机只剩三件事）
-- [x] 四洞复审通过：405 handler/S13 明示+stale 类推(S15)/S14 1200+prompt 句/#32 oneLine+abbreviate 截断，各配免费测试（21 项免费全绿）
-- [x] JwtUtilTest 由导师代改（负路径×2），欠此债清偿
-- [ ] 学员自提：三个新测试文件（MethodNotAllowed405/ScoringBudgetS14/ScoringDegradationS13）+service/impl/ReportMaterialTruncateTest——建议 "test: 四洞配套免费测试"
-- [ ] **阶段四门票（纸面件，最后两项）**：Day2 五读码题 + compose 三问（从 11-04 欠到今天，第十天了）
-- [ ] 工单⑥ scripts/e2e.sh 入仓（可与门票并行）
-- [ ] 门票+测试提交齐 → **合同 08（pgvector RAG：ai-pgvector 容器+embedding 选型+题池 schema+检索增强）** 发布开工
+## 学员下一步（阶段四开机：合同08 决策日）
+- [ ] **前置三债（放行硬闸，第十一次挂牌）**：三个新测试文件自提 commit + Day2 五读码题 + compose 三问 + 工单⑥ scripts/e2e.sh
+- [ ] K1~K7 拍板：K2（双 DataSource 接线，墙一，须带调研笔记）、K4（托管 vs 自建+审核闸层次，墙二）、K3（embedding 牌价数字）、K6（推荐 d 起步，反推荐带论证）
+- [ ] 拍板评审通过 → v1.0 → 开工顺序 sql/05→容器(自带TZ!)→双源→检索→K6 接线→V1~V7
+- [ ] 已就绪的事实：pgvector:pg16 镜像本地缓存 ✅、11 条已评分作答可作评测种子数据 ✅、BAILIAN 多key格局=R10 预言兑现日
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
-
 
 ## 欠账清单
 - [ ] docker-compose 小作业三问（旧教程项目：起了几个服务 / rustfs 存什么 / 为何还留 MySQL）
