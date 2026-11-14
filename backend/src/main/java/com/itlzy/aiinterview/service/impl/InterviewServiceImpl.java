@@ -163,7 +163,9 @@ public class InterviewServiceImpl implements InterviewService {
             scored = aiService.scoreQuestion(q.getQuestionContent(), q.getDifficulty(), dto.getAnswer());
         } catch (Exception e) {
             log.warn("评分失败，答案已保留待重评 questionId={}", questionId, e);
-            return new AnswerScoreVO();                    // 三字段全 null：提交成功、评分待补（重交同答案=重评）
+            // S13（裁决#30）：降级必须明示——code=0+三null 是静默欺骗客户端。
+            // 答案已落库（③步），本方法无事务，抛异常不回滚作答——重交同一答案即重评
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "本题评分未成功，可重新提交重评");
         }
 
         // ⑤ 三值回写 + S2 一致性闸：WHERE user_answer=被评原文——这10秒里用户又重交的话，
@@ -176,7 +178,8 @@ public class InterviewServiceImpl implements InterviewService {
                 .set(InterviewQuestion::getRefAnswer, scored.getRefAnswer()));
         if (fresh == 0) {
             log.warn("stale 评分丢弃 questionId={}", questionId);
-            return new AnswerScoreVO();                    // 这一发被更新版取代，用户会收到后到那份新分
+            // S13 类推：静默三 null 同样是欺骗。⚠ 文案为技术窗口类推自拟（导师只点了评分失败分支），报备追认
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "已有更新版作答提交，本次评分结果已作废");
         }
 
         // ⑥ 同步返回三值（P1"三值同列原子落库"的镜像面）

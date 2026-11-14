@@ -31,8 +31,8 @@
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
 ## 学员下一步（阶段三收官：四洞修复单 → 门票 → 阶段四开机）
-- [ ] 四洞修复单（半天）：#29 HttpRequestMethodNotSupportedException→405+code405 handler；#30 降级返回 code=1（S13）；#31 SCORING_MAX_TOKENS 1200+prompt 加 ref≤200 句（S14）；#32 报告材料 150 字截断落地
-- [ ] 每洞配免费单测（MockMvc 打错方法测 405；S13/S14 断言；截断纯函数）——converter 式测试债顺势全还
+- [x] 四洞修复单（半天）：#29 HttpRequestMethodNotSupportedException→405+code405 handler；#30 降级返回 code=1（S13）；#31 SCORING_MAX_TOKENS 1200+prompt 加 ref≤200 句（S14）；#32 报告材料 150 字截断落地 —— 2026-11-14 技术窗口落地，八处+2连带注释扫雷，编译绿
+- [x] 每洞配免费单测（MockMvc 打错方法测 405；S13/S14 断言；截断纯函数）——converter 式测试债顺势全还 —— 2026-11-14 四测试类 7 用例全绿零成本；S13 首跑红出价值：暴露出稿人心理预期错账（场主 user5 写成 1L 被归属门 404 弹死），修正后绿；新发现待报：t_interview_question 无 deleted 列，与"四表统一逻辑删除"基线口径不符（疑为先删后插物理生命周期有意为之，待导师确认）
 - [ ] 工单⑥ scripts/e2e.sh 入仓（收编 A~R/P/INJ 剧本）
 - [ ] **阶段四门票**：Day2 五读码题 + compose 三问 + JwtUtilTest 裸 assert（第六次点名，surefire 带 -ea 会掩盖它在 IDE 里的假绿）
 - [ ] 门票+四洞齐 → 合同 08 发布：pgvector 题池+检索+embedding 选型（J4 的 CAT 校准话从这开始兑现）
@@ -80,7 +80,7 @@
 - 2026-11-14 | POST /interview/finish 路径歧义撞 GET /{id} 被吞 500 | HttpRequestMethodNotSupported 无专属 handler，违框架镜像家法 | #29→01 v0.4 405 行+handler，配 MockMvc 测试
 - 2026-11-14 | 实弹正面案 iid=23：2 评 1 降级→overall=NULL 走样本闸、报告只定性、renormalize 生效 | J4 三条款实战首验通过 | —（条款活着）
 - 2026-11-13 | 工单④收官日三案：①α重建后捞 dev.yml 密码正则二次取用 1045（卷内原密码与 yml 新密码分裂，全新初始化卷时会引爆）②ReportDetailVO 改型时手术刀滑到隔壁 ReportVO（overallScore 误杀成 Integer score），编译器当场逮住③第二刀 buffer/磁盘分叉二进宫（敲完未再存） | ①已存在卷不认 MYSQL_ROOT_PASSWORD 新值 ②同名相似字段跨文件误改 ③#23 纪律案重演 | ④密码以卷内真值为准；改型清单按文件路径逐项核对+编译器哨兵价值实证；交接 Ctrl+S 纪律二次验证
-- 2026-11-13 | ④-3 验收全绿：18号白捡首报(P10 总分null)/22号 53.33+20号 7.50 手工复算吻合(J4/J11)/INJ五发三不全过/交卷封卷闸实弹/误触重发撞出 P4 覆盖重评活剧本 | — | #25-28 立案待裁；提交 9717659（含补收 Day10 漏网 LenientScoringConverter——git status 核对拦漏裹）
+- 2026-11-13 | ④-3 验收全绿：18号白捡首报(P10 总分null)/22号 53.33+21号 7.50 手工复算吻合(J4/J11)/INJ五发三不全过（靶场实为21号场 75-79，Apifox {{id}}模板变量指歪致场次误记，已验尸更正；evidence=[75]属本场题单，S9 闸突击检查清白）/交卷封卷闸实弹/误触重发撞出 P4 覆盖重评活剧本 | — | #25-28 立案待裁；提交 9717659（含补收 Day10 漏网 LenientScoringConverter——git status 核对拦漏裹）
 - 2026-11-12 | ④-2 三连编译错：接口"没有"generateReport 声明、converter "没有"getFormat——但 Read 明明见到完整版 | IDEA 未保存 buffer（新）与磁盘（旧）分叉：Read 见 buffer、mvn/SearchReplace 见磁盘 | 交接 Ctrl+S 纪律（待确认 #23）；与 11-05 旧缓冲案互为镜像，同一课上了两次
 - 2026-11-12 | 报告冒烟材料暴露 update_time 比 create_time 早 8h（12:19 vs 20:00） | MySQL 容器 UTC 时区经 `ON UPDATE CURRENT_TIMESTAMP` 写库，MP fill 用 Java 本地时间——同列两时钟 | 立案 #15 待裁；连带翻案 D2 演练 40s 抢单真因（#20），sweep min-idle 至今形同虚设
 - 2026-11-10 | 导师脚本二连坑：python heredoc 内半角引号 SyntaxError ×2；且换行分隔导致脚本失败后 git commit 照跑，提交信息先行描述了未发生的 STATUS 修改 | 链式命令未用 && fail-fast；文档修改误用 python 处理中文 | 补正提交落地事实；纪律更新：改中文文档一律 Edit 工具，脚本链必须 &&，提交信息不许预支未发生的事实

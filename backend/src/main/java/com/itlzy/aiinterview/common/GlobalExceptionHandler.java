@@ -7,6 +7,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -46,6 +47,13 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> handleUnreadable(HttpMessageNotReadableException e){
         return Result.of(ResultCode.BAD_REQUEST, "请求体不是合法JSON");
+    }
+
+    /** 方法与路径不匹配（如 POST /interview/finish 打进 GET /interview/{id}）→ HTTP 405 + code=405（裁决#29：框架错镜像 HTTP，不得混入 500） */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    public Result<Void> handleMethodNotSupported(HttpRequestMethodNotSupportedException e) {
+        return Result.of(ResultCode.METHOD_NOT_ALLOWED, "请求方法与接口不匹配，请检查文档");
     }
 
     /** 上游大模型异常（key失效/欠费/超时/网络）→ HTTP 200 + code 500 + 固定文案 */
