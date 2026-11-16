@@ -32,8 +32,9 @@
 
 ## 学员下一步（08 评审已结：v0.2-REVIEWED，开工令=三债唯一门槛）
 - [x] K1~K7 拍板评审完毕：K1/K2/K3/K4/K6/K7 批准（K4 全场最佳），K5 裁 E1 tags双轴纠正(骨架埋雷导师认账)+E2 distance-max 命名，K7 追加 E3 ask链走J5纵深
-- [ ] **三债，债清即放行（无新谈判）**：①三个测试文件 commit；② scripts/e2e.sh；③ 八道题面
-- [ ] 放行后开工：sql/05(kb_question+tags+CHECK) → ai-pgvector 容器(5433+TZ!) → 双 DataSource → 检索 DAO(单出口) → /ai/kb/ask(E3 防线) → V1~V7
+- [x] 债②清偿（**导师代写，纪律在案**）：scripts/e2e.sh 实测 quick 16/16、--full 27/27 全绿（含 INJ 注入被防 score=0、rebuild 闭环、D7 幂等、防枚举文案一致性）；exit code 0/1/2 约定=明天的 CI 接口
+- [ ] **剩余两债（学员侧，签字仍扣）**：①三个测试文件 commit（一条 git add）；③ 八道题面（第十一天，无再延期条款）
+- [ ] 签字后开工顺序：sql/05(kb_question+tags+CHECK) → ai-pgvector 容器(5433+TZ!) → 双 DataSource → 检索 DAO(单出口) → /ai/kb/ask(E3 防线) → V1~V7；此后每次改动=先跑 bash scripts/e2e.sh（V1 从此有了执行者）
 - [ ] 日常：开机后 `docker start ai-mysql ai-redis`
 
 ## 欠账清单
