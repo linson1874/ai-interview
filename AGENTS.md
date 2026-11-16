@@ -25,7 +25,8 @@
 - **仓库结构**：根 = git 仓库（`sql/` + `backend/`，以后 `docker-compose.yml`、`README.md` 在根）；backend 是唯一代码模块。**不要在 backend 子目录单独 git init**
 - **包名**：`com.itlzy.aiinterview`；分层 `controller / service(impl) / mapper / entity / dto / vo / config / common / util`
 - **依赖口径**：MyBatis-Plus `mybatis-plus-spring-boot3-starter` 3.5.7；驱动 `com.mysql:mysql-connector-j`；Lombok；data-redis
-- **数据库**：MySQL 8.0 = Docker 容器 `ai-mysql`（3306，root，库 `ai_interview`，卷 `ai_mysql_data`，4 张表已建）；Redis 7 = 容器 `ai-redis`（6379，卷 `ai_redis_data`）
+- **数据库**：MySQL 8.0 = 容器 `ai-mysql`（3306，root，库 `ai_interview`，卷 `ai_mysql_data`，事务域）；Redis 7 = 容器 `ai-redis`（6379，卷 `ai_redis_data`）；**PG16+pgvector = 容器 `ai-pgvector`（5433，库 `ai_knowledge`，卷 `ai_pgdata`，TZ=Asia/Shanghai，知识域——特批开工 2026-11-16）**；密码全部只进 application-dev.yml（gitignored）
+- **双引擎纪律**：sql/ 下 mysql 脚本平放、pg 脚本进 sql/pg/；题池表 kb_question 的 status='approved' 主闸写在检索 SQL 常量里，DAO 是唯一读出口；update_time 由 PG 触发器独家维护，应用侧禁手写
 - **本机 MySQL 服务已停用**（为 Docker 让出 3306）
 - **表设计**：`t_user`/`t_resume`/`t_interview`/`t_interview_question`；逻辑删除 `deleted`（MP 全局配置）；`t_user.username` 唯一索引 `uk_username`；无物理外键
 - **配置口径**：`application.yml` 只放中性配置（profile 激活、端口）；含密码的 `application-dev.yml` 在 `.gitignore` 中——**密码绝不进 Git**

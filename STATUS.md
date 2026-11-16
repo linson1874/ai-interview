@@ -30,12 +30,15 @@
 - [x] git init + 首次提交；`application-dev.yml`（密码）确认未进版本库
 - 待验证：学员在 IDEA 里复现（Bundled Maven 3 + JDK ms-17）
 
-## 学员下一步（08 评审已结：v0.2-REVIEWED，开工令=三债唯一门槛）
-- [x] K1~K7 拍板评审完毕：K1/K2/K3/K4/K6/K7 批准（K4 全场最佳），K5 裁 E1 tags双轴纠正(骨架埋雷导师认账)+E2 distance-max 命名，K7 追加 E3 ask链走J5纵深
-- [x] 债②清偿（**导师代写，纪律在案**）：scripts/e2e.sh 实测 quick 16/16、--full 27/27 全绿（含 INJ 注入被防 score=0、rebuild 闭环、D7 幂等、防枚举文案一致性）；exit code 0/1/2 约定=明天的 CI 接口
-- [ ] **剩余两债（学员侧，签字仍扣）**：①三个测试文件 commit（一条 git add）；③ 八道题面（第十一天，无再延期条款）
-- [ ] 签字后开工顺序：sql/05(kb_question+tags+CHECK) → ai-pgvector 容器(5433+TZ!) → 双 DataSource → 检索 DAO(单出口) → /ai/kb/ask(E3 防线) → V1~V7；此后每次改动=先跑 bash scripts/e2e.sh（V1 从此有了执行者）
-- [ ] 日常：开机后 `docker start ai-mysql ai-redis`
+## 学员下一步（阶段四=特批开工：infra导师已交付，四张工单归学员）
+**特批记录**：2026-11-16 学员指令直接开工；08 正式签字继续扣在债①③上，滚入**V5 验收截止**（ask 链交付日）——届时债未清，V5 不放行，阶段四后半不开。
+**导师已交付（实测在案）**：ai-pgvector 容器(5433/TZ/卷)；sql/pg/05_kb_question（CHECK三连拒收实测/审核闸隔离实测：投毒 pending 在闸内隐身、裸奔对照现形/触发器独家时钟实测）；检索 SQL 模板+索引阈值条款入文件注释。
+- [ ] 工单①（墙一）：双 DataSource 接线——MySQL @Primary 喂 MP，PG 源专供检索层；连接参数进 application-dev.yml；V1 判据=先 `bash scripts/e2e.sh` 基线绿→接线→再跑仍绿
+- [ ] 工单②（墙二）：KnowledgeSearchDao 单出口（status='approved' 硬常量+distance-max 配置出口过滤）+ V2 免费测试（pending 永不可见）
+- [ ] 工单③：embedding 入库离线脚本（**先注册百炼拿 BAILIAN_API_KEY**）；V3 维度锁死实测；V6 成本数字回填 08/K3
+- [ ] 工单④：/ai/kb/ask 端点（E3 五层纵深平移：candidate_query 定界+枚举硬校验+evidenceKbIds 出处）→ V4 golden queries≥5 条留档 → V5 端到端
+- [ ] 债①：三个测试文件 commit（还挂着??，从11-04拖到现在第几条纪律了自己数）；债③：八道题面（V5 截止）
+- [ ] 日常：开机后 `docker start ai-mysql ai-redis ai-pgvector`
 
 ## 欠账清单
 - [ ] docker-compose 小作业三问（旧教程项目：起了几个服务 / rustfs 存什么 / 为何还留 MySQL）
@@ -76,6 +79,7 @@
 | 28 | **§4.1 报告 prompt 实战验证反馈**：定稿后首战三场（18/22/20）全部首轮过闸零 L3 重试；INJ 五发三不全过（伪造定界符被当数据、指令零执行、报告链把注入写进薄弱点评估"规范意识存在问题"）；golden rule 反证双场吻合（22场 53.33、20场 7.50 手工复算分毫不差）。建议 §4.1 加注"经实战验证(2026-11-13)" | 技术支持窗口（带六张截图档） | ⏸ 请导师盖章追认 |
 
 ## 问题日志
+- 2026-16 冒烟数据语义坑（导师自查）：全常数向量在余弦距离下两两平行 dist=0，"远近"演示失真——审核闸结论不受影响（隐身/现形对比成立），但 V2 真实测试必须用真 embedding；合成数据永远要怀疑它没测到的那一维
 - 2026-11-14 | q96 评分降级根因：JsonEOF expecting closing quote | SCORING 800 护栏腰斩长 refAnswer——护栏即故障源（05 复测注预言的重演） | S14: 1200+简洁条款+截断落地
 - 2026-11-14 | POST /interview/finish 路径歧义撞 GET /{id} 被吞 500 | HttpRequestMethodNotSupported 无专属 handler，违框架镜像家法 | #29→01 v0.4 405 行+handler，配 MockMvc 测试
 - 2026-11-14 | 实弹正面案 iid=23：2 评 1 降级→overall=NULL 走样本闸、报告只定性、renormalize 生效 | J4 三条款实战首验通过 | —（条款活着）
