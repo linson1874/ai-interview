@@ -3,3 +3,7 @@ spring:
     active: dev
 server:
   port: 8080
+kb:
+  search:
+    top-k: 3
+    distance-max: 0.25
