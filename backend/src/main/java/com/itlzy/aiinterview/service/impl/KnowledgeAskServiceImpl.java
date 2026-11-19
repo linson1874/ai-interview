@@ -80,6 +80,12 @@ public class KnowledgeAskServiceImpl implements KnowledgeAskService {
             fetchedIds.add(it.getId());
             material.append("[id=").append(it.getId()).append("] ")
                     .append(oneLine(it.getContent())).append('\n');
+            // 工单⑤（#36 裁决落地）：材料主体=答案知识段，截断 300（token 预算+注入面积双压缩，#25 同款两部立法）；
+            // 答案缺失的老行明示标注而非静默退化——模型看得见"只有题干"这个事实，才能诚实说料不足
+            String body = it.getAnswerText() == null || it.getAnswerText().isBlank()
+                    ? "（本题无答案段，仅题干）"
+                    : abbreviate(oneLine(it.getAnswerText()), 300);
+            material.append(body).append('\n');
         }
         String user = "<candidate_query>" + question + "</candidate_query>\n<kb_material>\n" + material + "</kb_material>";
 
@@ -158,5 +164,10 @@ public class KnowledgeAskServiceImpl implements KnowledgeAskService {
 
     private static String oneLine(String s) {
         return s == null ? "" : s.replaceAll("[\\r\\n]+", " ");
+    }
+
+    /** 300 字截断加省略号（与 AiServiceImpl.abbreviate 同款——第四处小工具重复，抽 util 的账记到工单⑥一起算） */
+    private static String abbreviate(String s, int max) {
+        return s.length() <= max ? s : s.substring(0, max) + "…";
     }
 }

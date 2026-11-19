@@ -1,4 +1,4 @@
-# V4 golden queries 检索基线 2026-11-18
+# V4 golden queries 检索基线 2026-11-19
 # 配置: text-embedding-v4 / topK=3 / distance-max=0.25 / 题库=seed-v1(12 approved)
 
 Q: MySQL 索引为什么用 B+ 树（期望含"B+"）→ HIT

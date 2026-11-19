@@ -19,7 +19,7 @@ public class KnowledgeSearchDao {
 
     /** topK 截断后、返回前的质量闸（E2：与 <=> 同向，距离<=max 才留） */
     private static final String SELECT_APPROVED =
-            "SELECT id, category, difficulty, content, embedding <=> ?::vector AS distance " +
+            "SELECT id, category, difficulty, content, answer_text, embedding <=> ?::vector AS distance " +
                     "FROM kb_question WHERE status = 'approved' ";
     /** tags 轴预过滤（E1 裁决：方向走 tags，category 只管题型四值，两轴不串） */
     private static final String TAGS_FILTER = "AND tags && ?::text[] ";
@@ -56,6 +56,7 @@ public class KnowledgeSearchDao {
             it.setCategory(rs.getString("category"));
             it.setDifficulty(rs.getInt("difficulty"));
             it.setContent(rs.getString("content"));
+            it.setAnswerText(rs.getString("answer_text"));
             it.setDistance(rs.getDouble("distance"));
             return it;
         }, args.toArray());
@@ -69,6 +70,8 @@ public class KnowledgeSearchDao {
         private String category;
         private Integer difficulty;
         private String content;
+        /** 工单⑤（#36 裁决）：标准答案知识段——ask 链材料主体；老行未补时可能 null */
+        private String answerText;
         private Double distance;
     }
 }
