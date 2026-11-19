@@ -1,0 +1,36 @@
+# V4 golden queries 检索基线 2026-11-19（书面5+口语5 #41）
+# 配置: text-embedding-v4 / topK=3 / distance-max=0.25 / 题库=seed-v1(12 approved 含answer_text)
+
+[书面] Q: MySQL 索引为什么用 B+ 树（期望含"B+"）→ HIT
+   d=0.0861  MySQL 为什么选择 B+ 树作为索引结构而不是哈希表或红黑树？
+
+[书面] Q: HashMap 的底层原理（期望含"HashMap"）→ HIT
+   d=0.1306  Java 中 HashMap 的底层实现原理是什么？扩容是如何发生的？
+
+[书面] Q: Redis 持久化怎么选（期望含"RDB"）→ HIT
+   d=0.1712  Redis 的 RDB 和 AOF 持久化各有什么优劣？生产环境如何选？
+
+[书面] Q: 怎么用 Redis 做分布式锁（期望含"分布式锁"）→ HIT
+   d=0.1116  如何用 Redis 实现分布式锁？有哪些坑？
+
+[书面] Q: 线上接口偶发超时怎么排查（期望含"超时"）→ HIT
+   d=0.1056  如果线上接口偶发超时，你的排查思路是什么？
+
+[口语] Q: HashMap咋扩容的啊（期望含"HashMap"）→ HIT
+   d=0.2084  Java 中 HashMap 的底层实现原理是什么？扩容是如何发生的？
+
+[口语] Q: 索引为啥是B+树不是哈希（期望含"B+"）→ HIT
+   d=0.1214  MySQL 为什么选择 B+ 树作为索引结构而不是哈希表或红黑树？
+
+[口语] Q: redis持久化选哪个好（期望含"RDB"）→ HIT
+   d=0.2248  Redis 的 RDB 和 AOF 持久化各有什么优劣？生产环境如何选？
+
+[口语] Q: 分布式锁咋搞（期望含"分布式锁"）→ MISS
+   （空手而归：topK 全被 distance-max 拦下）
+
+[口语] Q: 接口偶尔抽风变慢咋办（期望含"超时"）→ MISS
+   （空手而归：topK 全被 distance-max 拦下）
+
+=== 总命中率: 8/10 ===
+   书面组: 5/5
+   口语组: 3/5
