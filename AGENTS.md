@@ -29,7 +29,7 @@
 - **双引擎纪律**：sql/ 下 mysql 脚本平放、pg 脚本进 sql/pg/；题池表 kb_question 的 status='approved' 主闸写在检索 SQL 常量里，DAO 是唯一读出口；update_time 由 PG 触发器独家维护，应用侧禁手写
 - **本机 MySQL 服务已停用**（为 Docker 让出 3306）
 - **表设计**：`t_user`/`t_resume`/`t_interview`/`t_interview_question`；逻辑删除 `deleted`（MP 全局配置）；`t_user.username` 唯一索引 `uk_username`；无物理外键
-- **配置口径**：`application.yml` 只放中性配置（profile 激活、端口）；含密码的 `application-dev.yml` 在 `.gitignore` 中——**密码绝不进 Git**
+- **配置口径**：`application.yml` 放中性配置+**可调旋钮**（profile、端口、kb.search.*等参数）；含密码/key 的 `application-dev.yml` 在 `.gitignore` 中——**密码绝不进 Git；旋钮必须进 Git**（#35 纪律：无版本的调参=无历史的手改）
 - **工具**：数据库 GUI = Navicat；终端 = Git Bash；不要建议换用 CMD/PowerShell 跑教程命令
 - **命令行 JDK 口径（学员实锤，违者 Lombok 静默毒害）**：本机系统 java 指向 Temurin 25——用 JAVA_HOME 未钉 ms-17.0.19 的 shell 跑 mvn 会满屏"找不到符号"假案。任何命令行构建/测试前必须 `export JAVA_HOME="C:/Users/Lying/.jdks/ms-17.0.19"`；杀进程演练用 `taskkill //F //PID`（IDEA Stop 在断点挂起时会先放行线程=假死实锤两次）
 - **时钟单源（裁决 R9/案#15，2026-11-13 起为设计基线）**：`ai-mysql` 容器必须以 `-e TZ=Asia/Shanghai` 运行——让 MySQL `NOW()`/`ON UPDATE CURRENT_TIMESTAMP` 与 Java `LocalDateTime.now()` 同挂一个墙钟。DATETIME 不存时区，"同列两时钟"是慢性病不是急症（qid61 案：update 比 create 早 8 小时）。全链 UTC 为国际替代方案，记秋招后演进议题

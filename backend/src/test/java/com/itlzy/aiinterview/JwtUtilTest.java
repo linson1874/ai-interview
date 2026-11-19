@@ -27,9 +27,11 @@ class JwtUtilTest {
     @Test
     void tamperedTokenRejected() {
         String token = jwtUtil.createToken(99L);
-        // 篡改签名段末字符：票面被动过一笔，验票必须翻脸
-        char last = token.charAt(token.length() - 1);
-        String bad = token.substring(0, token.length() - 1) + (last == 'A' ? 'B' : 'A');
+        // 篡改签名段"中部"字符——绝不改末字符：base64url 末字符含 don't-care 填充位，
+        // 改动可能不改变解码字节（2026-11-19 本测试亲测翻车，合成攻击也会骗设计者）
+        int pos = token.length() - 10;
+        char c = token.charAt(pos);
+        String bad = token.substring(0, pos) + (c == 'A' ? 'B' : 'A') + token.substring(pos + 1);
         Assertions.assertThrows(RuntimeException.class, () -> jwtUtil.parseUserId(bad));
     }
 
