@@ -1,9 +1,16 @@
 spring:
   profiles:
     active: dev
+  http:
+    client:
+      # #39（导师V5复验案）：书面问首击500重试即好=瞬时故障，根因chat/embedding无显式超时——
+      # Spring AI 的 RestClient 吃 Boot 全局客户端超时；超时类失败归"下游挂了"桶(NonTransient同家法)
+      connect-timeout: 10s
+      read-timeout: 60s
 server:
   port: 8080
 kb:
   search:
     top-k: 3
-    distance-max: 0.25
+    distance-max: 0.3   # #41裁定(2026-11-19)：0.25对口语query偏严——10条golden实测书面5/5、口语3/5，
+                        # 两条擦边过(0.208/0.225)；书面最好d=0.086，放宽到0.3不引噪声。diff存档见 docs/eval/
