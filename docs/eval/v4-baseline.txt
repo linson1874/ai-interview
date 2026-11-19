@@ -1,0 +1,19 @@
+# V4 golden queries 检索基线 2026-11-18
+# 配置: text-embedding-v4 / topK=3 / distance-max=0.25 / 题库=seed-v1(12 approved)
+
+Q: MySQL 索引为什么用 B+ 树（期望含"B+"）→ HIT
+   d=0.0861  MySQL 为什么选择 B+ 树作为索引结构而不是哈希表或红黑树？
+
+Q: HashMap 的底层原理（期望含"HashMap"）→ HIT
+   d=0.1306  Java 中 HashMap 的底层实现原理是什么？扩容是如何发生的？
+
+Q: Redis 持久化怎么选（期望含"RDB"）→ HIT
+   d=0.1712  Redis 的 RDB 和 AOF 持久化各有什么优劣？生产环境如何选？
+
+Q: 怎么用 Redis 做分布式锁（期望含"分布式锁"）→ HIT
+   d=0.1116  如何用 Redis 实现分布式锁？有哪些坑？
+
+Q: 线上接口偶发超时怎么排查（期望含"超时"）→ HIT
+   d=0.1056  如果线上接口偶发超时，你的排查思路是什么？
+
+=== 命中率: 5/5 ===
