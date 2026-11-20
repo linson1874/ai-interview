@@ -36,6 +36,8 @@
 - **无路径前缀（案#19 定稿）**：本项目 API 无 context-path（双 yml 实查 + git 全史 grep 零命中）；对外口径一律 `/user/ /resume/ /ai/ /interview/`；commit message 若声称与现状不符按"预支未实施计划"立案纠正
 - **交接纪律（案#23）**：任何一方"敲完交给对方构建/验收"前必须 Ctrl+S Save All——IDEA buffer 与磁盘分叉已双向烧过两次（11-05 导师读旧缓冲案 / 11-12 学员三连编译错案）
 - **mvn 路径口径（案#24）**：真实 mvn 路径含 64 位 hash，一律 `MVN=$(find ~/.m2/wrapper/dists -name mvn -path "*/bin/mvn" | head -1)` 取值后用，**禁止手敲或抄省略号占位路径**（实案×2）
+- **时钟两代制（#46 雷案定档）**：存量表（01-04 域）update_time=MySQL `ON UPDATE CURRENT_TIMESTAMP`，DB 钟自维护，Java 不干预；新表（07+ 域）DDL 明令禁 ON UPDATE，一律 Java 单时钟显式写入——`update(null, wrapper)` 形状下 MP 的 updateFill **不会触发**，凡 CAS/状态机类更新（尤其 update_time 兼职心跳/租约的表）必须显式 `.set(entity::getUpdateTime, now)`。新表属于哪一代，DDL 注释里自宣，不给猜的空间
+- **MP 双坑工具口径（#46 赠案）**：①update(null,wrapper) 不触发 fill；②`eq(column, null)` 生成恒 false 的 `= NULL`，可空列等值比较必须 isNull 分支——两坑均已实弹伤人，写 Wrapper 前先过这两问
 - **异常身份证口径（案#21）**：Lettuce/Spring Data 异常是套娃，BUSYGROUP/NOGROUP 等关键字在 Caused by 链里——字符串归因必须沿 cause 链遍历（causeContains 模式）；**从未被演练命中过的防御代码视同未验证**（NOGROUP 自愈案：刷屏实靠手动 XGROUP CREATE 救场）
 - **无 Maven Wrapper**：本机未装独立 mvn，IDEA 用自带 Bundled Maven 构建；命令行验证用 `~/.m2/wrapper/dists/apache-maven-3.10.0/*/apache-maven-3.10.0/bin/mvn`
 
