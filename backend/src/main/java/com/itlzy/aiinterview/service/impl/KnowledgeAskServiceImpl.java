@@ -6,6 +6,7 @@ import com.itlzy.aiinterview.common.BusinessException;
 import com.itlzy.aiinterview.common.ResultCode;
 import com.itlzy.aiinterview.dao.KnowledgeSearchDao;
 import com.itlzy.aiinterview.service.KnowledgeAskService;
+import com.itlzy.aiinterview.util.VectorUtils;
 import com.itlzy.aiinterview.vo.AskVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -65,7 +66,7 @@ public class KnowledgeAskServiceImpl implements KnowledgeAskService {
     public AskVO ask(String question) {
         // ②查询侧：真问题→真坐标→检索（审核闸/阈值/topK 全在 DAO 单出口内，此处无权无参）
         float[] vec = embeddingModel.embed(question);
-        List<KnowledgeSearchDao.KbItem> items = searchDao.search(toLiteral(vec), null);
+        List<KnowledgeSearchDao.KbItem> items = searchDao.search(VectorUtils.toLiteral(vec), null);
 
         // 诚实降级：无料不发 chat——"查不到就明说"零成本零幻觉（J5 边界①的日常形态）
         if (items.isEmpty()) {
@@ -151,16 +152,6 @@ public class KnowledgeAskServiceImpl implements KnowledgeAskService {
     private static class Parsed {
         String answer;
         List<Long> citedIds;
-    }
-
-    /** float[]→pgvector 字面量（第三处同款小工具——三处即信号：工单收官后可提议抽 util，先记账不擅动） */
-    private static String toLiteral(float[] v) {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < v.length; i++) {
-            if (i > 0) sb.append(',');
-            sb.append(v[i]);
-        }
-        return sb.append(']').toString();
     }
 
     private static String oneLine(String s) {

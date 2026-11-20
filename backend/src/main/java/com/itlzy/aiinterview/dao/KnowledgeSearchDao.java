@@ -19,7 +19,7 @@ public class KnowledgeSearchDao {
 
     /** topK 截断后、返回前的质量闸（E2：与 <=> 同向，距离<=max 才留） */
     private static final String SELECT_APPROVED =
-            "SELECT id, category, difficulty, content, answer_text, embedding <=> ?::vector AS distance " +
+            "SELECT id, category, difficulty, content, answer_text, tags, embedding <=> ?::vector AS distance " +
                     "FROM kb_question WHERE status = 'approved' ";
     /** tags 轴预过滤（E1 裁决：方向走 tags，category 只管题型四值，两轴不串） */
     private static final String TAGS_FILTER = "AND tags && ?::text[] ";
@@ -57,6 +57,9 @@ public class KnowledgeSearchDao {
             it.setDifficulty(rs.getInt("difficulty"));
             it.setContent(rs.getString("content"));
             it.setAnswerText(rs.getString("answer_text"));
+            // 合同09 决策点 A：方向轴数据源——tags 随检索结果带回（入队映射与将来曲线都吃这口）
+            java.sql.Array tagArr = rs.getArray("tags");
+            it.setTags(tagArr == null ? List.of() : List.of((String[]) tagArr.getArray()));
             it.setDistance(rs.getDouble("distance"));
             return it;
         }, args.toArray());
@@ -72,6 +75,35 @@ public class KnowledgeSearchDao {
         private String content;
         /** 工单⑤（#36 裁决）：标准答案知识段——ask 链材料主体；老行未补时可能 null */
         private String answerText;
+        /** 合同09 A：方向轴标签（kb_question.tags）——曲线 tag 轴数据源；空数组=无标签不进方向轴 */
+        private List<String> tags;
         private Double distance;
+    }
+
+    /** 行映射唯一实现：search 与 selectById 共用，加列只改一处 */
+    private KnowledgeSearchDao.KbItem mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
+        KbItem it = new KbItem();
+        it.setId(rs.getLong("id"));
+        it.setCategory(rs.getString("category"));
+        it.setDifficulty(rs.getInt("difficulty"));
+        it.setContent(rs.getString("content"));
+        it.setAnswerText(rs.getString("answer_text"));
+        java.sql.Array tagArr = rs.getArray("tags");
+        it.setTags(tagArr == null ? List.of() : List.of((String[]) tagArr.getArray()));
+        return it;
+    }
+
+    /** 合同09 A：复习材料一级出口的按 id 读——审核闸同样焊死（题池行被降回 draft，
+     *  材料自动掉到二级 refAnswer），"唯一出口"的门框不含第二道门 */
+    public KbItem selectById(Long id) {
+        List<KbItem> rows = pg.query(
+                "SELECT id, category, difficulty, content, answer_text, tags " +
+                        "FROM kb_question WHERE id = ? AND status = 'approved'",
+                (rs, i) -> {
+                    KbItem it = mapRow(rs);
+                    it.setDistance(null);
+                    return it;
+                }, id);
+        return rows.isEmpty() ? null : rows.get(0);
     }
 }

@@ -14,3 +14,10 @@ kb:
     top-k: 3
     distance-max: 0.3   # #41裁定(2026-11-19)：0.25对口语query偏严——10条golden实测书面5/5、口语3/5，
                         # 两条擦边过(0.208/0.225)；书面最好d=0.086，放宽到0.3不引噪声。diff存档见 docs/eval/
+review:
+  # 合同09 B/G4：Leitner 参数整组进 yml——换代 SM-2 时整组替换不动代码（ReviewProperties 绑定）
+  intervals-days: 1,3,7,16,35   # 五盒间隔（天），盒号即下标+1
+  promote-min-score: 4          # >=4 前进一盒（语义明确的正向信号才配驱动状态转移）
+  demote-max-score: 2           # <=2 回盒一；同一把尺也是入队钩子的错题边界
+  profile-window: 5             # 曲线窗口：最近 N 次判分均值×20（G4，W8 手算对拍口径）
+  processing-lease-minutes: 30  # processing 租约：kill -9 死锁洞的堵法（待导师追认条款）

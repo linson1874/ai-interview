@@ -15,6 +15,7 @@ import com.itlzy.aiinterview.mapper.InterviewQuestionMapper;
 import com.itlzy.aiinterview.service.AiService;
 import com.itlzy.aiinterview.service.InterviewService;
 import com.itlzy.aiinterview.service.ResumeService;
+import com.itlzy.aiinterview.service.ReviewService;
 import com.itlzy.aiinterview.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,19 +39,22 @@ public class InterviewServiceImpl implements InterviewService {
     private final AiService aiService;            // 合同07 评分链路入口（同步链路直调，不走流——J1 拍板）
     private final ObjectMapper objectMapper;
     private final StringRedisTemplate redisTemplate;   // 和门票存根同款模板，String 序列化=XRANGE 肉眼可读（H1 排障纪律吃到红利）
+    private final ReviewService reviewService;         // 合同09 入队钩子（内部自吞异常，不连坐主链）
 
     public InterviewServiceImpl(InterviewMapper interviewMapper,
                                 InterviewQuestionMapper questionMapper,
                                 ResumeService resumeService,
                                 AiService aiService,
                                 StringRedisTemplate redisTemplate,
-                                ObjectMapper objectMapper) {
+                                ObjectMapper objectMapper,
+                                ReviewService reviewService) {
         this.interviewMapper = interviewMapper;
         this.questionMapper = questionMapper;
         this.resumeService = resumeService;
         this.aiService = aiService;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
+        this.reviewService = reviewService;
     }
 
     @Override
@@ -181,6 +185,10 @@ public class InterviewServiceImpl implements InterviewService {
             // S13 类推：静默三 null 同样是欺骗。⚠ 文案为技术窗口类推自拟（导师只点了评分失败分支），报备追认
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "已有更新版作答提交，本次评分结果已作废");
         }
+
+        // ⑤.5 入队钩子（合同09 C/B：score<=2 错题入复习队列）——挂在回写成功之后：
+        //    只有真落库的分数才配驱动入队（stale 分支已抛出，到不了这）；方法内部全量自吞，主链零感
+        reviewService.enqueueIfWrong(userId, q, scored.getScore());
 
         // ⑥ 同步返回三值（P1"三值同列原子落库"的镜像面）
         AnswerScoreVO vo = new AnswerScoreVO();
