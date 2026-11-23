@@ -10,6 +10,7 @@ import com.itlzy.aiinterview.entity.InterviewQuestion;
 import com.itlzy.aiinterview.mapper.InterviewMapper;
 import com.itlzy.aiinterview.mapper.InterviewQuestionMapper;
 import com.itlzy.aiinterview.service.AiService;
+import com.itlzy.aiinterview.service.ReviewService;
 import com.itlzy.aiinterview.vo.QuestionItemVO;
 import com.itlzy.aiinterview.vo.QuestionsVO;
 import jakarta.annotation.PostConstruct;
@@ -33,15 +34,18 @@ public class InterviewGenConsumer {
     private final InterviewMapper interviewMapper;
     private final InterviewQuestionMapper questionMapper;
     private final AiService aiService;
+    private final ReviewService reviewService;
 
     public InterviewGenConsumer(StringRedisTemplate redisTemplate,
                                 InterviewMapper interviewMapper,
                                 InterviewQuestionMapper questionMapper,
-                                AiService aiService) {
+                                AiService aiService,
+                                ReviewService reviewService) {
         this.redisTemplate = redisTemplate;
         this.interviewMapper = interviewMapper;
         this.questionMapper = questionMapper;
         this.aiService = aiService;
+        this.reviewService = reviewService;
     }
 
     /** 启动编排：先建组、再清自己PEL。两步有严格先后依赖，必须收在同一个 @PostConstruct 里
@@ -170,6 +174,9 @@ public class InterviewGenConsumer {
             gen.setResumeId(interview.getResumeId());
             gen.setCount(interview.getQuestionCount());
             QuestionsVO questions = aiService.generateQuestions(interview.getUserId(), gen);
+
+            // ── ③.5 工单G（#58）：删题前级联清理复习锚——题表物理删除后旧 id 永久失踪，顺序不可反 ──
+            reviewService.purgeItemsForInterview(interviewId);
 
             // ── ④ 先删后插（H5：半程遗骸先清，结果恒为N题不翻倍——T4的断言靠它）──
             questionMapper.delete(new LambdaQueryWrapper<InterviewQuestion>()

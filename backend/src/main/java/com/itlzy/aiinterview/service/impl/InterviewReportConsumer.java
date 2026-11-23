@@ -169,6 +169,10 @@ public class InterviewReportConsumer {
                     new LambdaQueryWrapper<InterviewQuestion>()
                             .eq(InterviewQuestion::getInterviewId, interviewId)
                             .orderByAsc(InterviewQuestion::getOrderNo));
+            // 合同10 D 四分口径的总闸：mainQuestions=算术面（分母/计数/明细物理排除追问），
+            // questions 全量只喂叙事面（generateReport 材料两段式）——ScoreCalculator 纯函数零改动
+            List<InterviewQuestion> mainQuestions = questions.stream()
+                    .filter(q -> q.getParentQuestionId() == null).toList();
 
             // ③ AI 只写两个字段（§4.1；L2/L3 再炸原样抛出→失败边：不ACK留PEL，delivery+1 待重投）
             ReportSchema schema = aiService.generateReport(questions);
@@ -177,11 +181,11 @@ public class InterviewReportConsumer {
             ReportVO vo = new ReportVO();
             vo.setSummary(schema.getSummary());
             vo.setWeakPoints(schema.getWeakPoints());
-            vo.setOverallScore(ScoreCalculator.computeOverallScore(questions));   // J4 三条款在纯函数里已兑现
-            vo.setTotalCount(questions.size());
-            vo.setScoredCount((int) questions.stream().filter(q -> q.getScore() != null).count());  // J4"已评4题"
+            vo.setOverallScore(ScoreCalculator.computeOverallScore(mainQuestions));   // J4 三条款在纯函数里已兑现；X6 分母闸=入参物理不含追问行
+            vo.setTotalCount(mainQuestions.size());
+            vo.setScoredCount((int) mainQuestions.stream().filter(q -> q.getScore() != null).count());  // J4"已评4题"
             List<ReportDetailVO> details = new ArrayList<>();
-            for (InterviewQuestion q : questions) {
+            for (InterviewQuestion q : mainQuestions) {
                 ReportDetailVO d = new ReportDetailVO();
                 d.setId(q.getId());
                 d.setCategory(q.getCategory());

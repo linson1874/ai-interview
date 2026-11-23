@@ -22,4 +22,6 @@ public interface ReviewService {
     /** POST /review/answer：F2 双防线的执法现场（流程注释见 Impl） */
     com.itlzy.aiinterview.vo.ReviewAnswerVO answer(Long userId,
                                                    com.itlzy.aiinterview.dto.ReviewAnswerDTO dto);
+
+    void purgeItemsForInterview(Long interviewId);
 }

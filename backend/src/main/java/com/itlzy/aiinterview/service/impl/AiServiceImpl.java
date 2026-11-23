@@ -108,7 +108,8 @@ public class AiServiceImpl implements AiService {
     public ReportSchema generateReport(List<InterviewQuestion> questions) {
         // evidence 白名单（选法①显式传参）：模型编造不存在的题目ID=幻觉，本地终审拦在入库前
         Set<Long> validIds = questions.stream().map(InterviewQuestion::getId).collect(Collectors.toSet());
-        String user = "面试总评材料（格式：题目ID|类别|难度|得分(0-5，\"未评分\"表示缺分)|题干|考生作答|简评）：\n"
+        String user = "面试总评材料（主段每行一题：题目ID|类别|难度|得分(0-5，\"未评分\"表示缺分)|题干|考生作答|简评；"
+                + "末尾追问轨迹段以└开头标注对某题的追问，追问得分不计入薄弱点分母，薄弱点归属按原题计）：\n"
                 + "<attempted_answers>\n" + buildReportMaterial(questions) + "\n</attempted_answers>\n"
                 + reportConverter.getFormat();
         ReportSchema schema;
@@ -218,12 +219,16 @@ public class AiServiceImpl implements AiService {
         return schema;
     }
 
-    /** 报告链材料拼装：一行一题（ID|类别|难度|得分|题干|作答|简评）。
+    /** 报告链材料拼装（合同10 D 两段式）：主段一行一题口径不变（ID|类别|难度|得分|题干|作答|简评），
+     *  追问轨迹段缩进标注——轨迹是叙事资产不是测量点（J4 二分第二次应用：分数不进分母，轨迹可进证据）。
      *  score 为 null 写"未评分"而非 0——J4 条款一的 prompt 侧镜像（没评≠答错）；
      *  refAnswer 不进材料：报告看"答得怎样"不看"标准答案"，省 token 且少一个注入载体 */
     private String buildReportMaterial(List<InterviewQuestion> questions) {
         StringBuilder sb = new StringBuilder();
         for (InterviewQuestion q : questions) {
+            if (q.getParentQuestionId() != null) {
+                continue;                        // 主段=主题行，追问行走轨迹段
+            }
             sb.append(q.getId()).append('|')
                     .append(q.getCategory()).append('|')
                     .append(q.getDifficulty()).append('|')
@@ -231,6 +236,17 @@ public class AiServiceImpl implements AiService {
                     .append(oneLine(q.getQuestionContent())).append('|')
                     .append(abbreviate(oneLine(q.getUserAnswer() == null ? "（考生未作答）" : q.getUserAnswer()), 150)).append('|')
                     .append(oneLine(q.getScoreComment() == null ? "（无）" : q.getScoreComment()))
+                    .append('\n');
+        }
+        // 追问轨迹段：└开头自标识（定界家族第三变体——模型靠行首形状区分两种材料，不靠新标签）
+        for (InterviewQuestion q : questions) {
+            if (q.getParentQuestionId() == null) {
+                continue;
+            }
+            sb.append("└对题").append(q.getParentQuestionId()).append("追问")
+                    .append('|').append(q.getStrategy()).append('|')   // 中文三值字面（#60），模型读得懂"降档"意味着什么
+                    .append("得分").append(q.getScore() == null ? "未评分" : q.getScore()).append('|')
+                    .append(abbreviate(oneLine(q.getQuestionContent()), 80))   // 轨迹段题干截 80：叙事用不着全文，token 预算也省
                     .append('\n');
         }
         return sb.toString().trim();

@@ -77,37 +77,49 @@ public class ReviewServiceImpl implements ReviewService {
                 return;
             }
 
+            // 合同10 边3 三段裁决的循环化身：主题行(parent null)回溯 0 步=现行语义(a段)；
+            // 追问行沿链上溯，入队对象=根原题(b段)——"永远落到根"同时消灭了追问行自身入池(c段)。
+            // 复习的对象是知识缺陷本体，探针只是探针
+            InterviewQuestion target = question;
+            while (target.getParentQuestionId() != null) {
+                target = questionMapper.selectById(target.getParentQuestionId());
+                if (target == null) {
+                    log.error("复习入队回溯断链，放弃 questionId={}", question.getId());
+                    return;
+                }
+            }
+
             // A 尽力而为映射：复用 ask 同一条检索链（approved 闸在 DAO 常量里，钩子递不进条子）。
-            // 映射失败≠复习失败：kb_question_id 留空，材料走题干降级
+            // 映射失败≠复习失败：kb_question_id 留空，材料走题干降级——映射吃的是【根题】题干
             Long kbId = null;
             try {
-                float[] vec = embeddingModel.embed(question.getQuestionContent());
+                float[] vec = embeddingModel.embed(target.getQuestionContent());
                 List<KnowledgeSearchDao.KbItem> hits = searchDao.search(VectorUtils.toLiteral(vec), null);
                 if (!hits.isEmpty()) {
                     kbId = hits.get(0).getId();   // DAO 已按 distance-max 过滤：有 top1 即 d<=0.3
                 }
             } catch (Exception me) {
-                log.warn("入队 kb 映射失败（材料降级为题干，不影响复习）questionId={}", question.getId(), me);
+                log.warn("入队 kb 映射失败（材料降级为题干，不影响复习）questionId={}", target.getId(), me);
             }
 
             ReviewItem item = new ReviewItem();
             item.setUserId(userId);
-            item.setInterviewQuestionId(question.getId());
+            item.setInterviewQuestionId(target.getId());     // 身份锚=根题行
             item.setKbQuestionId(kbId);
             item.setBoxNo(1);
             item.setStatus(ReviewKeys.STATUS_DUE);
             LocalDateTime next = LocalDateTime.now().plusDays(props.getIntervalsDays().get(0));
             item.setNextReviewAt(next);
-            item.setLastScore(score);
+            item.setLastScore(score);                        // 分数留本次判分（追问的砸分也是信号）
             reviewItemMapper.insert(item);   // IdType.AUTO：insert 回填 id，下一发 ZADD 的 member 就是它
 
             // 账本先、投影后（E）：score=epoch 秒，与 next_review_at 同一个 Java 时钟算出
             redisTemplate.opsForZSet().add(ReviewKeys.QUEUE_KEY, String.valueOf(item.getId()),
                     next.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() / 1000.0);
-            log.info("错题已入复习队列 itemId={} questionId={} score={} kbId={}",
-                    item.getId(), question.getId(), score, kbId);
+            log.info("错题已入复习队列 itemId={} rootQuestionId={} fromQuestionId={} score={} kbId={}",
+                    item.getId(), target.getId(), question.getId(), score, kbId);
         } catch (DuplicateKeyException dk) {
-            // uk_user_question 撞键=同场同题重评：已在队列，幂等跳过（不重置盒号——状态归复习链管）
+            // uk_user_question 撞键=根题已在队列（含"主题先答砸、追问又砸"的双触发）：幂等跳过
             log.info("题目已在复习队列，幂等跳过 questionId={}", question.getId());
         } catch (Exception e) {
             // 不连坐铁律：钩子可以坏，面试主链不能赔（评分三值已落库，此处只留痕不抛出）
@@ -251,6 +263,32 @@ public class ReviewServiceImpl implements ReviewService {
                         .set(ReviewItem::getStatus, ReviewKeys.STATUS_DUE)
                         .set(ReviewItem::getUpdateTime, LocalDateTime.now()));  // 同上：行变了时间就得变，账本卫生+租约判据不被旧值误导
             }
+        }
+    }
+
+    @Override
+    public void purgeItemsForInterview(Long interviewId) {
+        try {
+            // 先取旧题 id 清单——本方法必须在删题前跑，跑完这些 id 就没了（题表物理删除的时序债）
+            List<Long> oldQuestionIds = questionMapper.selectList(new LambdaQueryWrapper<InterviewQuestion>()
+                            .eq(InterviewQuestion::getInterviewId, interviewId))
+                    .stream().map(InterviewQuestion::getId).toList();
+            if (oldQuestionIds.isEmpty()) {
+                return;
+            }
+            // MP 逻辑删除：@TableLogic 让 delete 变 UPDATE deleted=1——账本不物理抹尸（09 三表制哲学）
+            int purged = reviewItemMapper.delete(new LambdaQueryWrapper<ReviewItem>()
+                    .in(ReviewItem::getInterviewQuestionId, oldQuestionIds));
+            if (purged > 0) {
+                // 投影不用手动 ZREM：对账 SQL 的 selectList 被 MP 自动加 deleted=0 →
+                // 下一轮对账（≤5min）重建时幽灵成员自然消失——账本先、投影后的又一次自动兑现
+                log.info("工单G级联清理：interviewId={} 逻辑删除复习单元 {} 条（锚点旧题 {} 行）",
+                        interviewId, purged, oldQuestionIds.size());
+            }
+        } catch (Exception e) {
+            // 清理失败不拦重生成：旧 items 变悬空锚是已知边（4a 的"原题行已不存在"兜底接住），
+            // 拦下整场重生成才是事故——主链优先，留痕待查
+            log.error("级联清理复习单元失败（不拦重生成，悬空锚走兜底边）interviewId={}", interviewId, e);
         }
     }
 }

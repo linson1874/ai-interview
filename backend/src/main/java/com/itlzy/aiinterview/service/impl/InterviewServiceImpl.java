@@ -98,6 +98,7 @@ public class InterviewServiceImpl implements InterviewService {
         if (interview.getStatus() == 1) {
             List<QuestionItemVO> items = questionMapper.selectList(new LambdaQueryWrapper<InterviewQuestion>()
                             .eq(InterviewQuestion::getInterviewId, interviewId)
+                            .isNull(InterviewQuestion::getParentQuestionId)
                             .orderByAsc(InterviewQuestion::getOrderNo))
                     .stream().map(q -> {
                         QuestionItemVO item = new QuestionItemVO();
