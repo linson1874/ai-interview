@@ -21,3 +21,7 @@ review:
   demote-max-score: 2           # <=2 回盒一；同一把尺也是入队钩子的错题边界
   profile-window: 5             # 曲线窗口：最近 N 次判分均值×20（G4，W8 手算对拍口径）
   processing-lease-minutes: 30  # processing 租约：kill -9 死锁洞的堵法（待导师追认条款）
+followup:
+  # 合同10 E 旋钮（#59）：预期会被调的预算值；max-depth 是规则资产在 FollowupDecision.MAX_DEPTH，不进 yml
+  max-per-interview: 6   # 树节点口径熔断，执法在生成前；双并发窗口超限1-2发接受（09 W5 论据）；X5 演练曾临时调 2，已归位
+  max-tokens: 800        # S14重演修正(11-22实弹)：模型出SQL场景题干≈3t/字，400腰斩(EOF col205铁证)，800后 444 收官数据落位；算式修订已报备
