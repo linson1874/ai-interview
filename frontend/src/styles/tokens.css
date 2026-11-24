@@ -1,0 +1,89 @@
+/**
+ * 设计令牌（全局唯一出处）。
+ * 当前视觉世界：**动物园导览图**（2026-11-24 定稿）——奶油水域 + 苹果绿陆地 +
+ * 一条 SVG 海岸线，控制件一律胶囊形。全站以 --zoo-* 为准。
+ * 下方 --ai-* 是上一版"品类标准"世界的遗留令牌，仅为未迁移页面保留，不要再新增使用。
+ */
+:root {
+  color-scheme: light;
+
+  /* 表面 */
+  --ai-bg: #f7f8fa;
+  --ai-surface: #ffffff;
+  --ai-surface-sunken: #f2f4f7;
+  --ai-border: #e4e7ec;
+  --ai-border-strong: #cfd4dc;
+
+  /* 文字三级 */
+  --ai-ink: #101828;
+  --ai-ink-2: #475467;
+  --ai-ink-3: #667085;
+
+  /* 动作 */
+  --ai-primary: #1d4ed8;
+  --ai-primary-hover: #1a45c0;
+  --ai-primary-active: #163aa3;
+  --ai-primary-soft: rgba(29, 78, 216, 0.12);
+
+  /* 语义 */
+  --ai-danger: #c0392b;
+  --ai-danger-soft: rgba(192, 57, 43, 0.1);
+
+  /* 深度：偏移 + 软模糊；页面里不许再写裸色值 */
+  --ai-shadow-card: 0 1px 3px rgba(16, 24, 40, 0.06);
+
+  /* ── 导览图世界（2026-11-24 定稿，全站唯一视觉世界）────────────────
+     奶油是水域、苹果绿是陆地，一条平滑海岸线分开；控制件一律胶囊形。
+     珊瑚/蓝/淡紫只做图例与状态，绝不上主按钮；主操作只有黄。 */
+  --zoo-water: #f5f1e4;
+  --zoo-land: #8ed462;
+  --zoo-ink: #2c2e2a;
+  --zoo-ink-soft: #5b616b;
+  --zoo-sun: #f5e211;
+  --zoo-sun-deep: #e5d200;
+  --zoo-sun-press: #d4c300;
+  --zoo-coral: #ff705d;
+  --zoo-sky: #2ba0ff;
+  --zoo-lilac: #ebc1ff;
+  --zoo-alert: #c0392b;
+  --zoo-cap: 999px;
+  --zoo-line: 1px;
+
+  /* 形状：全站两档圆角，不给第三档开口子 */
+  --ai-radius-sm: 8px;
+  --ai-radius-md: 12px;
+
+  /* 字号阶梯（Operate 面：比 1.2 略紧，靠字重分主次） */
+  --ai-text-xs: 12px;
+  --ai-text-sm: 13px;
+  --ai-text-base: 14px;
+  --ai-text-md: 15px;
+  --ai-text-lg: 16px;
+  --ai-text-xl: 20px;
+  --ai-text-2xl: 26px;
+
+  --ai-font-sans:
+    'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
+
+  /* Element Plus 对齐：主色对齐世界的墨色，避免 EP 默认蓝从 tab hover、
+     焦点环、密码图标这些缝里漏出来；light-1..9 是手写混合阶，改主色时同步改这几行。 */
+  --el-color-primary: var(--zoo-ink);
+  --el-color-primary-dark-2: #1d1f1c;
+  --el-color-primary-light-3: #6f726c;
+  --el-color-primary-light-5: #969a93;
+  --el-color-primary-light-7: #bdbeb8;
+  --el-color-primary-light-8: #d0d1cc;
+  --el-color-primary-light-9: #e4e4e0;
+  --el-color-danger: var(--zoo-alert);
+
+  --el-text-color-primary: var(--zoo-ink);
+  --el-text-color-regular: var(--zoo-ink-soft);
+  --el-text-color-secondary: var(--zoo-ink-soft);
+  --el-text-color-placeholder: var(--zoo-ink-soft);
+  --el-border-color: var(--zoo-ink);
+  --el-border-color-light: var(--zoo-ink);
+  --el-border-color-lighter: var(--zoo-ink);
+  --el-border-radius-base: var(--zoo-cap);
+  --el-font-family: var(--ai-font-sans);
+}

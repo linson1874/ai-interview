@@ -1,0 +1,103 @@
+﻿/* 自托管显示字（LXGW WenKai 子集，OFL-1.1，见 assets/fonts/OFL.txt）：
+   只含字标用到的 6 个字形，合计 3.8KB，不是运行期依赖。 */
+@font-face {
+  font-family: 'Zoo Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/zoo-display-1.woff2') format('woff2');
+  unicode-range: U+0041, U+0049;
+}
+
+@font-face {
+  font-family: 'Zoo Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/zoo-display-2.woff2') format('woff2');
+  unicode-range: U+9762, U+7CFB;
+}
+
+@font-face {
+  font-family: 'Zoo Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/zoo-display-3.woff2') format('woff2');
+  unicode-range: U+8BD5;
+}
+
+@font-face {
+  font-family: 'Zoo Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/zoo-display-4.woff2') format('woff2');
+  unicode-range: U+7EDF;
+}
+
+
+/**
+ * 基础层：只做全局默认，不写组件。
+ * 覆盖的是"没人画、但每个页面都会露出来"的浏览器表面：
+ * 选区、光标、焦点环、自动填充底色、表单控件字体。
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--ai-bg);
+  color: var(--ai-ink);
+  font-family: var(--ai-font-sans);
+  font-size: var(--ai-text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 页面里能点的东西，一律继承字体，别让浏览器用 Arial 掉出来 */
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+::selection {
+  background: rgba(44, 46, 42, 0.16);
+  color: var(--zoo-ink);
+}
+
+input,
+textarea {
+  caret-color: var(--zoo-ink);
+}
+
+/* Chrome 自动填充的黄底会直接盖掉设计，用内阴影压回中性色 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--zoo-ink);
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  caret-color: var(--zoo-ink);
+}
+
+/* 键盘焦点必须看得见；鼠标点击不画环，避免每个按钮都被描一圈 */
+:focus-visible {
+  outline: 2px solid var(--zoo-ink);
+  outline-offset: 2px;
+}
+
+#app {
+  min-height: 100vh;
+}
+
