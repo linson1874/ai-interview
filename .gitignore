@@ -10,3 +10,6 @@ out/
 .idea/
 *.iml
 .vscode/
+
+# UI 设计官的草稿工作区（决策中间产物/截图裁片/探针脚本），成品进仓、过程不进
+.impeccable/
