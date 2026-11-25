@@ -28,3 +28,35 @@ export interface LoginParams {
   username: string
   password: string
 }
+
+/** 03 合同 §4 D4：分页列表项（五字段——D4 裁决删除了虚构的 status，不含 selfIntro） */
+export interface ResumeListItemVO {
+  id: number
+  realName: string
+  targetJob: string
+  skills: string[]
+  createTime: string
+}
+
+/** 03 合同 §3：详情 = 列表五字段 + 选填两件（education/selfIntro 可为 null） */
+export interface ResumeDetailVO extends ResumeListItemVO {
+  education: string | null
+  selfIntro: string | null
+}
+
+/** 03 合同 §4 D2 响应形状：MP 分页包装 */
+export interface PageVO<T> {
+  list: T[]
+  total: number
+  page: number
+  size: number
+}
+
+/** 03 合同 §2：保存请求体（新建/修改共用，D6 全量替换语义——可空字段为 null 即清空） */
+export interface ResumeSaveParams {
+  realName: string
+  targetJob: string
+  education: string | null
+  skills: string[]
+  selfIntro: string | null
+}

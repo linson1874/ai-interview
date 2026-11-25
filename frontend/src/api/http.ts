@@ -110,7 +110,14 @@ http.interceptors.response.use(
       handle401()
       return Promise.reject(error)
     }
-    // 网络层错误统一兜底（§2 家法）
+    if (error.response) {
+      // 服务端有响应的失败（400/404/405/500 镜像码带 Result body）——03 合同 D5 的
+      // "资源不存在 HTTP404+code404" 在此落地；文案仍从 error-map 统一出口查表
+      const result = error.response.data as Result<unknown> | undefined
+      ElMessage.error(resolveErrorText(result?.code ?? error.response.status, result?.msg))
+      return Promise.reject(error)
+    }
+    // 真正的网络层错误（断网/超时/无响应）统一兜底（§2 家法）
     ElMessage.error(NETWORK_ERROR_TEXT)
     return Promise.reject(error)
   },

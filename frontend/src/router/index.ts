@@ -17,6 +17,18 @@ const router = createRouter({
       component: () => import('@/views/resume/ResumeListView.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/resumes/new',
+      name: 'resume-new',
+      component: () => import('@/views/resume/ResumeEditView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/resumes/:id/edit',
+      name: 'resume-edit',
+      component: () => import('@/views/resume/ResumeEditView.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 
