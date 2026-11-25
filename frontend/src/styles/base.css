@@ -1,4 +1,4 @@
-﻿/* 自托管显示字（LXGW WenKai 子集，OFL-1.1，见 assets/fonts/OFL.txt）：
+/* 自托管显示字（LXGW WenKai 子集，OFL-1.1，见 assets/fonts/OFL.txt）：
    只含字标用到的 6 个字形，合计 3.8KB，不是运行期依赖。 */
 @font-face {
   font-family: 'Zoo Display';
@@ -101,3 +101,75 @@ input:-webkit-autofill:focus {
   min-height: 100vh;
 }
 
+/* ── Element Plus 的接缝：弹窗与消息收进导览图世界 ───────────────────
+   本项目唯一的 ElMessageBox 是"删除确认"：方角、1px 墨边、奶油底、无阴影，
+   警告图标改墨色（琥珀会抢"唯一黄"），主按钮按危险语义用红但保留墨边。 */
+.el-message-box {
+  --el-messagebox-border-radius: 0;
+  border: 1px solid var(--zoo-ink);
+  background: var(--zoo-water);
+  box-shadow: none;
+}
+
+.el-message-box__header,
+.el-message-box__content,
+.el-message-box__btns {
+  background: transparent;
+}
+
+.el-message-box__title,
+.el-message-box__message,
+.el-message-box__headerbtn {
+  color: var(--zoo-ink);
+}
+
+.el-message-box__status,
+.el-message-box__status.el-message-box-icon--warning {
+  color: var(--zoo-ink) !important;
+}
+
+.el-message-box .el-button {
+  border-radius: var(--zoo-cap);
+  border: 1px solid var(--zoo-ink);
+  background: transparent;
+  color: var(--zoo-ink);
+}
+
+.el-message-box .el-button--primary {
+  --el-button-bg-color: var(--zoo-alert);
+  --el-button-border-color: var(--zoo-ink);
+  --el-button-text-color: #ffffff;
+  --el-button-hover-bg-color: #a93226;
+  --el-button-hover-border-color: var(--zoo-ink);
+  --el-button-hover-text-color: #ffffff;
+  --el-button-active-bg-color: #93291f;
+  --el-button-active-border-color: var(--zoo-ink);
+  background: var(--zoo-alert);
+  color: #ffffff;
+}
+
+/* toast：两种语义都用奶油气泡，靠颜色区分——成功=墨、错误=红 */
+.el-message {
+  border-radius: var(--zoo-cap);
+  border-width: 1px;
+}
+
+.el-message--success {
+  --el-message-bg-color: var(--zoo-water);
+  --el-message-border-color: var(--zoo-ink);
+  --el-message-text-color: var(--zoo-ink);
+}
+
+.el-message--success .el-message__icon {
+  color: var(--zoo-ink);
+}
+
+.el-message--error {
+  --el-message-bg-color: var(--zoo-water);
+  --el-message-border-color: var(--zoo-ink);
+  --el-message-text-color: var(--zoo-alert);
+}
+
+.el-message--error .el-message__icon {
+  color: var(--zoo-alert);
+}

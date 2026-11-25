@@ -1,7 +1,7 @@
 /**
  * auth 域 API（#77 映射：01 用户 / 02 认证 —— UserController：/user/**）
  */
-import http, { setToken } from './http'
+import http, { clearToken, setToken } from './http'
 import type { LoginParams, LoginVO, RegisterParams, Result } from '@/types/api'
 
 /** 昵称存根（02 合同 LoginVO 携带，供后续顶栏展示；token 本体归 http.ts 管） */
@@ -26,4 +26,9 @@ export async function login(params: LoginParams): Promise<LoginVO> {
   setToken(res.data.data.token)
   setNickname(res.data.data.nickname)
   return res.data.data
+}
+/** 02 合同 §2：退出登录。后端清会话；本地 token 无论如何都要清（否则 401 循环） */
+export async function logout(): Promise<void> {
+  await http.post<Result<null>>('/user/logout').catch(() => null)
+  clearToken()
 }

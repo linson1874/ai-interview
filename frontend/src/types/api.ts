@@ -60,3 +60,28 @@ export interface ResumeSaveParams {
   skills: string[]
   selfIntro: string | null
 }
+
+/** 06 §2：创建面试响应（秒回 interviewId，T1） */
+export interface InterviewCreatedVO {
+  interviewId: number
+}
+
+/** 06 §2 + S10：题目项（id 是 07 作答端点 /answer/{qid} 的寻址凭据） */
+export interface QuestionItemVO {
+  id: number
+  category: '八股' | '项目' | '场景' | 'HR'
+  difficulty: 1 | 2 | 3
+  question: string
+}
+
+/**
+ * 06 §2 + R1：场次轮询面。questions 仅 status=1 时非空（R1 题目窗口条款，
+ * 生成中 0/4 与失败 3 时为 null——前端看 status 决定画进度还是画题）
+ */
+export interface InterviewDetailVO {
+  id: number
+  status: 0 | 1 | 2 | 3 | 4
+  questionCount: number
+  createTime: string
+  questions: QuestionItemVO[] | null
+}

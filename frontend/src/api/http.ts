@@ -34,9 +34,11 @@ export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY)
 }
 
-/** 轮询流量元数据位：置 true 的请求不进全局 loading 计数（§2③ 铁律①，实现二选一取元数据方案） */
+/** 轮询流量元数据位：置 true 的请求不进全局 loading 计数（§2③ 铁律①，实现二选一取元数据方案）。
+ *  声明在 AxiosRequestConfig 上——http.get/post 的 config 参数与拦截器里的
+ *  InternalAxiosRequestConfig（extends AxiosRequestConfig）两处都能吃到这个字段 */
 declare module 'axios' {
-  export interface InternalAxiosRequestConfig {
+  export interface AxiosRequestConfig {
     skipGlobalProgress?: boolean
   }
 }

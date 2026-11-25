@@ -29,6 +29,18 @@ const router = createRouter({
       component: () => import('@/views/resume/ResumeEditView.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/interviews/new',
+      name: 'interview-new',
+      component: () => import('@/views/interview/InterviewCreateView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/interviews/:id/answer',
+      name: 'interview-answer',
+      component: () => import('@/views/interview/InterviewAnswerView.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

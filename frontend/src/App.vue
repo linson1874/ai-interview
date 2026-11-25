@@ -1,7 +1,14 @@
 <script setup lang="ts">
-// 布局壳：D1 的临时 hello 联调代码已按计划移除（链路验收归档，见 D1 进度记忆）
+import { useRoute } from 'vue-router'
+import AppShell from '@/components/AppShell.vue'
+
+// 版面路由：登录页独立全屏；受保护页面统一套进内部区外壳（左侧导览目录 + 顶栏）。
+const route = useRoute()
 </script>
 
 <template>
-  <router-view />
+  <AppShell v-if="route.meta.requiresAuth">
+    <router-view />
+  </AppShell>
+  <router-view v-else />
 </template>

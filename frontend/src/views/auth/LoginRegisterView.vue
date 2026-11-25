@@ -85,6 +85,27 @@ async function onLogin(): Promise<void> {
         d="M0 0 H520 C470 120 560 180 600 260 C650 350 640 430 620 500 C590 600 680 660 740 710 C780 745 760 850 700 900 H0 Z"
       />
       <circle class="zoo__pond" cx="500" cy="720" r="100" />
+
+      <!-- 信息层：全部限定在表单右缘 452 之外（x≥470），因此任何状态、
+           任何视口高度都不会压到表单；入口骑在岸线上，园路绕开水洞。 -->
+      <g class="zoo__info">
+        <path class="zoo__path" d="M618 470 H568" />
+        <circle class="zoo__here" cx="560" cy="470" r="8" />
+        <circle class="zoo__here-dot" cx="560" cy="470" r="2.5" />
+
+        <path class="zoo__path" d="M560 478 V560" />
+        <path class="zoo__path" d="M560 560 C548 580 520 592 496 598" />
+        <path class="zoo__path" d="M560 560 C580 590 596 610 604 616" />
+        <path class="zoo__path zoo__path--dashed" d="M604 628 C650 700 646 790 626 852" />
+
+        <circle class="zoo__zone" cx="486" cy="600" r="5" />
+        <circle class="zoo__zone" cx="604" cy="622" r="5" />
+        <circle class="zoo__zone" cx="622" cy="860" r="5" />
+
+        <g class="zoo__north" transform="translate(480 62)">
+          <path d="M0 -14 L7 8 L0 3 L-7 8 Z" />
+        </g>
+      </g>
     </svg>
 
     <svg
@@ -210,10 +231,32 @@ async function onLogin(): Promise<void> {
             <span class="zoo__chip zoo__chip--sky">面试</span>
             <span class="zoo__chip-note">按简历出题，逐题评分</span>
           </li>
+          <li class="zoo__legend-row">
+            <span class="zoo__chip zoo__chip--lilac">报告</span>
+            <span class="zoo__chip-note">每场结束生成</span>
+          </li>
+          <li class="zoo__legend-row">
+            <span class="zoo__chip zoo__chip--land">练习</span>
+            <span class="zoo__chip-note">复习与知识问答</span>
+          </li>
         </ul>
         <p class="zoo__foot">账号用于保存简历与面试记录</p>
       </aside>
     </div>
+
+
+    <!-- 信息层的文字：与海岸线同一坐标系（百分比跟随同一张被拉伸的图），
+         全部落在表单右缘之外 -->
+    <div class="zoo__labels" aria-hidden="true">
+      <span class="zoo__gate" style="left: 626px; top: 52.2%">入口</span>
+      <span class="zoo__label" style="left: 560px; top: 49.8%">你在这里</span>
+      <span class="zoo__label" style="left: 528px; top: 66.7%">简历区</span>
+      <span class="zoo__label" style="left: 600px; top: 71.3%">面试区</span>
+      <span class="zoo__label zoo__label--end" style="left: 610px; top: 95.6%">报告区</span>
+      <span class="zoo__label zoo__label--north" style="left: 480px; top: 2.4%">N</span>
+    </div>
+
+    <p class="zoo__colophon">练习区 · 导览图</p>
   </div>
 </template>
 
@@ -221,25 +264,29 @@ async function onLogin(): Promise<void> {
 .zoo {
   position: relative;
   min-height: 100dvh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--zoo-water);
   color: var(--zoo-ink);
   font-family: var(--ai-font-sans);
 }
 
-/* 海岸线层：陆地、水洞都由它画，页面其它部分不许再画分界 */
+/* 海岸线层：陆地、水洞都由它画，页面其它部分不许再画分界。
+   横向 1:1（固定 1440px），纵向跟视口——这样信息层的 x 是绝对像素，
+   永远不会随视口变窄滑回表单上；更宽的屏幕只是海更大。 */
 .zoo__coast {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   display: block;
-  width: 100%;
-  /* 钉住视口高度：随内容拉伸会让海岸线跑出视口，水域内容就会压到绿地上 */
+  width: 1440px;
   height: 100dvh;
   pointer-events: none;
 }
 
 .zoo__coast--narrow {
   display: none;
+  width: 100%;
 }
 
 .zoo__land {
@@ -254,6 +301,90 @@ async function onLogin(): Promise<void> {
   stroke: var(--zoo-ink);
   stroke-width: var(--zoo-line);
   vector-effect: non-scaling-stroke;
+}
+
+/* 信息层：园路、分区点、入口、指北。全部 1px，不许比表单更响。
+   几何全部落在表单右缘（452）之外，所以任何状态都不会压到按钮。 */
+.zoo__path {
+  fill: none;
+  stroke: var(--zoo-ink);
+  stroke-width: 1;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.zoo__path--dashed {
+  stroke-dasharray: 3 4;
+}
+
+.zoo__zone {
+  fill: var(--zoo-water);
+  stroke: var(--zoo-ink);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.zoo__here {
+  fill: none;
+  stroke: var(--zoo-ink);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.zoo__here-dot {
+  fill: var(--zoo-ink);
+}
+
+.zoo__north path {
+  fill: var(--zoo-ink);
+}
+
+/* 信息层的文字：与海岸线共用一套坐标系（同一张被拉伸的图） */
+.zoo__labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.zoo__label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  color: var(--zoo-ink);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.zoo__label--end {
+  transform: translate(-100%, -50%);
+}
+
+.zoo__gate {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 10px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--zoo-ink);
+  border-radius: var(--zoo-cap);
+  background: var(--zoo-water);
+  color: var(--zoo-ink);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.zoo__colophon {
+  position: absolute;
+  left: 48px;
+  bottom: 26px;
+  color: var(--zoo-ink);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  line-height: 1;
 }
 
 .zoo__grid {
@@ -525,6 +656,14 @@ async function onLogin(): Promise<void> {
   background: var(--zoo-sky);
 }
 
+.zoo__chip--lilac {
+  background: var(--zoo-lilac);
+}
+
+.zoo__chip--land {
+  background: var(--zoo-land);
+}
+
 .zoo__chip-note {
   color: var(--zoo-ink-soft);
   font-size: 12px;
@@ -541,7 +680,14 @@ async function onLogin(): Promise<void> {
 }
 
 /* 窄屏：海岸线改为自上而下，陆地在上一半，水域与图例沉到下方 */
-@media (max-width: 899px) {
+@media (max-width: 1099px) {
+  /* 窄屏只留任务：内嵌小地图与版记整层收起 */
+  .zoo__info,
+  .zoo__labels,
+  .zoo__colophon {
+    display: none;
+  }
+
   /* 矮视口下让页面可滚，而不是把水域内容裁掉 */
   .zoo {
     overflow: visible;
