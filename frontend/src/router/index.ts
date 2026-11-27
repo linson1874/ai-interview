@@ -41,6 +41,18 @@ const router = createRouter({
       component: () => import('@/views/interview/InterviewAnswerView.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/interviews/:id/report',
+      name: 'interview-report',
+      component: () => import('@/views/interview/InterviewReportView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/review',
+      name: 'review-today',
+      component: () => import('@/views/review/ReviewTodayView.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

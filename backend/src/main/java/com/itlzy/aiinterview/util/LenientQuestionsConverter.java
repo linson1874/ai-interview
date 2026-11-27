@@ -7,6 +7,7 @@ import org.springframework.ai.converter.StructuredOutputConverter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/** 出题输出清洗器：剥离代码围栏与杂质后交给 JSON 解析。 */
 public class LenientQuestionsConverter implements StructuredOutputConverter<QuestionsSchema> {
 
     private static final Pattern FENCE = Pattern.compile("```(?:json)?\\s*([\\s\\S]*?)```");
@@ -28,7 +29,7 @@ public class LenientQuestionsConverter implements StructuredOutputConverter<Ques
         return delegate.convert(json);
     }
 
-    /** 无围栏的寒暄脏：截第一个 { 到最后一个 }；压根没花括号就原样交给 delegate 抛——L2 不吞错 */
+    /** 无代码围栏时截取第一个 { 到最后一个 }；无花括号则原样交由解析器报错 */
     private String extractBraces(String s) {
         int start = s.indexOf('{');
         int end = s.lastIndexOf('}');

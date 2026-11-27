@@ -18,10 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * 合同09 回写事务（G4 的"事务内"落点）：快照比对 → Leitner 转移 → 事件落盘，三步同生共死。
- * 账本先投影后的"账本"段全在这里；投影 ZADD 归调用方在事务提交后做（E）。
- */
+/** 复习回写事务：快照比对 → 盒号转移 → 事件落盘，三步同生共死；Redis 投影由调用方在事务提交后更新。
+ *  @author 林子阳 */
 @Slf4j
 @Service
 public class ReviewTxService {
@@ -44,12 +42,12 @@ public class ReviewTxService {
         this.skillProfileMapper = skillProfileMapper;
     }
 
-    /** 返回 null=F2②快照不匹配（判分重演，账本已由更早一写更新），调用方明示丢弃 */
+    /** 回写复习结果：返回 null 表示快照不匹配（已被并发回写），调用方丢弃本次结果 */
     @Transactional
     public Outcome writeBack(ReviewItem item, int score,String category, java.util.List<String> tags) {
-        LocalDateTime now = LocalDateTime.now();   // #15：转移、事件、回写全用这一个 now
+        LocalDateTime now = LocalDateTime.now();   // 转移、事件、回写全用这一个时间
 
-        // B 三档：>=4 前进一盒(封顶) / <=2 回盒一 / =3 冻结（方差最大区不驱动状态）
+        // 三档转移：高分前进一盒（封顶）/ 低分退回盒一 / 中间分冻结
         int box = item.getBoxNo();
         String result;
         int newBox = box;
@@ -71,9 +69,8 @@ public class ReviewTxService {
                 .set(ReviewItem::getStatus, ReviewKeys.STATUS_DUE)
                 .set(ReviewItem::getLastReviewAt, now)
                 .set(ReviewItem::getLastScore, score)
-                .set(ReviewItem::getUpdateTime, LocalDateTime.now());  // 同 #15 单时钟；fill 在 update(null,wrapper) 形状下不生效，显式补
-        // F2② 快照比对——⚠ MP 经典坑：eq(column, null) 生成 "= NULL" 恒 false，
-        // 首复习（last_review_at 为 NULL）会被自己的 WHERE 杀死，必须走 isNull 分支
+                .set(ReviewItem::getUpdateTime, LocalDateTime.now());  // update(null,wrapper) 不触发自动填充，显式补时间
+        // 快照比对：可空列等值比较必须走 isNull 分支（eq(column, null) 生成恒 false 的 "= NULL"）
         if (item.getLastReviewAt() == null) {
             w.isNull(ReviewItem::getLastReviewAt);
         } else {
@@ -81,7 +78,7 @@ public class ReviewTxService {
         }
         int kept = reviewItemMapper.update(null, w);
         if (kept == 0) {
-            return null;   // 此刻事务内还没有任何写，直接退出=账本零污染
+            return null;   // 此刻事务内没有任何写，直接退出不留污染
         }
 
         ReviewLog row = new ReviewLog();
@@ -91,7 +88,7 @@ public class ReviewTxService {
         row.setReviewedAt(now);
         reviewLogMapper.insert(row);
 
-        // G4 执法：曲线 upsert 与事件落盘同事务——log 有而行无、行有而 log 无，都不许发生
+        // 能力曲线 upsert 与事件落盘同事务，两者不允许只发生其一
         upsertProfile(item.getUserId(), ReviewKeys.AXIS_CATEGORY, category, score);
         if (tags != null) {
             for (String tag : tags) {
@@ -101,7 +98,7 @@ public class ReviewTxService {
         return new Outcome(result, newBox, next);
     }
 
-    /** uk(user,axis,axis_key) 一行一轴；读-改-写在事务内，单实例无并发源（E 裁决同款前提） */
+    /** 能力曲线 upsert：每用户每轴每键一行，读-改-写在事务内 */
     private void upsertProfile(Long userId, String axis, String key, int score) {
         SkillProfile p = skillProfileMapper.selectOne(new LambdaQueryWrapper<SkillProfile>()
                 .eq(SkillProfile::getUserId, userId)

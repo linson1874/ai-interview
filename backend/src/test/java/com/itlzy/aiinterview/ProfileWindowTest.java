@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** W8 手算对拍（合同09 §3）：窗口算术的每一格都必须能被小学除法复算 */
+/** 窗口算术手算对拍测试。 */
 class ProfileWindowTest {
 
     @Test

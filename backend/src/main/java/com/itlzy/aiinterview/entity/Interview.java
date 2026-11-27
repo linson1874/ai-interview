@@ -17,7 +17,7 @@ public class Interview {
 
     private Long resumeId;
 
-    /** 状态：0-生成中(排队) 4-生成中(已认领) 1-进行中 2-已完成 3-失败 */
+    /** 状态：0-排队待领取 4-生成中(已认领) 1-进行中 2-已交卷 3-失败 5-已取消（值域与 sql/10 COMMENT 对齐） */
     private Integer status;
 
     private Integer questionCount;

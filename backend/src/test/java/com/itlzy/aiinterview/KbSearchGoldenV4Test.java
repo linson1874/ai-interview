@@ -17,14 +17,12 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** 合同08 V4+#41（付费·10 次 embed·手动跑）：检索质量基线——书面 5 + 口语变体 5，分组命中率是 0.25→0.3 裁定的数据。
- *  工单⑥新增"实质内容断言"：命中条目必须带 answer_text——检索找得到题但材料空=V5 质量回退的无闸时代结束。
- *  距离阈值动作须附基线 diff 存档（§7尾条款）：现行基线写 v4-baseline.txt，改版前手动快照编号存档
- *  （如 v4-baseline-dm0.25.txt），两份文件同进一个 commit 即自证 diff。 */
+/** 检索质量基线测试（付费，手动跑）：书面 5 + 口语变体 5 的黄金问题集，命中条目必须带答案段。
+ *  现行基线写入 docs/eval/v4-baseline.txt，调整阈值前先快照存档，便于 diff 对比。 */
 @SpringBootTest
 class KbSearchGoldenV4Test {
 
-    /** {组别, 标准问题, 期望在 topK 里看到的题干关键词}——口语组故意缩略/语气词/不完整句（#35 案发现场形态） */
+    /** {组别, 标准问题, 期望命中的题干关键词}，口语组故意缩略/语气词/不完整句 */
     private static final String[][] GOLDENS = {
             {"书面", "MySQL 索引为什么用 B+ 树", "B+"},
             {"书面", "HashMap 的底层原理", "HashMap"},
@@ -68,7 +66,7 @@ class KbSearchGoldenV4Test {
             }
             for (KnowledgeSearchDao.KbItem it : items) {
                 report.append(String.format("   d=%.4f  %s%n", it.getDistance(), it.getContent()));
-                // 工单⑥实质内容断言：命中条目无答案段=材料回退（V5 质验收到的空壳）
+                // 命中条目无答案段=材料层回退
                 if (it.getAnswerText() == null || it.getAnswerText().isBlank()) {
                     emptyAnswerHits++;
                     report.append("   !! 命中条目 id=" + it.getId() + " 无 answer_text\n");
@@ -79,7 +77,7 @@ class KbSearchGoldenV4Test {
         groupStat.forEach((k, v) -> report.append(String.format("   %s组: %d/%d%n", k, v[0], v[1])));
         System.out.println(report);
 
-        // 留档进仓库（工作目录是 backend，所以 ../docs）；改版前的旧基线另存编号快照，见类头 diff 存档家法
+        // 基线留档进仓库（工作目录是 backend，所以 ../docs）
         Path file = Path.of("../docs/eval/v4-baseline.txt");
         Files.createDirectories(file.getParent());
         Files.writeString(file, report);
@@ -88,7 +86,7 @@ class KbSearchGoldenV4Test {
         assertEquals(0, emptyAnswerHits, "存在无 answer_text 的命中条目=材料层回退，先补库再论阈值");
     }
 
-    /** float[] → pgvector 字面量（与入库脚本同款小工具，测试间不硬抽公共类——两处重复优于过早抽象） */
+    /** float[] → pgvector 字面量 */
     private static String toLiteral(float[] v) {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < v.length; i++) {

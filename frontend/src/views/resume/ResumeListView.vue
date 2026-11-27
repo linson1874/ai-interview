@@ -52,103 +52,165 @@ onMounted(load)
 
 <template>
   <section class="roster" aria-labelledby="roster-title">
-    <header class="roster__head">
-      <div class="roster__head-copy">
-        <h1 id="roster-title" class="roster__title">我的简历</h1>
-        <p class="roster__count">
-          {{ listLoading && total === 0 ? '正在读取…' : `共 ${total} 份` }}
-        </p>
-      </div>
-      <button
-        v-if="listLoading || total > 0"
-        class="roster__cta"
-        type="button"
-        @click="router.push('/resumes/new')"
-      >
-        新建简历
-      </button>
-    </header>
+    <div class="roster__main">
+      <header class="roster__head">
+        <div class="roster__head-copy">
+          <h1 id="roster-title" class="roster__title">我的简历</h1>
+          <p class="roster__count">
+            {{ listLoading && total === 0 ? '正在读取…' : `共 ${total} 份` }}
+          </p>
+        </div>
+        <button
+          v-if="listLoading || total > 0"
+          class="roster__cta"
+          type="button"
+          @click="router.push('/resumes/new')"
+        >
+          新建简历
+        </button>
+      </header>
 
-    <div v-if="!listLoading && total === 0" class="roster__empty">
-      <p class="roster__empty-title">这片地还没有展位</p>
-      <p class="roster__empty-note">你的简历会作为名录条目排在这里。</p>
-      <button class="roster__cta" type="button" @click="router.push('/resumes/new')">
-        创建第一份
-      </button>
+      <!-- 指标条：只统计分页接口返回的当前页，口径标明，不编数据 -->
+      <p v-if="!listLoading && total > 0" class="roster__meter">
+        <span>本页 {{ list.length }} 条</span>
+        <i class="roster__meter-dot" aria-hidden="true"></i>
+        <span>本页技能 {{ new Set(list.flatMap((r) => r.skills)).size }} 种</span>
+        <i class="roster__meter-dot" aria-hidden="true"></i>
+        <span>口径：当前页</span>
+      </p>
+
+      <div v-if="!listLoading && total === 0" class="roster__empty">
+        <p class="roster__empty-title">这片地还没有展位</p>
+        <p class="roster__empty-note">你的简历会作为名录条目排在这里。</p>
+        <button class="roster__cta" type="button" @click="router.push('/resumes/new')">
+          创建第一份
+        </button>
+      </div>
+
+      <table v-else class="roster-table">
+        <thead>
+          <tr>
+            <th scope="col" class="roster-table__no">展位</th>
+            <th scope="col">姓名</th>
+            <th scope="col">目标岗位</th>
+            <th scope="col">技能</th>
+            <th scope="col">创建时间</th>
+            <th scope="col">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template v-if="listLoading && list.length === 0">
+            <tr v-for="n in 3" :key="'sk-' + n" class="roster-table__row roster-table__row--skeleton">
+              <td><span class="roster-bar roster-bar--w20"></span></td>
+              <td><span class="roster-bar roster-bar--w60"></span></td>
+              <td><span class="roster-bar roster-bar--w80"></span></td>
+              <td><span class="roster-bar roster-bar--w70"></span></td>
+              <td><span class="roster-bar roster-bar--w50"></span></td>
+              <td><span class="roster-bar roster-bar--w40"></span></td>
+            </tr>
+          </template>
+          <template v-else>
+            <tr v-for="(row, idx) in list" :key="row.id" class="roster-table__row">
+              <td class="roster-table__no">
+                {{ String((query.page - 1) * query.size + idx + 1).padStart(2, '0') }}
+              </td>
+              <td>{{ row.realName }}</td>
+              <td>{{ row.targetJob }}</td>
+              <td>
+                <span v-for="skill in row.skills" :key="skill" class="roster-chip">{{ skill }}</span>
+              </td>
+              <td class="roster-table__time">{{ row.createTime }}</td>
+              <td class="roster-table__ops">
+                <button
+                  type="button"
+                  class="roster-op"
+                  @click="router.push(`/resumes/${row.id}/edit`)"
+                >
+                  编辑
+                </button>
+                <button type="button" class="roster-op" @click="onDelete(row)">删除</button>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+
+      <nav v-if="total > 0" class="roster-pager" aria-label="分页">
+        <span class="roster-pager__count">
+          共 {{ total }} 份 · 第 {{ query.page }} / {{ Math.ceil(total / query.size) }} 页
+        </span>
+        <span v-if="total > query.size" class="roster-pager__ctrl">
+          <button
+            type="button"
+            class="roster-pager__btn"
+            :disabled="query.page <= 1 || listLoading"
+            @click="() => { query.page -= 1; load() }"
+          >
+            上一页
+          </button>
+          <button
+            type="button"
+            class="roster-pager__btn"
+            :disabled="query.page >= Math.ceil(total / query.size) || listLoading"
+            @click="() => { query.page += 1; load() }"
+          >
+            下一页
+          </button>
+        </span>
+      </nav>
     </div>
 
-    <table v-else class="roster-table">
-      <thead>
-        <tr>
-          <th scope="col">姓名</th>
-          <th scope="col">目标岗位</th>
-          <th scope="col">技能</th>
-          <th scope="col">创建时间</th>
-          <th scope="col">操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <template v-if="listLoading && list.length === 0">
-          <tr v-for="n in 3" :key="'sk-' + n" class="roster-table__row roster-table__row--skeleton">
-            <td><span class="roster-bar roster-bar--w60"></span></td>
-            <td><span class="roster-bar roster-bar--w80"></span></td>
-            <td><span class="roster-bar roster-bar--w70"></span></td>
-            <td><span class="roster-bar roster-bar--w50"></span></td>
-            <td><span class="roster-bar roster-bar--w40"></span></td>
-          </tr>
-        </template>
-        <template v-else>
-          <tr v-for="row in list" :key="row.id" class="roster-table__row">
-            <td>{{ row.realName }}</td>
-            <td>{{ row.targetJob }}</td>
-            <td>
-              <span v-for="skill in row.skills" :key="skill" class="roster-chip">{{ skill }}</span>
-            </td>
-            <td class="roster-table__time">{{ row.createTime }}</td>
-            <td class="roster-table__ops">
-              <button
-                type="button"
-                class="roster-op"
-                @click="router.push(`/resumes/${row.id}/edit`)"
-              >
-                编辑
-              </button>
-              <button type="button" class="roster-op" @click="onDelete(row)">删除</button>
-            </td>
-          </tr>
-        </template>
-      </tbody>
-    </table>
+    <aside class="roster__side">
+      <p class="roster__here">
+        <i class="roster__here-dot" aria-hidden="true"></i>简历区 · 你在这里
+      </p>
 
-    <nav v-if="total > 0" class="roster-pager" aria-label="分页">
-      <span class="roster-pager__count">
-        共 {{ total }} 份 · 第 {{ query.page }} / {{ Math.ceil(total / query.size) }} 页
-      </span>
-      <span v-if="total > query.size" class="roster-pager__ctrl">
-        <button
-          type="button"
-          class="roster-pager__btn"
-          :disabled="query.page <= 1 || listLoading"
-          @click="() => { query.page -= 1; load() }"
-        >
-          上一页
-        </button>
-        <button
-          type="button"
-          class="roster-pager__btn"
-          :disabled="query.page >= Math.ceil(total / query.size) || listLoading"
-          @click="() => { query.page += 1; load() }"
-        >
-          下一页
-        </button>
-      </span>
-    </nav>
+      <div class="roster__next">
+        <p class="roster__next-title">下一步</p>
+        <ol class="roster__steps">
+          <li class="roster__step">
+            <span class="roster__step-no">01</span>
+            <span class="roster__step-body">
+              <template v-if="total > 0">挑一份名录条目，点「编辑」把内容改到最新。</template>
+              <template v-else>
+                名录还是空的——
+                <button type="button" class="roster__step-link" @click="router.push('/resumes/new')">
+                  先创建第一份
+                </button>
+              </template>
+            </span>
+          </li>
+          <li class="roster__step">
+            <span class="roster__step-no">02</span>
+            <span class="roster__step-body">
+              带着最新简历出题——
+              <button type="button" class="roster__step-link" @click="router.push('/interviews/new')">
+                去开始面试
+              </button>
+            </span>
+          </li>
+          <li class="roster__step">
+            <span class="roster__step-no">03</span>
+            <span class="roster__step-body">面试结束出报告，报告名录入口待回填。</span>
+          </li>
+        </ol>
+      </div>
+
+      <p class="roster__colophon">简历区 · 名录口径：当前登录账号</p>
+    </aside>
   </section>
 </template>
 
 <style scoped>
 .roster {
-  max-width: 1000px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 36px;
+  align-items: start;
+}
+
+.roster__main {
+  min-width: 0;
 }
 
 .roster__head {
@@ -162,7 +224,7 @@ onMounted(load)
 
 .roster__title {
   margin: 0;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: 0.02em;
@@ -206,6 +268,30 @@ onMounted(load)
   outline-offset: 2px;
 }
 
+/* 指标条：等宽小字，一条数据线 */
+.roster__meter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 0 14px;
+  border-bottom: 1px solid var(--zoo-paper-line);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  color: var(--zoo-ink-soft);
+}
+
+.roster__meter-dot {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--zoo-ink);
+  opacity: 0.4;
+}
+
 .roster-table {
   width: 100%;
   border-collapse: collapse;
@@ -233,6 +319,14 @@ onMounted(load)
 
 .roster-table tbody tr:hover {
   background: rgba(44, 46, 42, 0.05);
+}
+
+.roster-table__no {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  color: var(--zoo-ink-soft);
 }
 
 .roster-table__time {
@@ -320,6 +414,10 @@ onMounted(load)
   background: rgba(44, 46, 42, 0.14);
 }
 
+.roster-bar--w20 {
+  width: 20%;
+}
+
 .roster-bar--w40 {
   width: 40%;
 }
@@ -387,5 +485,121 @@ onMounted(load)
 .roster-pager__btn:focus-visible {
   outline: 2px solid var(--zoo-ink);
   outline-offset: 2px;
+}
+
+/* —— 右侧水湾：分区标注 + 下一步 —— */
+.roster__side {
+  position: sticky;
+  top: 24px;
+  padding: 20px 18px 16px;
+  border: 1px solid var(--zoo-ink);
+  background: var(--zoo-water);
+}
+
+.roster__here {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--zoo-ink);
+}
+
+.roster__here-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--zoo-ink);
+  border-radius: 50%;
+  background: var(--zoo-coral);
+}
+
+.roster__next {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(44, 46, 42, 0.35);
+}
+
+.roster__next-title {
+  margin: 0 0 10px;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--zoo-ink-soft);
+}
+
+.roster__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.roster__step {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 8px;
+  align-items: start;
+}
+
+.roster__step-no {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  line-height: 1.8;
+  color: var(--zoo-ink-soft);
+}
+
+.roster__step-body {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--zoo-ink);
+}
+
+.roster__step-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--zoo-ink);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.roster__step-link:hover {
+  text-decoration-thickness: 2px;
+}
+
+.roster__step-link:focus-visible {
+  outline: 2px solid var(--zoo-ink);
+  outline-offset: 2px;
+}
+
+.roster__colophon {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--zoo-paper-line);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--zoo-ink-soft);
+}
+
+/* 兜底：窄屏单列（不在迭代范围） */
+@media (max-width: 1099px) {
+  .roster {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .roster__side {
+    position: static;
+  }
 }
 </style>

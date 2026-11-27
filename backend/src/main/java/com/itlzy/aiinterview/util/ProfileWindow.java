@@ -5,16 +5,14 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 合同09 曲线算术（golden rule 的正面形态：聚合必须是本地算术，模型不算数）。
- * 纯函数无状态——W8 手算对拍直接测这里，不用起 Spring、不碰库、零 token。
- */
+/** 掌握度曲线算术（纯函数）：维护最近判分窗口并计算掌握度。
+ *  @author 林子阳 */
 public final class ProfileWindow {
 
     private ProfileWindow() {
     }
 
-    /** append 新分数并截断到最近 window 个（左旧右新）。csv 为 null/空 = 窗口起点 */
+    /** 追加新分数并截断到最近 window 个（左旧右新） */
     public static String appendAndTrim(String csv, int score, int window) {
         List<String> parts = new ArrayList<>();
         if (csv != null && !csv.isBlank()) {
@@ -29,7 +27,7 @@ public final class ProfileWindow {
         return String.join(",", parts);
     }
 
-    /** 均值×20，两位小数（DECIMAL(5,2) 口径）；空窗返回 0——0 分均值也是 0，不抛异常装死 */
+    /** 计算掌握度=窗口均值×20，保留两位小数；空窗口返回 0 */
     public static BigDecimal mastery(String csv) {
         if (csv == null || csv.isBlank()) {
             return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);

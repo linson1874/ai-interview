@@ -22,24 +22,24 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/** 大模型调用实现：对话/出题/评分/报告，统一输出解析与闸门校验。
+ *  @author 林子阳 */
 @Slf4j
 @Service
 public class AiServiceImpl implements AiService {
 
     private final ChatClient chatClient;
-    private final ResumeService resumeService;    // 清单4"复用别复制粘贴"：404门+skills解析全借detail()
+    private final ResumeService resumeService;    // 复用简历详情的归属校验与 skills 解析
 
-    /** 出题专属输出预算：5题×500×1.2（§2 定稿），与 /ai/chat 的全局 512 分离 */
+    /** 出题专属输出预算 */
     private static final int GEN_MAX_TOKENS = 5000;
-    private static final int DEFAULT_COUNT = 5;   // R4 缺省，唯一出处\
-    private static final int SCORE_MAX_TOKENS = 1200;   // S14（裁决#31）：800 把 refAnswer 腰斩致 JsonEOF（q96 案）——"护栏即故障源"05 预言评分链亲测重演后上调
-    private static final int REPORT_MAX_TOKENS = 1500;   // §4.1 定稿护栏：材料~3k入、文本~450出上沿的1.2倍
-    /** 评分可复现性（P1 重跑 4→5 分漂移案）：压低采样温度让同题重评收敛；
-     *  出题不传（null=吃 yml 默认）——题目要多样性，分数要稳定性，一个 temperature 两种需求 */
-    private static final Double JUDGE_TEMPERATURE = 0.2;  // S8 判分链温度（评分+报告共用，要复现；出题不传=默认，要多样）
+    private static final int DEFAULT_COUNT = 5;   // 出题数量缺省值
+    private static final int SCORE_MAX_TOKENS = 1200;   // 评分输出预算（历史上调小曾截断参考答案导致解析失败）
+    private static final int REPORT_MAX_TOKENS = 1500;   // 报告输出预算
+    /** 评分用低温度保证同题重评结果稳定；出题不传温度以保留多样性 */
+    private static final Double JUDGE_TEMPERATURE = 0.2;
 
-    /** §4.1 逐字件 + #66 归属规则（2026-11-23 当日对齐，S12 先例）：第3条新增 category-evidence 对应约束——
-     *  合同10 实弹发现"八股题的追问空白被归为场景"，根因：原第3条管住值域没管住与 evidence 的对应关系 */
+    /** 报告生成的系统提示词 */
     private static final String REPORT_SYSTEM_PROMPT = """
             你是面试培训分析师，根据面试候选人的逐题评分材料，产出整体定性评价与薄弱点分析。
             规则如下：1.只产出summary（整体定性评价、150-250字中文，覆盖各个表现档）与weakPoints（薄弱点列表），不做其他内容。
@@ -51,11 +51,11 @@ public class AiServiceImpl implements AiService {
             禁止任何解释文字、前后缀、markdown 代码块。
             """;
     
-    /** L3 重试纠错句（报告版，句式照评分版——重试必须带增量信息） */
+    /** 报告输出不合规时的重试纠错句 */
     private static final String REPORT_RETRY_REMINDER =
             "\n上一次输出不合规。只输出含 summary/weakPoints（每项 category∈八股|项目|场景|HR、reason、evidence[题目ID]）的 JSON 对象，禁止其余文字。";
     
-    /** 薄弱点类别四值枚举集（与出题 prompt 第3条同源——枚举是合同资产，两处执法同一本账） */
+    /** 薄弱点类别的合法值域，与出题提示词保持一致 */
     private static final List<String> CATEGORIES = List.of("八股", "项目", "场景", "HR");
     
     private static final String SCORING_SYSTEM_PROMPT = """
@@ -81,11 +81,11 @@ public class AiServiceImpl implements AiService {
             5. 题干使用中文。
             6. 只输出一个 JSON 对象，禁止输出任何解释文字、前后缀，禁止使用 markdown 代码块符号。
             """;
-    /** L3 重试的纠错强化句（§3 定稿文案，追加在 system 末尾——重试必须带增量信息） */
+    /** 出题输出不合规时追加在系统提示词末尾的纠错句 */
     private static final String RETRY_REMINDER =
             "\n上一次输出包含非法内容。本次只输出一个符合 schema 的 JSON 对象，禁止 markdown 代码块，禁止任何解释文字。";
 
-    /** L1 语法层 + L2 清洗执行者，一个实例两用，无状态所以字段级复用（出题与评分各一盏） */
+    /** 输出解析器（无状态，字段级复用） */
     private final LenientQuestionsConverter outputConverter = new LenientQuestionsConverter();
     private final LenientScoringConverter scoringConverter = new LenientScoringConverter();
     private final LenientReportConverter reportConverter = new LenientReportConverter();
@@ -96,7 +96,7 @@ public class AiServiceImpl implements AiService {
     }
 
     @Override
-    public ChatVO chat(String question) {           // Day7 原方法一字不动
+    public ChatVO chat(String question) {
         ChatResponse response = chatClient.prompt()
                 .user(question)
                 .call()
@@ -108,7 +108,7 @@ public class AiServiceImpl implements AiService {
 
     @Override
     public ReportSchema generateReport(List<InterviewQuestion> questions) {
-        // evidence 白名单（选法①显式传参）：模型编造不存在的题目ID=幻觉，本地终审拦在入库前
+        // 题目 id 白名单：过滤模型编造的不存在 id
         Set<Long> validIds = questions.stream().map(InterviewQuestion::getId).collect(Collectors.toSet());
         String user = "面试总评材料（主段每行一题：题目ID|类别|难度|得分(0-5，\"未评分\"表示缺分)|题干|考生作答|简评；"
                 + "末尾追问轨迹段以└开头标注对某题的追问，追问得分不计入薄弱点分母，薄弱点归属按原题计）：\n"
@@ -120,30 +120,30 @@ public class AiServiceImpl implements AiService {
         } catch (Exception first) {
             log.warn("报告解析失败(L2/闸门未过)，L3重试一次", first);
             schema = parseAndGateReport(callUpstream(REPORT_SYSTEM_PROMPT + REPORT_RETRY_REMINDER, user, REPORT_MAX_TOKENS, JUDGE_TEMPERATURE), validIds);
-            // 二次再炸不吞——原样抛出，落消费者的报告失败边（report_status 1→3）
+            // 二次失败原样抛出，交由消费者置为报告失败态
         }
         return schema;
     }
 
     @Override
     public QuestionsVO generateQuestions(Long userId, GenerateDTO dto) {
-        // ── 门① 归属+取数一步：detail 内部就是 getOwnResumeOr404——G2 的 404 与 03 D5 同源，零复制 ──
+        // 校验简历归属并取数
         ResumeDetailVO resume = resumeService.detail(userId, dto.getResumeId());
-        int count = dto.getCount() == null ? DEFAULT_COUNT : dto.getCount();   // R4 兜底
+        int count = dto.getCount() == null ? DEFAULT_COUNT : dto.getCount();   // 未传时缺省 5 题
 
-        // ── 门② 拼 prompt：skills 在这里完成 List→顿号（形态跟用途走的那一步）──
+        // 拼接用户提示词
         String user = buildUserPrompt(resume, count);
 
-        // ── 门③ 第一发调用 + L2 解析；炸了才进门④ L3（三级漏斗的流程化身，最多两次上游调用封顶）──
+        // 首次调用并解析，失败重试一次
         ChatResponse response = callUpstream(SYSTEM_PROMPT, user, GEN_MAX_TOKENS, null);
         QuestionsSchema schema;
         try {
             schema = outputConverter.convert(response.getResult().getOutput().getText());
         } catch (Exception first) {
             log.warn("出题解析失败(L2未救回)，L3重试一次。首轮原文={}",
-                    response.getResult().getOutput().getText(), first);        // 首轮原文留痕(warn)
+                    response.getResult().getOutput().getText(), first);
 
-            // ── 门④ 重试：system 末尾追加纠错句——原样重发=掷骰子 ──
+            // 重试：系统提示词末尾追加纠错句
             response = callUpstream(SYSTEM_PROMPT + RETRY_REMINDER, user, GEN_MAX_TOKENS, null);
             try {
                 schema = outputConverter.convert(response.getResult().getOutput().getText());
@@ -151,11 +151,10 @@ public class AiServiceImpl implements AiService {
                 log.error("出题重试后仍失败，畸形原文全文={}",
                         response.getResult().getOutput().getText(), second);
                 throw new BusinessException(ResultCode.SERVER_ERROR, "AI 出题未成功，请稍后重试");
-                // ↑ 与"AI 服务暂时不可用"语义分立(§1.2)；上游传输异常不在这——由 Day7 的 C handler 收口
             }
         }
 
-        // ── 转驳装配：答卷归 questions；model/usage 从响应元数据抄——答卷里没有的，元数据里找 ──
+        // 装配响应：题目来自解析结果，模型与用量来自响应元数据
         QuestionsVO vo = new QuestionsVO();
         vo.setQuestions(schema.getQuestions());
         vo.setModel(response.getMetadata().getModel());
@@ -171,28 +170,26 @@ public class AiServiceImpl implements AiService {
     public ScoringSchema scoreQuestion(String questionContent, Integer difficulty, String userAnswer) {
         String user = "题目：" + questionContent + "\n难度：" + difficulty + "\n"
                 + "<candidate_answer>" + userAnswer + "</candidate_answer>\n"
-                + scoringConverter.getFormat();      // 字段级复用，同 outputConverter 待遇：
-        // new LenientScoringConverter() 无状态，复用安全
+                + scoringConverter.getFormat();      // 解析器无状态，可安全复用
         ScoringSchema schema;
         try {
             schema = parseAndGate(callUpstream(SCORING_SYSTEM_PROMPT, user, SCORE_MAX_TOKENS, JUDGE_TEMPERATURE));
         } catch (Exception first) {
             log.warn("评分解析失败(L2/闸门未过)，L3重试一次", first);
             schema = parseAndGate(callUpstream(SCORING_SYSTEM_PROMPT + SCORING_RETRY_REMINDER, user, SCORE_MAX_TOKENS, JUDGE_TEMPERATURE));
-            // 二次再炸不吞——原样抛出，落 Service 的降级边
+            // 二次失败原样抛出，交由调用方降级处理
         }
         return schema;
     }
 
-    /** J5④ 第三关：语法过了不等于能收——L2 探针实证它放行 {"score":9}，脏分拦截责任在这 */
+    /** 解析评分输出并校验分数在 0~5 范围内 */
     private ScoringSchema parseAndGate(ChatResponse response) {
         String raw = response.getResult().getOutput().getText();
         ScoringSchema schema = scoringConverter.convert(raw);
         if (schema.getScore() == null || schema.getScore() < 0 || schema.getScore() > 5) {
             throw new IllegalArgumentException("评分越界/缺失：score=" + schema.getScore());
         }
-        // 观测补位（P1 验收案）：闸门只卡 score，comment/refAnswer 缺失不阻断但必须留痕——
-        // 模型不听话改键名时 Jackson 静默给 null，不留原文就永远破案不了
+        // 缺失字段不阻断但记日志留痕，便于排查模型异常输出
         if (schema.getRefAnswer() == null || schema.getComment() == null) {
             log.warn("评分产物缺字段 score={} commentNull={} refAnswerNull={} 模型原文={}",
                     schema.getScore(), schema.getComment() == null, schema.getRefAnswer() == null, raw);
@@ -200,8 +197,7 @@ public class AiServiceImpl implements AiService {
         return schema;
     }
 
-    /** 报告版闸门（J5④平移）：summary 非空 + category 枚举硬约束；evidence 本地终审——
-     *  golden rule 两面：模型不算数（总分不归它）也不复读（题目ID不由它编） */
+    /** 解析报告输出：summary 非空、类别枚举校验、evidence 过滤为真实存在的题目 id */
     private ReportSchema parseAndGateReport(ChatResponse response, Set<Long> validIds) {
         String raw = response.getResult().getOutput().getText();
         ReportSchema schema = reportConverter.convert(raw);
@@ -209,7 +205,7 @@ public class AiServiceImpl implements AiService {
             throw new IllegalArgumentException("报告缺summary");
         }
         if (schema.getWeakPoints() == null) {
-            schema.setWeakPoints(List.of());        // 缺失≠违法：空数组兜底，模型不列就当没薄弱点
+            schema.setWeakPoints(List.of());        // 缺失按空数组处理
         }
         for (WeakPointVO w : schema.getWeakPoints()) {
             if (!CATEGORIES.contains(w.getCategory())) {
@@ -221,10 +217,7 @@ public class AiServiceImpl implements AiService {
         return schema;
     }
 
-    /** 报告链材料拼装（合同10 D 两段式）：主段一行一题口径不变（ID|类别|难度|得分|题干|作答|简评），
-     *  追问轨迹段缩进标注——轨迹是叙事资产不是测量点（J4 二分第二次应用：分数不进分母，轨迹可进证据）。
-     *  score 为 null 写"未评分"而非 0——J4 条款一的 prompt 侧镜像（没评≠答错）；
-     *  refAnswer 不进材料：报告看"答得怎样"不看"标准答案"，省 token 且少一个注入载体 */
+    /** 拼装报告材料：主段一行一题，追问以缩进行附后；未评分写"未评分"而非 0 */
     private String buildReportMaterial(List<InterviewQuestion> questions) {
         StringBuilder sb = new StringBuilder();
         for (InterviewQuestion q : questions) {
@@ -240,41 +233,38 @@ public class AiServiceImpl implements AiService {
                     .append(oneLine(q.getScoreComment() == null ? "（无）" : q.getScoreComment()))
                     .append('\n');
         }
-        // 追问轨迹段：└开头自标识（定界家族第三变体——模型靠行首形状区分两种材料，不靠新标签）
+        // 追问轨迹段：以 └ 开头自标识
         for (InterviewQuestion q : questions) {
             if (q.getParentQuestionId() == null) {
                 continue;
             }
             sb.append("└对题").append(q.getParentQuestionId()).append("追问")
-                    .append('|').append(q.getStrategy()).append('|')   // 中文三值字面（#60），模型读得懂"降档"意味着什么
+                    .append('|').append(q.getStrategy()).append('|')   // 策略中文字面
                     .append("得分").append(q.getScore() == null ? "未评分" : q.getScore()).append('|')
-                    .append(abbreviate(oneLine(q.getQuestionContent()), 80))   // 轨迹段题干截 80：叙事用不着全文，token 预算也省
+                    .append(abbreviate(oneLine(q.getQuestionContent()), 80))   // 题干截断至 80 字
                     .append('\n');
         }
         return sb.toString().trim();
     }
 
-    /** 换行压成空格：多行答案会把"一行一题"的材料表冲垮——模型读行结构靠的是我们写行结构 */
+    /** 将换行压成空格，保持材料一行一题 */
     private String oneLine(String s) {
         return s == null ? "" : s.replaceAll("[\\r\\n]+", " ");
     }
 
-    /** §4.1 注一落地（裁决#32 二选一选了"落地"）：作答摘录 150 字截断——长文答案的 token 预算 + 注入面积压缩；
-     *  尾部"…"明示有删节，模型知道看到的是摘录而非全文。包级 static 为可测性（causeContains 先例） */
+    /** 超长文本截断，尾部以 … 标示删节 */
     static String abbreviate(String s, int max) {
         return s.length() <= max ? s : s.substring(0, max) + "…";
     }
 
-    /** L1 语法层 + 预算 + 温度都锁在这一个方法里——四处调用同一道闸门，想漏都难。
-     *  maxTokens 参数化（合同07 d2）：出题 GEN=5000，评分 SCORE=1200（S14 上调后同步）；
-     *  temperature 传 null=吃全局默认（出题要多样性），评分传 0.2（可复现性优先） */
+    /** 统一上游调用：强制 JSON 输出格式，按场景设置输出预算与温度（null=使用全局默认） */
     private ChatResponse callUpstream(String system, String user, int maxTokens, Double temperature) {
         OpenAiChatOptions.Builder options = OpenAiChatOptions.builder()
-                .maxTokens(maxTokens)                                     // per-call，不污染 yml
+                .maxTokens(maxTokens)
                 .responseFormat(ResponseFormat.builder()
-                        .type(ResponseFormat.Type.JSON_OBJECT).build());      // JSON mode：出题+评分共用
+                        .type(ResponseFormat.Type.JSON_OBJECT).build());
         if (temperature != null) {
-            options.temperature(temperature);                             // 不传就不覆盖，链路可审计
+            options.temperature(temperature);
         }
         return chatClient.prompt()
                 .system(system)
@@ -284,8 +274,7 @@ public class AiServiceImpl implements AiService {
                 .chatResponse();
     }
 
-    /** §5 user 模板定稿的逐字拼接。故意用字符串拼接而非模板引擎：
-     *  getFormat() 的 JSON Schema 里满是花括号，拼接朴素但对 {} 绝对免疫 */
+    /** 拼接出题的用户提示词（字符串拼接以规避模板对花括号的转义问题） */
     private String buildUserPrompt(ResumeDetailVO r, int count) {
         return "候选人简历：\n"
                 + "姓名：" + r.getRealName() + "\n"
@@ -294,10 +283,10 @@ public class AiServiceImpl implements AiService {
                 + "专业技能：" + String.join("、", r.getSkills()) + "\n"
                 + "项目与自我介绍：" + nullSafe(r.getSelfIntro()) + "\n"
                 + "请生成 " + count + " 道题。\n"
-                + outputConverter.getFormat();      // = 模板里的 {format} 位
+                + outputConverter.getFormat();
     }
 
-    /** 空字段拼"（未填写）"而不是删整行：整行消失会让模型在"没这栏"和"没填"之间猜谜 */
+    /** 空字段显示为（未填写），避免模型误解缺省含义 */
     private String nullSafe(String s) {
         return (s == null || s.isBlank()) ? "（未填写）" : s;
     }

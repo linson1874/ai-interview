@@ -10,6 +10,8 @@ import com.itlzy.aiinterview.vo.UserVO;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+/** 用户账户端点：注册/登录/注销/当前用户。
+ *  @author 林子阳 */
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -22,26 +24,26 @@ public class UserController {
         this.authService = authService;
     }
 
-    //用户注册：成功就 ok；业务失败由 Service 抛异常，全局 handler 翻译装盘（Controller 不再判 boolean）
+    /** 用户注册 */
     @PostMapping("/register")
     public Result<Void> register(@Valid @RequestBody RegisterDTO dto){
         userService.register(dto);
         return Result.ok("ok");
     }
 
-    //用户登录
+    /** 用户登录 */
     @PostMapping("/login")
     public Result<LoginVO> login(@Valid @RequestBody LoginDTO dto){
         return Result.okData(authService.login(dto));
     }
 
-    //当前用户信息
+    /** 当前登录用户信息 */
     @GetMapping("/me")
     public Result<UserVO> me(@RequestAttribute("userId") Long userId){
         return Result.okData(authService.me(userId));
     }
 
-    //注销：userId 由拦截器验票时别在工牌上，Controller 全程不碰 token
+    /** 注销登录 */
     @PostMapping("/logout")
     public Result<Void> logout(@RequestAttribute("userId") Long userId) {
         authService.logout(userId);

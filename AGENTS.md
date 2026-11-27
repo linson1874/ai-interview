@@ -17,7 +17,7 @@
 3. Redis Stream 异步出题、语义评分、面试报告 ✅（合同06/07，四洞修复+免费测试网 24 项）
 4. pgvector RAG 知识库 + 离线带难度标签题池
 5. **差异化双模块**：提分闭环（ZSET 间隔重复复习调度）→ 追问决策器（CAT-lite 自适应）
-6. 选做：PDF 简历解析、语音面试
+6. 选做池：`docs/product/backlog-stage6.md`（2026-11-25 立池：interview-guide 参考清单按 ROI 分 A/B/C 三档，逐项立项制，冲刺周收官前零立项）
 设计快照见 `docs/product/differentiation.md` 与 `ai-feature-map.md`。
 
 ## 设计基线 v1（改动需导师确认）
@@ -40,6 +40,7 @@
 - **MP 双坑工具口径（#46 赠案）**：①update(null,wrapper) 不触发 fill；②`eq(column, null)` 生成恒 false 的 `= NULL`，可空列等值比较必须 isNull 分支——两坑均已实弹伤人，写 Wrapper 前先过这两问
 - **异常身份证口径（案#21）**：Lettuce/Spring Data 异常是套娃，BUSYGROUP/NOGROUP 等关键字在 Caused by 链里——字符串归因必须沿 cause 链遍历（causeContains 模式）；**从未被演练命中过的防御代码视同未验证**（NOGROUP 自愈案：刷屏实靠手动 XGROUP CREATE 救场）
 - **无 Maven Wrapper**：本机未装独立 mvn，IDEA 用自带 Bundled Maven 构建；命令行验证用 `~/.m2/wrapper/dists/apache-maven-3.10.0/*/apache-maven-3.10.0/bin/mvn`
+- **注释案底=资产（#86 立宪，2026-11-27）**：代码注释中的案号（#NN）、合同引用、家法名（两代制/防枚举/T8/S系/J系/禁翻译层/先删后插/uk_parent 等）是治理记忆的索引——任何风格统一/重构/AI 写码**不得删除**；精简时锚点挂句尾保留。回植/审计口径：`git diff` 锚点存活计数不降档（实测基线：删194/存57 为违规态，合格线≥150）
 
 ## 禁动清单（红线）
 - 旧容器 `interview-postgres` / `interview-redis` / `interview-rustfs`：来自某 GitHub 教程项目，**保持停用，不删、不启动**（interview-redis 若启动会抢占 6379）

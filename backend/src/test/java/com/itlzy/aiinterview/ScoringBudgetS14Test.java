@@ -8,9 +8,7 @@ import java.lang.reflect.Field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** S14（裁决#31）：800 护栏腰斩 refAnswer=JsonEOF 病根。断言两件套：预算 1200 + prompt 长度约束句在位。
- *  读 private 常量用反射：不为此开 public 口子——生产 API 面不为测试让步。
- *  故意不加 @SpringBootTest：纯反射零上下文，毫秒级，四测试里最便宜的一发 */
+/** 评分输出预算与提示词约束的回归测试：反射读私有常量，不为测试开 public 口子。 */
 class ScoringBudgetS14Test {
 
     @Test

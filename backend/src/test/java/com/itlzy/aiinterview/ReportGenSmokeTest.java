@@ -11,7 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 
-/** 报告链付费冒烟（QuestionsGenSmokeTest 同款先例）：真实 DB 材料 → 真实 AI → 打印报告 */
+/** 报告链付费冒烟测试：真实数据 → 真实大模型 → 打印报告。 */
 @SpringBootTest
 class ReportGenSmokeTest {
 

@@ -12,13 +12,14 @@ import com.itlzy.aiinterview.vo.QuestionsVO;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
-/** AI问答 **/
+/** AI 能力端点：对话/出题/知识库问答。
+ *  @author 林子阳 */
 @RestController
 @RequestMapping("/ai")
 public class AiController {
 
     private final AiService aiService;
-    private final KnowledgeAskService knowledgeAskService;   // 工单④新增
+    private final KnowledgeAskService knowledgeAskService;
 
     public AiController(AiService aiService, KnowledgeAskService knowledgeAskService) {
         this.aiService = aiService;
@@ -36,7 +37,7 @@ public class AiController {
         return Result.okData(aiService.generateQuestions(userId, dto));
     }
 
-    /** 合同08 K6-d：知识库问答（开卷链）。拦截器已护 /ai/** → V7 无 token 天然 401 */
+    /** 知识库问答 */
     @PostMapping("/kb/ask")
     public Result<AskVO> ask(@Valid @RequestBody AskDTO dto) {
         return Result.okData(knowledgeAskService.ask(dto.getQuestion()));

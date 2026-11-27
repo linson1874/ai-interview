@@ -11,11 +11,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+/** 登录拦截器：校验 JWT 与 Redis 登录存根，通过后把 userId 放入请求属性。
+ *  @author 林子阳 */
 public class LoginInterceptor implements HandlerInterceptor {
 
     private final JwtUtil jwtUtil;
     private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;   // Spring 自带现成实例，专门用来把 Result 写成 JSON
+    private final ObjectMapper objectMapper;   // 用于把拒绝响应序列化为 JSON
 
     public LoginInterceptor(JwtUtil jwtUtil, StringRedisTemplate redisTemplate, ObjectMapper objectMapper) {
         this.jwtUtil = jwtUtil;
@@ -32,7 +34,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
         String token = auth.substring(7);
 
-        // 2. 第一关：验票面（假签名、过期都会抛 JwtException）
+        // 校验签名与过期时间
         Long userId;
         try {
             userId = jwtUtil.parseUserId(token);
@@ -40,24 +42,23 @@ public class LoginInterceptor implements HandlerInterceptor {
             return reject(response);
         }
 
-        // 3. 第二关：存根必须存在，且值 == 本次带来的票（票不对人 = 已注销或被互踢）
+        // 校验 Redis 中的登录存根，不匹配视为已注销或被踢下线
         String cachedToken = redisTemplate.opsForValue().get(AuthServiceImpl.USER_KEY_PREFIX + userId);
         if (!token.equals(cachedToken)) {
             return reject(response);
         }
 
-        // 4. 两关全过：把 userId 别在"工牌"上带给 Controller
+        // 校验通过，将 userId 放入请求属性供 Controller 使用
         request.setAttribute("userId", userId);
         return true;
     }
 
-    /** 劝退：HTTP 401 + code=3（合同 1）。注意拦截器里不能"抛异常交给全局handler"，
-     *  因为我们的 BusinessException handler 返回 HTTP 200，给不出 401，所以这里手写回执 */
+    /** 返回 401 + code=3；拦截器中手写响应而非抛异常（全局处理器给不出 401） */
     private boolean reject(HttpServletResponse response) throws Exception {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write(
                 objectMapper.writeValueAsString(Result.of(ResultCode.UNAUTHORIZED, "未登录或凭证失效")));
-        return false;   // false = 拦截，请求到此为止，不会进 Controller
+        return false;   // false = 拦截请求
     }
 }

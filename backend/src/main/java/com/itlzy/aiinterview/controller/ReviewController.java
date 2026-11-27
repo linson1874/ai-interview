@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/** 合同09 C(c) 独立复习面（v1 两端的第一个；/review/answer 在下一步 4b） */
+/** 复习端点。
+ *  @author 林子阳 */
 @RestController
 @RequestMapping("/review")
 public class ReviewController {
@@ -21,15 +22,13 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    /** 今日复习清单：GET /review/today —— 读账本不读投影；归属即消失（无他人可见性问题，
-     *  WHERE user_id 就是归属门，01/03/05/06 同款语义第五次复用） */
+    /** 今日到期复习清单 */
     @GetMapping("/today")
     public Result<List<ReviewItemVO>> today(@RequestAttribute("userId") Long userId) {
         return Result.okData(reviewService.today(userId));
     }
 
-    /** 提交复习作答：POST /review/answer ——单发 ~10s（判分复用 07 链）；
-     *  F2① CAS 防双击、F2② 快照防双跳、失败补偿归 due——三刀细节见 Service */
+    /** 提交复习作答并同步判分（约 10 秒） */
     @PostMapping("/answer")
     public Result<ReviewAnswerVO> answer(@RequestAttribute("userId") Long userId,
                                          @Valid @RequestBody ReviewAnswerDTO dto) {

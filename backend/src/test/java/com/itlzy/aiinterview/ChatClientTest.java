@@ -12,7 +12,7 @@ class ChatClientTest {
     private ChatClient.Builder chatClientBuilder;
 
     @Test
-    @Disabled("S1付费冒烟：需 DeepSeek key 有余额时手动放开；真打大模型不走 CI，合同裁决#10 E项")
+    @Disabled("付费冒烟：需 API key 有余额时手动放开，不进 CI")
     void smoke(){
         var answer = chatClientBuilder.build().prompt()
                 .user("用一句话解释一下什么是SpringMVC")

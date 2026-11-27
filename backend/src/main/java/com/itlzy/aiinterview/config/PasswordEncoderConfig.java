@@ -5,10 +5,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+/** 密码加密器配置（BCrypt）。
+ *  @author 林子阳 */
 @Configuration
 public class PasswordEncoderConfig {
 
-    @Bean   // 告诉 Spring：这个方法的返回值存进你的"工具箱"，谁要谁注入
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }

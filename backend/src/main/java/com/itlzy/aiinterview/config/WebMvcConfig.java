@@ -6,6 +6,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/** Web MVC 配置：注册登录拦截器与拦截路径。
+ *  @author 林子阳 */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
@@ -24,6 +26,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new LoginInterceptor(jwtUtil, redisTemplate, objectMapper))
                 .addPathPatterns("/user/me", "/resume/**","/ai/**","/interview/**","/review/**")
-                .excludePathPatterns("/user/register", "/user/login"); // 免检通道
+                .excludePathPatterns("/user/register", "/user/login"); // 注册与登录免检
     }
 }

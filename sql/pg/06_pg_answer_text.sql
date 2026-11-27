@@ -1,5 +1,4 @@
--- 合同08 工单⑤（#36 裁决落地）：kb_question 加标准答案知识段列
--- 题池从"只有目录"升级成"有正文的书"：ask 链开卷材料的主体
+-- kb_question 加标准答案知识段列：ask 链检索材料的主体
 ALTER TABLE kb_question ADD COLUMN IF NOT EXISTS answer_text TEXT;
 
 COMMENT ON COLUMN kb_question.answer_text IS

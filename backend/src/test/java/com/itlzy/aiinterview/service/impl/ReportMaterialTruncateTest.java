@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** §4.1 注一截断的纯函数测试（converter 式测试债顺势全还）。
- *  住 service.impl 同包才够得着包级 abbreviate——causeContains 同款安排 */
+/** 报告材料截断的纯函数测试（同包以访问包级方法）。 */
 class ReportMaterialTruncateTest {
 
     @Test

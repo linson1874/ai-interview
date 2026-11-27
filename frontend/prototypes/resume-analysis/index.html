@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>简历分析 · AI 面试助手</title>
+    <link rel="stylesheet" href="./prototype.css">
+    <script src="./prototype.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主内容</a>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="#resume">
+          <span class="brand-mark" aria-hidden="true"></span>
+          AI 面试助手
+        </a>
+        <nav class="main-nav" aria-label="原型导航">
+          <a href="#resume" aria-current="page">简历分析</a>
+          <a href="#setup">模拟面试</a>
+        </nav>
+        <span class="sample-label">示例模式</span>
+      </div>
+    </header>
+
+    <main id="main" class="workspace" tabindex="-1">
+      <section id="resume" data-view aria-labelledby="resume-title">
+        <div class="page-heading">
+          <div>
+            <h1 id="resume-title" tabindex="-1">简历分析</h1>
+            <p>从面试官的角度看，哪些经历值得展开，哪些还需要补上证据。</p>
+          </div>
+          <button class="button button-outline" type="button" data-open-import><span class="upload-icon" aria-hidden="true"></span> 导入简历</button>
+        </div>
+
+        <div class="review-layout">
+          <section class="document" aria-labelledby="document-title">
+            <div class="document-toolbar">
+              <h2 id="document-title"><span class="file-icon" aria-hidden="true"></span> 简历原文</h2>
+              <span>示例简历</span>
+            </div>
+            <article class="resume-paper" aria-label="陈嘉宁的示例简历">
+              <header class="paper-heading">
+                <h3>陈嘉宁</h3>
+                <p id="sample-job">目标岗位 <span>Java 后端开发实习生</span></p>
+              </header>
+
+              <section class="paper-section">
+                <h4>教育经历</h4>
+                <p class="paper-meta"><strong>计算机科学与技术 · 本科</strong><time>2023.09 – 至今</time></p>
+              </section>
+
+              <section class="paper-section">
+                <h4>项目经历</h4>
+                <p class="paper-meta"><strong>校园二手交易平台</strong><time>2025.09 – 2025.12</time></p>
+                <ul class="resume-points">
+                  <li><button class="source" data-source="fit" type="button">使用 Spring Boot 和 MySQL 开发商品发布、检索与订单模块。</button></li>
+                  <li><button class="source" data-source="contribution" type="button">团队接入 Redis 缓存，优化商品列表接口。</button></li>
+                  <li><button class="source" data-source="evidence" type="button">优化后，接口响应时间降低了约 40%。</button></li>
+                </ul>
+              </section>
+
+              <section class="paper-section">
+                <h4>专业技能</h4>
+                <p><button class="source" data-source="clarity" type="button">熟悉 Java、Spring Boot、MySQL、Redis 等常用技术。</button></p>
+              </section>
+            </article>
+          </section>
+
+          <section class="assessment" aria-labelledby="assessment-title">
+            <div class="assessment-heading">
+              <div>
+                <h2 id="assessment-title">面试官怎么看</h2>
+                <p>优先补上性能数据的测量依据。</p>
+              </div>
+              <div class="total-score" aria-label="示例综合评分 76 分，满分 100 分">
+                <span class="score-number">76</span><span class="score-scale">/ 100</span>
+              </div>
+            </div>
+
+            <div class="assessment-body">
+              <h3>分项评分 <span>每项满分 100</span></h3>
+              <div class="ratings" role="group" aria-label="选择评分项，定位简历原句">
+                <button class="rating" data-rating="fit" type="button" aria-pressed="false"><span>岗位匹配</span><span class="rating-track"><i style="--score:85%"></i></span><strong>85</strong></button>
+                <button class="rating" data-rating="contribution" type="button" aria-pressed="false"><span>个人贡献</span><span class="rating-track"><i style="--score:72%"></i></span><strong>72</strong></button>
+                <button class="rating" data-rating="evidence" type="button" aria-pressed="true"><span>成果证据</span><span class="rating-track"><i style="--score:66%"></i></span><strong>66</strong></button>
+                <button class="rating" data-rating="clarity" type="button" aria-pressed="false"><span>表达清晰度</span><span class="rating-track"><i style="--score:81%"></i></span><strong>81</strong></button>
+              </div>
+
+              <div class="finding" aria-live="polite" aria-atomic="true">
+                <h3 id="finding-title"></h3>
+                <p id="finding-body"></p>
+                <div class="finding-actions">
+                  <button type="button" id="locate-source" class="text-button">定位原句</button>
+                  <details id="finding-reference">
+                    <summary>查看判断依据</summary>
+                    <p id="reference-body"></p>
+                  </details>
+                </div>
+              </div>
+            </div>
+            <div class="assessment-footer">
+              <button class="button button-primary" type="button" id="practice-resume">带这份简历去面试 <span class="arrow" aria-hidden="true"></span></button>
+            </div>
+          </section>
+        </div>
+
+        <div class="direct-entry">
+          <div>
+            <h2>还没有简历？</h2>
+            <p>选一个岗位或自定义方向，也可以先体验一场面试。</p>
+          </div>
+          <button class="button button-outline" type="button" id="practice-general">直接按岗位练习 <span class="arrow" aria-hidden="true"></span></button>
+        </div>
+      </section>
+
+      <section id="setup" data-view hidden aria-labelledby="setup-title">
+        <div class="page-heading">
+          <div>
+            <h1 id="setup-title" tabindex="-1">配置模拟面试</h1>
+            <p>选择目标岗位、面试形式和每一轮想练的内容。</p>
+          </div>
+        </div>
+        <div class="setup-layout">
+          <form id="interview-setup" class="form-panel">
+            <fieldset>
+              <legend>面试依据</legend>
+              <div class="choices">
+                <label class="choice"><input type="radio" name="basis" value="resume"><span>带简历</span></label>
+                <label class="choice"><input type="radio" name="basis" value="general" checked><span>按岗位练习</span></label>
+              </div>
+              <p class="form-help" id="basis-help"></p>
+            </fieldset>
+
+            <div class="two-fields">
+              <label class="field">专业方向
+                <select id="domain" name="domain">
+                  <option value="software">计算机与软件</option>
+                  <option value="business">经管与商业</option>
+                  <option value="media">传媒与设计</option>
+                  <option value="custom">自定义方向</option>
+                </select>
+              </label>
+              <label class="field" id="role-field">目标岗位 <select id="role" name="role"></select></label>
+              <label class="field" id="custom-role-field" hidden>目标岗位 <input id="custom-role" name="customRole" maxlength="50" placeholder="如 教育产品运营" disabled></label>
+            </div>
+            <label class="field" id="custom-focus-field" hidden>想练什么 <span class="optional">选填</span>
+              <textarea id="custom-focus" name="customFocus" maxlength="180" rows="2" placeholder="写下希望考查的能力，也可以摘录岗位要求。" disabled></textarea>
+            </label>
+
+            <fieldset>
+              <legend>难度</legend>
+              <div class="choices">
+                <label class="choice"><input type="radio" name="difficulty" value="入门"><span>入门</span></label>
+                <label class="choice"><input type="radio" name="difficulty" value="标准" checked><span>标准</span></label>
+                <label class="choice"><input type="radio" name="difficulty" value="进阶"><span>进阶</span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>面试形式</legend>
+              <div class="choices">
+                <label class="choice"><input type="radio" name="format" value="文字" checked><span>文字</span></label>
+                <label class="choice"><input type="radio" name="format" value="语音"><span>语音<span class="optional"> · 预览</span></span></label>
+              </div>
+            </fieldset>
+            <div class="round-fields">
+              <label class="field round-count">面试轮数
+                <select id="round-count" name="roundCount">
+                  <option value="1">1 轮</option>
+                  <option value="2">2 轮</option>
+                  <option value="3">3 轮</option>
+                </select>
+              </label>
+              <div id="round-fields"></div>
+            </div>
+            <button class="button button-primary" type="submit">确认面试安排 <span class="arrow" aria-hidden="true"></span></button>
+          </form>
+
+          <aside class="setup-aside" aria-labelledby="setup-aside-title">
+            <h2 id="setup-aside-title">本场会问什么</h2>
+            <p id="setup-aside-body"></p>
+            <div class="aside-source" id="setup-source" hidden>
+              <h3>来自示例简历</h3>
+              <blockquote>优化后，接口响应时间降低了约 40%。</blockquote>
+            </div>
+            <div class="aside-example">
+              <h3>示例开场</h3>
+              <p id="setup-example"></p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="ready" data-view hidden aria-labelledby="ready-title">
+        <div class="page-heading">
+          <div>
+            <h1 id="ready-title" tabindex="-1">面试准备</h1>
+            <p>确认本场安排。准备好后，再进入第一轮。</p>
+          </div>
+        </div>
+        <div class="ready-panel">
+          <h2 id="ready-role"></h2>
+          <dl class="session-meta">
+            <div><dt>面试依据</dt><dd id="ready-basis"></dd></div>
+            <div><dt>难度</dt><dd id="ready-difficulty"></dd></div>
+            <div><dt>形式</dt><dd id="ready-format"></dd></div>
+          </dl>
+          <h3>本场轮次</h3>
+          <ol id="ready-rounds" class="round-list"></ol>
+          <p id="ready-format-note" class="form-help" hidden>语音为界面预览，当前示例使用文字体验开场。</p>
+          <div class="button-row">
+            <a class="button button-outline" href="#setup">返回调整</a>
+            <a class="button button-primary" href="#interview">进入示例面试 <span class="arrow" aria-hidden="true"></span></a>
+          </div>
+        </div>
+      </section>
+
+      <section id="interview" data-view hidden aria-labelledby="interview-title">
+        <div class="page-heading">
+          <div>
+            <h1 id="interview-title" tabindex="-1">示例面试</h1>
+            <p id="interview-subtitle"></p>
+          </div>
+          <a class="button button-outline" href="#setup">返回配置</a>
+        </div>
+        <form class="ready-panel answer-panel" id="answer-form">
+          <h2>AI 面试官</h2>
+          <p class="interview-question" id="interview-question"></p>
+          <label class="field" for="sample-answer">你的回答</label>
+          <textarea id="sample-answer" rows="5" maxlength="1200" placeholder="试着说说你的思路。" required></textarea>
+          <div class="button-row">
+            <button class="button button-primary" type="submit">完成开场体验</button>
+          </div>
+          <p class="answer-receipt" id="answer-receipt" role="status" hidden>开场体验已完成。本原型提供第一题的交互预览。</p>
+        </form>
+      </section>
+    </main>
+
+    <dialog id="import-dialog" aria-labelledby="import-title">
+      <div class="dialog-heading">
+        <h2 id="import-title">导入简历</h2>
+        <form method="dialog"><button type="submit" class="button button-outline">关闭</button></form>
+      </div>
+      <p>这里可以选取本地 PDF 预览导入步骤，分析结果使用固定示例。</p>
+      <label class="field" for="resume-file">选择 PDF 文件</label>
+      <input type="file" id="resume-file" accept=".pdf,application/pdf">
+      <p class="file-feedback" id="file-feedback" role="status"></p>
+      <form method="dialog" class="button-row"><button class="button button-primary" type="submit">查看示例分析</button></form>
+    </dialog>
+  </body>
+</html>

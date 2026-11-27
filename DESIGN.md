@@ -1,34 +1,34 @@
 ---
 name: AI 面试系统
-description: 动物园导览图世界的 AI 面试练习界面——奶油水域与苹果绿陆地由一条 SVG 海岸线独家分界，页面级导览信息层，两档字标锁排，控制件只有胶囊，主操作只有黄。
+description: 面试档案视觉系统——深墨色场景、纸白工作区与黄铜批注；登录页以简历批注建立识别，内部页沿用同一组语义色。
 colors:
-  water: "#f5f1e4"
-  land: "#8ed462"
-  ink: "#2c2e2a"
-  ink-soft: "#5b616b"
-  sun: "#f5e211"
-  sun-deep: "#e5d200"
-  sun-press: "#d4c300"
-  coral: "#ff705d"
-  sky: "#2ba0ff"
-  lilac: "#ebc1ff"
-  alert: "#c0392b"
+  water: "#f5f5f1"
+  land: "#d9c5a0"
+  ink: "#151a21"
+  ink-soft: "#626c77"
+  sun: "#b08a4a"
+  sun-deep: "#9a743c"
+  sun-press: "#80602e"
+  coral: "#f4e8e6"
+  sky: "#e8ecee"
+  lilac: "#eee9df"
+  alert: "#a94639"
   field-surface: "#ffffff"
-  legacy-bg: "#f7f8fa"
-  legacy-ink: "#101828"
+  legacy-bg: "#f5f5f1"
+  legacy-ink: "#151a21"
 typography:
   wordmark-latin:
-    fontFamily: "'Zoo Display', 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif"
-    fontSize: "46px"
-    fontWeight: 700
-    lineHeight: 0.95
-    letterSpacing: "-0.01em"
+    fontFamily: "'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif"
+    fontSize: "52px"
+    fontWeight: 600
+    lineHeight: 1.3
+    letterSpacing: "0"
   wordmark-cn:
-    fontFamily: "'Zoo Display', 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif"
-    fontSize: "24px"
-    fontWeight: 700
-    lineHeight: 1.2
-    letterSpacing: "0.3em"
+    fontFamily: "'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif"
+    fontSize: "30px"
+    fontWeight: 600
+    lineHeight: 1.35
+    letterSpacing: "0"
   lede:
     fontFamily: "'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif"
     fontSize: "15px"
@@ -100,9 +100,9 @@ typography:
     letterSpacing: "0.18em"
   page-title:
     fontFamily: "'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif"
-    fontSize: "28px"
+    fontSize: "26px"
     fontWeight: 700
-    lineHeight: 1.15
+    lineHeight: 1.2
     letterSpacing: "0.02em"
   meta:
     fontFamily: "'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif"
@@ -144,7 +144,7 @@ typography:
     lineHeight: 1
   button-compact:
     fontFamily: "'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif"
-    fontSize: "14px"
+    fontSize: "13px"
     fontWeight: 600
     lineHeight: 1
   row-label:
@@ -153,6 +153,24 @@ typography:
     fontWeight: 400
     lineHeight: 1.6
     letterSpacing: "0.12em"
+  meter:
+    fontFamily: "ui-monospace, 'Cascadia Mono', Consolas, monospace"
+    fontSize: "11px"
+    fontWeight: 400
+    lineHeight: 1.6
+    letterSpacing: "0.1em"
+  booth-no:
+    fontFamily: "ui-monospace, 'Cascadia Mono', Consolas, monospace"
+    fontSize: "12px"
+    fontWeight: 400
+    lineHeight: 1.6
+    letterSpacing: "0.08em"
+  step-no:
+    fontFamily: "ui-monospace, 'Cascadia Mono', Consolas, monospace"
+    fontSize: "10px"
+    fontWeight: 400
+    lineHeight: 1.8
+    letterSpacing: "0.08em"
 rounded:
   cap: "999px"
   square: "0"
@@ -250,8 +268,8 @@ components:
     textColor: "{colors.ink}"
     typography: "{typography.button-compact}"
     rounded: "{rounded.cap}"
-    height: "40px"
-    padding: "0 22px"
+    height: "38px"
+    padding: "0 20px"
   skill-chip:
     textColor: "{colors.ink}"
     typography: "{typography.chip-sm}"
@@ -292,19 +310,22 @@ components:
 
 # Design System: AI 面试系统
 
-> **已废除**：本文件此前记录的「品类标准」世界（冷白纸底、纯白居中卡、深蓝主色 `#1d4ed8`）已整体替换为动物园导览图世界，旧令牌表不再保留；下文只描述现行系统。
+> **当前视觉方向（2026-11-27）**：墨色、纸白与黄铜的「面试档案」。本次登录页与内页色板更新取代下方旧版导览图的颜色和装饰规则；旧版内容仅保留作既有页面结构记录。
+>
+> **历史说明**：以下详细页面规格源自 2026-11-24 的导览图主题。除业务流程、页面内容和未被本次改版触及的交互事实外，其中的颜色、字体、图形、控件形态和动效约束均已过期；新页面遵循上方方向与 `frontend/src/styles/tokens.css`。
 
 ## Overview
 
-**Creative North Star: "走进一张已经画好的导览图"（The Guide-Map You Walk Into）**
+**Creative North Star: "一份正在被认真批注的面试档案"（The Interview Dossier）**
 
-整个界面是一张 100dvh 的园区导览图，不是一个摆在背景前的卡片。奶油色是水域（`--zoo-water`），苹果绿是陆地（`--zoo-land`），两者唯一的分界是一条手绘感的平滑 SVG 海岸线；陆地中段偏右开一个水洞（`--zoo-line` 勾 1px 墨边），让水域从陆地内部透出来。登录表单站在岸上：左侧陆地是两档字标锁排（`AI` / `面试系统`）、一句承诺与表单；整张图上还铺着一层页面级地图信息——「入口」胶囊骑在岸线上，「你在这里」、三支园路、简历 / 面试 / 报告三个分区点、指北与左下版记；右侧水域右对齐地摆图例，告诉访客园区里有简历和面试。第二页「我的简历」把地图上的简历区落地成一张展位名录：72% 陆地 + 28% 右侧水湾，条目是行不是卡片，1px 墨线分隔。世界来源是 `aww2-zoo-gardens-guide-map`（2026-11-24 定稿，全站唯一视觉世界，换页不换世界）。明确拒绝两件事：深色渐变 + 居中卡片的 AI 产品皮；把导览图当贴纸贴在表单背后、界面其余部分照旧。
+登录页以 56/44 分栏呈现：墨色左区用衬线标题与一张纸质简历批注稿承载产品情境，白色右区安放真实登录/注册表单；黄铜仅标记批注、焦点与关键状态。内部页继续沿用现有业务布局，左侧导航切换为深墨底，工作区使用纸白与白色内容表面，表单与数据状态继承同一套墨、灰、黄铜与砖红语义色。窄屏时登录表单先于情境内容显示。旧版地图构图不再是当前视觉约束。
 
-这是一个 Operate 面，一屏只做一件事：登录页认出「这是练习区」→ 填两个字段 → 按下唯一一枚黄色胶囊；名录页看清「我有哪些简历」→ 新建或编辑 → 分页翻查。层级几乎全部由字号、字重、2px 墨边与留白建立；颜色严格分工——绿与奶油负责「哪边是水、哪边是地」，墨负责写字，黄负责「点这里」，珊瑚 / 蓝 / 淡紫只负责「园区里有这种东西」，红只负责错误与不可逆动作（删除确认）。状态反馈也只有墨边与外框，没有卡片、没有投影阶梯、没有玻璃、没有发光。
+这是一个 Operate 面，一屏只做一件事：登录页认出「这是练习区」→ 填两个字段 → 按下唯一一枚黄色胶囊；名录页看清「我有哪些简历」→ 新建或编辑 → 分页翻查；开始面试页选简历、定题量 → 生成中等待 → 失败重试。层级几乎全部由字号、字重、2px 墨边与留白建立；颜色严格分工——绿与奶油负责「哪边是水、哪边是地」，墨负责写字，黄负责「点这里」，珊瑚 / 蓝 / 淡紫只负责「园区里有这种东西」，红只负责错误与不可逆动作（删除确认）。状态反馈也只有墨边与外框，没有卡片、没有投影阶梯、没有玻璃、没有发光。
 
-**当前边界（2026-11-25 实查代码）：**
-- 已设计页面两个：`/login`（`frontend/src/views/auth/LoginRegisterView.vue`）与 `/resumes`（`frontend/src/views/resume/ResumeListView.vue`）。`/resumes/new`、`/resumes/:id/edit`、`/interviews/new`、`/interviews/:id/answer` 仍是骨架期朴素排版（`ResumeEditView.vue`、`InterviewCreateView.vue` 等），不计入本设计系统。
-- 登录页的信息层只在宽屏（>1099px）出现；≤1099px 整层收起，窄屏只有表单与水域图例。名录页没有地图信息层，只有右侧水湾的分区图例。
+**当前边界（2026-11-25 复核改版后）：**
+- 已设计页面三个：`/login`（`frontend/src/views/auth/LoginRegisterView.vue`）、`/resumes`（`frontend/src/views/resume/ResumeListView.vue`，2026-11-25 改版）与 `/interviews/new`（`frontend/src/views/interview/InterviewCreateView.vue`，2026-11-25 首评）。`/resumes/new`、`/resumes/:id/edit`、`/interviews/:id/answer` 仍是骨架期朴素排版（`ResumeEditView.vue` 等），不计入本设计系统。
+- 登录页是全屏那张图（`100dvh` + 海岸线 + 信息层）；内部区两页（`/resumes`、`/interviews/new`）住在 `AppShell` 外壳（绿洲侧栏 + 顶栏）里，页面底是纸面 `--zoo-paper`，不再自带海岸线 SVG——世界收进纸面排版 + 墨线，分区用 8px 彩色圆点标注（珊瑚 = 简历区、天蓝 = 面试区）。
+- 登录页的信息层只在宽屏（>1099px）出现；≤1099px 整层收起，窄屏只有表单与水域图例。内部区两页没有地图信息层，只有右侧水湾的分区标注与步骤面板。
 - 名录页没有独立的 surface 契约；本节按实现记录。登录页的契约在 `.impeccable/surfaces/frontend-src-views-auth-loginregisterview-vue.md`。
 - 没有深色模式：`tokens.css` 固定 `color-scheme: light`，全仓没有 `prefers-color-scheme` 分支。
 - 没有 logo、图形字标或任何页面图片：产品名是两档字标锁排，`frontend/public/` 只有 `favicon.ico`（浏览器标签图标，不是页面素材）。
@@ -317,7 +338,7 @@ components:
 
 ### 信息层的完成度与未实现的世界层面（下一轮，不是遗留缺陷）
 
-信息层已有第一版（登录页）：**入口**（44×22 奶油胶囊，骑在岸线上）、**你在这里**（双环 + 实心点）、**三支园路**（西接简历区、东接面试区、虚线接报告区）、**三个分区点**、**指北**与**左下版记**。它铺在页面上、与表单同一张图，不是表单下方的小地图。名录页把「简历区」进一步落成实体：三条分区胶囊在右侧水湾里，当前区用墨实心。
+信息层已有第一版（登录页）：**入口**（44×22 奶油胶囊，骑在岸线上）、**你在这里**（双环 + 实心点）、**三支园路**（西接简历区、东接面试区、虚线接报告区）、**三个分区点**、**指北**与**左下版记**。它铺在页面上、与表单同一张图，不是表单下方的小地图。内部区把「简历区 / 面试区」进一步落成实体页面：分区用 8px 彩色圆点（珊瑚 = 简历、天蓝 = 面试）+ 12px/600 文字标注，站在右侧水湾面板首行——圆点是标点，不是旧版 72×26 分区胶囊的回归。
 
 仍未做：**比例尺**（本产品没有"距离"这个事实，编刻度就是假数据，故意不做；用版记 + 指北替代）、**图例与图面编号的对应**、**园路分级与更细的分区边界**。名录页只继承水湾、不铺地图——这是构图取舍，不是未完成。**Authored motion** 也仍未做：海岸线没有绘制动画、水洞没有波纹、tab 没有滑动指示条、页面没有入场编排；动效只有 Element Plus 默认的按钮过渡、输入边 2px→3px 与表格 hover 的即时换底。
 
@@ -334,10 +355,10 @@ components:
 - 显示声部只有字标锁排：`AI` 46px/700 与 `面试系统` 24px/700（0.3em 字距）上下锁排，两档都用自托管的 Zoo Display 子集，不靠图片或字体特效。
 - 信息层是页面上的一张地图，不是表单下的小地图：入口、你在这里、园路、三个分区点、指北与版记全部锚在表单右缘（452）之外，任何状态都不压按钮。
 - 地图横坐标是绝对像素（海岸线固定 1440px 宽），纵坐标是页面高度百分比；只有一档断点 1099px，窄屏整层收起。
-- 名录页是名录不是卡片：条目是表格行，1px 墨线分隔，行高约 65px，没有卡片、没有阴影、没有圆角容器。
-- 名录页的黄色只有一处：列表态是表头「新建简历」，空态是空地里的「创建第一份」；两者互斥，一屏不会同时出现两块黄。
-- 名录页三态齐备：空态（1px 虚线空地）、加载态（3 行骨架 + 「正在读取…」）、错误态（拦截器 toast，页面回落空态——已知限制）。
-- 窄屏名录页不画海岸线：整页绿地，右侧水湾与图例收起，表格堆叠成带行标的条目，只有页尾版记。
+- 名录页是名录不是卡片：条目是表格行，表头下 1px 墨线、行间 1px 纸线（`--zoo-paper-line`），行高约 65px，没有卡片、没有阴影、没有圆角容器。
+- 名录页与开始面试页的黄色各只有一处：名录列表态是页头「新建简历」（空态是空地里的「创建第一份」，两者互斥）；面试页表单态是「创建并生成题目」（失败态换成「重试生成」，三相位互斥）——一屏不会同时出现两块黄。
+- 名录页三态齐备：空态（1px 虚线空地）、加载态（3 行骨架 + 「正在读取…」）、错误态（拦截器 toast，页面回落空态——已知限制）。开始面试页三相位齐备：表单态（EP select 胶囊 + 题量）、等待态（奶油状态块 + steps() 机械游标条）、失败态（红边奶油块 + 黄胶囊「重试生成」）。
+- 窄屏（≤1099px）内部区只做单列兜底：grid 变一列、水湾面板 static 落到主栏下方；不做移动端堆叠迭代。
 - 平的一层：没有带偏移的投影，没有零模糊彩色光晕；状态靠墨边与实心 outline。
 
 ## Colors
@@ -355,14 +376,14 @@ components:
 
 图例三色，只承担「这是什么」的标签语义：
 
-- **珊瑚 Coral**（`#ff705d`）：登录页图例胶囊「简历」的底色，墨字 5.05:1。名录页的分区图例没有用它——「简历区」当前态用墨实心；`zoo__zone-chip--coral` 是留在样式里的潜在变体。
-- **蓝 Sky**（`#2ba0ff`）：登录页「面试」图例与名录页「面试区」分区的底色，墨字 4.95:1。
-- **淡紫 Lilac**（`#ebc1ff`）：名录页「报告区」分区的底色，墨字约 8.9:1；它与珊瑚、蓝同级（墨字、胶囊、不上主操作），当前只在名录页使用。
+- **珊瑚 Coral**（`#ff705d`）：登录页图例胶囊「简历」的底色，墨字 5.05:1。内部区里珊瑚不再做胶囊底色，只做 8px「简历区」圆点（名录页水湾「简历区 · 你在这里」与外壳分区图例，1px 墨边包裹）；旧的 `zoo__zone-chip--coral` 胶囊变体已随名录页改版退场。
+- **蓝 Sky**（`#2ba0ff`）：登录页「面试」图例胶囊的底色，墨字 4.95:1；内部区的蓝是「面试区 · 你在这里」的 8px 圆点（开始面试页水湾与外壳分区图例）。
+- **淡紫 Lilac**（`#ebc1ff`）：只在外壳分区图例的报告区圆点上；开始面试页水湾不用它——第 04 步的「待回填」徽章是 1px 墨边胶囊，不是淡紫。它与珊瑚、蓝同级（墨字、标点、不上主操作）。
 
 ### Neutral
 
 - **水域奶油 Water**（`#f5f1e4`）：页面底色、错误胶囊底色、水洞填充、弹窗与 toast 底色。它同时是「水域」与「纸面」两个角色，靠海岸线区分语义。
-- **陆地苹果绿 Land**（`#8ed462`）：海岸线以内的填充色，只由 SVG path 上色；名录页窄屏整页铺它，页面别处没有绿色块。
+- **陆地苹果绿 Land**（`#8ed462`）：海岸线以内的填充色，只由 SVG path 上色；名录页改版后不再整页铺绿，页面别处没有绿色块（登录页窄屏那条 path 仍是唯一的绿底兜底）。
 - **墨 Ink**（`#2c2e2a`）：标题锁排、正文、标签、输入值、输入边、tab 未选文字与选中底色、按钮文字与边框、海岸线与水洞描边、信息层的园路 / 分区点 / 你在这里 / 指北 / 标注 / 版记、名录的表头 / 行线 / 时间 / 操作链 / 当前分区、全局焦点环与选区字色。一种墨走全场，不做第二种深色。
 - **地图标注与版记**：全部纯 `--zoo-ink`，不加透明度——绿地上的 11px / 10px 小字必须靠墨色本身达标（7.59:1）。信息层不用次级墨，也不用图例色。
 - **次级墨 Ink Soft**（`#5b616b`）：水域一侧的说明文字（12px 图例说明、11px 页脚）、图例小标题、输入占位符。它只许出现在水域（5.52:1）与白底输入框（6.24:1）上，**不许出现在绿地上**（3.49:1，未过 4.5:1）。
@@ -404,7 +425,7 @@ components:
 **Body Font:** PingFang SC → HarmonyOS Sans SC → Microsoft YaHei → system-ui → -apple-system → Segoe UI（`--ai-font-sans`，正文与控件）
 **Label/Mono Font:** `ui-monospace, 'Cascadia Mono', Consolas, monospace`——只给名录表头与时间，不用于正文
 
-**Character:** 正文与控件不下载字体，字形随操作系统变化；显示声部由**自托管子集 Zoo Display**承担——LXGW WenKai（OFL-1.1）用 fontTools 裁到 6 个字形，按原分片的 unicode-range 拆成 4 个 woff2（合计 3820 字节），四条 `@font-face` 只在 `base.css` 一处，`font-weight: 700`、`font-display: swap`。两个字标 span 都用 `font-family: 'Zoo Display', var(--ai-font-sans)`：`AI` 46px/700、行高 0.95、`-0.01em`；`面试系统` 24px/700、行高 1.2、`0.3em` 宽字距；两行在同一个 `<h1>` 里纵向锁排、间距 2px，整块高约 74px。运行时 4 条字体全部 loaded、`document.fonts.check("700 46px 'Zoo Display'")` 为 true。名录页的页标题「我的简历」不走 Zoo Display（子集里没有这四个字形），它是系统栈 28px/700；数据侧（表头、创建时间）用等宽栈，表头 11px/500/0.14em、时间 12px/400/0.04em。正文与控件的层级仍靠字号与 400/500/600，字距只在短标签上放大：水域小标题「导览图 · 园区里有这些」`0.08em`、按钮文字 `0.02em`。信息层与名录另有 10/11px 的小字层（标注 / 入口 / 版记 / 技能胶囊 / 行标），只活在墨色里，不参与正文层级。
+**Character:** 正文与控件不下载字体，字形随操作系统变化；显示声部由**自托管子集 Zoo Display**承担——LXGW WenKai（OFL-1.1）用 fontTools 裁到 6 个字形，按原分片的 unicode-range 拆成 4 个 woff2（合计 3820 字节），四条 `@font-face` 只在 `base.css` 一处，`font-weight: 700`、`font-display: swap`。两个字标 span 都用 `font-family: 'Zoo Display', var(--ai-font-sans)`：`AI` 46px/700、行高 0.95、`-0.01em`；`面试系统` 24px/700、行高 1.2、`0.3em` 宽字距；两行在同一个 `<h1>` 里纵向锁排、间距 2px，整块高约 74px。运行时 4 条字体全部 loaded、`document.fonts.check("700 46px 'Zoo Display'")` 为 true。内部区两页的页标题（「我的简历」「开始面试」）不走 Zoo Display（子集里没有这些字形），它们是系统栈 26px/700；数据侧（表头、创建时间、展位号、指标条、步骤编号）用等宽栈，表头 11px/500/0.14em、时间 12px/400/0.04em、指标条 11px/0.1em、步骤编号 10px/0.08em。正文与控件的层级仍靠字号与 400/500/600，字距只在短标签上放大：水域小标题「导览图 · 园区里有这些」`0.08em`、按钮文字 `0.02em`。信息层与水湾另有 10/11px 的小字层（标注 / 入口 / 版记 / 技能胶囊 / 步骤编号），只活在墨与次级墨里，不参与正文层级。
 
 ### Hierarchy
 
@@ -420,21 +441,24 @@ components:
 - **Map Label**（400，11px/1，`0.08em`）：信息层的「你在这里 / 简历区 / 面试区 / 报告区 / N」，定位在标记正上方、右侧、下方或左端。
 - **Gate**（400，10px/1，`0.1em`）：入口胶囊里的「入口」，是全页最小的字。
 - **Colophon**（400，10px/1，`0.18em`）：左下版记「练习区 · 导览图」。
-- **Page Title**（系统栈，700，28px/1.15，`0.02em`）：名录页页标题「我的简历」；不用 Zoo Display。
-- **Meta**（400，12px/1.6，`0.06em`）：名录计数「共 N 份」、分页计数、加载中的「正在读取…」。
-- **Table Head**（等宽，500，11px/1.6，`0.14em`）：姓名 / 目标岗位 / 技能 / 创建时间 / 操作。
+- **Page Title**（系统栈，700，26px/1.2，`0.02em`）：内部区两页的页标题「我的简历 / 开始面试」；不用 Zoo Display。
+- **Meta**（400，12px/1.6，`0.06em`）：顶栏昵称等次级说明；名录计数与分页计数改版后走等宽 Meter 档。
+- **Meter**（等宽，400，11px/1.6，`0.1em`）：名录页头计数「共 N 份」、指标条「本页 N 条 · 本页技能 K 种 · 口径：当前页」、分页计数「共 N 份 · 第 p / P 页」。
+- **Booth No**（等宽，400，12px/1.6，`0.08em`）：名录「展位」列的两位补零编号，次级墨。
+- **Table Head**（等宽，500，11px/1.6，`0.14em`）：展位 / 姓名 / 目标岗位 / 技能 / 创建时间 / 操作。
 - **Table Cell**（400，14px/1.5）：名录正文；行内操作链 13px/1 带下划线（`op-link`）。
 - **Table Time**（等宽，400，12px/1.6，`0.04em`）：创建时间。
 - **Skill Chip**（400，11px/1）：技能小胶囊。
-- **Zone Chip**（600，11px/1）：水湾分区胶囊（简历区 / 面试区 / 报告区）。
-- **Row Label**（400，11px/1.6，`0.12em`）：窄屏堆叠行的 `data-label` 行标。
-- **Button Compact**（600，14px/1）：名录主操作「新建简历 / 创建第一份」。
+- **Step No**（等宽，400，10px/1.8，`0.08em`）：水湾面板步骤编号（01…），次级墨；步骤正文 12px/1.7。
+- **Zone Chip**（600，11px/1）：旧的 72×26 水湾分区胶囊（简历区 / 面试区 / 报告区），已随名录页改版退场；分区职责改由 8px 彩色圆点 + 12px/600 文字标注承担。
+- **Row Label**（400，11px/1.6，`0.12em`）：窄屏堆叠行的 `data-label` 行标（旧名录页样式，改版后未再用，留档）。
+- **Button Compact**（600，13px/1）：内部区主操作「新建简历 / 创建第一份 / 创建并生成题目 / 重试生成」，38px 黄胶囊、`0 20px`。
 
 ### Named Rules
 
 **The Two-Ink Rule（两级墨）.** 文字只有 `--zoo-ink` 与 `--zoo-ink-soft` 两级，且第二级不许上绿地（见 Colors 的 Ink-On-Land Rule）。层级用 10/11/12/13/14/15/18/24/28/46 与 400/500/600 建立（字标另用 700），不引入第三级灰、不用黄色或图例色写正文。
 
-**The Mono-For-Data Rule（等宽只给数据）.** `ui-monospace` 栈只出现在名录表头与创建时间两处；正文、按钮、标签、分区胶囊一律系统无衬线。Zoo Display 仍然只给登录页字标，名录页标题用系统栈。
+**The Mono-For-Data Rule（等宽只给数据与小编号）.** `ui-monospace` 栈只出现在数据与小编号上：名录表头、创建时间、展位号、指标条、分页计数、水湾步骤编号与版记、顶栏面包屑；正文、按钮、标签一律系统无衬线。Zoo Display 仍然只给登录页字标，内部区页标题用系统栈。
 
 **The Subset-Display Rule（显示字只给六个字形）.** 唯一的 webfont 是 Zoo Display：LXGW WenKai 1.7.0 的 OFL-1.1 子集，4 个 woff2 共 3820 字节，只含 `A I 面 试 系 统`，只有 700 一档，`font-display: swap`，许可证随字体入仓（`assets/fonts/OFL.txt`）。它只许用在两个字标 span 上；除名录表头/时间用等宽栈外，正文、标签、控件一律 `--ai-font-sans` 系统栈。不许加字形、加字重/斜体，或把它用到别的文案上——缺字会静默回退成系统字，看起来像字体坏了。
 
@@ -442,9 +466,9 @@ components:
 
 ## Layout
 
-登录页整页就是那张图：`.zoo` 撑满 `100dvh`、`overflow-x: hidden; overflow-y: auto`、底色奶油，内部是一个 56% / 44% 的两列 grid（`.zoo__grid`，同样 `min-height: 100dvh`）。**这两列只是排版网格，不是水陆分界**——分界由 SVG 画（见下）。名录页的 72/28 水湾见「简历名录页」。
+登录页整页就是那张图：`.zoo` 撑满 `100dvh`、`overflow-x: hidden; overflow-y: auto`、底色奶油，内部是一个 56% / 44% 的两列 grid（`.zoo__grid`，同样 `min-height: 100dvh`）。**这两列只是排版网格，不是水陆分界**——分界由 SVG 画（见下）。内部区两页的两栏 grid 见「简历名录页」与「开始面试页」。
 
-- **海岸线层（登录页）**：两条 `<svg class="zoo__coast">` 绝对定位在页面左上（`top/left: 0`、`height: 100dvh`、`pointer-events: none`、`aria-hidden="true"`）。宽屏 `viewBox="0 0 1440 900"` 但 **`width: 1440px` 钉死**：横向 1:1、纵向随视口拉伸（`preserveAspectRatio="none"`），所以 x 坐标是绝对像素、y 仍按视口缩放；更宽的屏幕只是右侧海更大，岸线不会被拉宽。窄屏那条 `width: 100%`、`viewBox="0 0 390 844"`，仍整体拉伸，用媒体查询互斥显示。名录页同样 `width:1440px`，但 `height:100%`（跟随文档），见下节。
+- **海岸线层（登录页）**：两条 `<svg class="zoo__coast">` 绝对定位在页面左上（`top/left: 0`、`height: 100dvh`、`pointer-events: none`、`aria-hidden="true"`）。宽屏 `viewBox="0 0 1440 900"` 但 **`width: 1440px` 钉死**：横向 1:1、纵向随视口拉伸（`preserveAspectRatio="none"`），所以 x 坐标是绝对像素、y 仍按视口缩放；更宽的屏幕只是右侧海更大，岸线不会被拉宽。窄屏那条 `width: 100%`、`viewBox="0 0 390 844"`，仍整体拉伸，用媒体查询互斥显示。（名录页改版后不再自带海岸线 SVG，见下节。）
 - **宽屏几何实况**（1440×900 下按 path 采样）：岸线从页顶 x=520（36%）起，y≈300 摆到 619（43%），y≈500 在 620（43%），y≈648 到 668（46%），最右点 **x≈761、y≈768**（曲线控制点 780），页底收到 700（49%）。它不对应 56% 的栅格线（1440 下为 806px）。任何按栅格边对齐的内容都不会"正好站在岸上"，要按 path 留安全距（表单右缘止于 452px）。
 - **左侧陆地（`.zoo__plot`）**：`align-self: start`，宽 100%、`max-width: 520px`，内边距 `56px 0 56px 72px`（内容宽 448px）。表单再收窄到 `max-width: 380px`，左对齐。
 - **陆地垂直节奏**（自上而下）：字标锁排（约 74px 高）→ 承诺句（上 10px）→ tabs（上 34px；tab 34px；表头下 22px）→ 字段（标签行 18px + 内边距 6px + EP 标签下边距 8px + 输入 46px + 项下 16px）→ 主按钮（上 6px，高 46px）→ 表单结束。整块从 56px 开始，顶部对齐，不垂直居中。
@@ -458,25 +482,37 @@ components:
 
 ### 简历名录页（/resumes）
 
-第二页把「简历区」落成一张名录，版式与登录页同源、构图不同：**72% 陆地 / 28% 右侧水湾**。
+第二页住在内部区外壳（`AppShell`）里：纸面 `--zoo-paper` 上的一节 `.roster`，**两栏 grid `minmax(0, 1fr) 300px`、gap 36px**——左栏名录，右栏「水湾」步骤面板。页面不再自带海岸线 SVG：登录页的整页地图是全屏皮，内部区把世界收进纸面排版 + 墨线，只在右栏用一枚珊瑚圆点标注「简历区 · 你在这里」。
 
-- **页面壳**：`.zoo` 同样 `min-height: 100dvh`、`overflow-x: hidden; overflow-y: auto`；`.zoo__grid` 从 56/44 换成 `minmax(0,72%) minmax(0,28%)`。陆地列 `.zoo__plot` 宽松：`max-width: 980px`、`padding: 48px 40px 48px 72px`（内容宽 868px、右缘 940）。
-- **海岸线**：`.zoo__coast` 仍 `width:1440px` 横向 1:1，但高度改 `100%`（跟随文档，不钉视口）：长列表滚动时陆地不断，岸线不会在页面中途断掉。path 从 `H980` 起，摆到 x≈970–1030（67%–72%），页底 970；它不对应 72% 的栅格线（1440 下 1036.8px）。**这是与登录页的关键差别：登录页 coast 高 `100dvh`，名录页 coast 高 `100%`**。
-- **页头**：`.zoo__head` 左右分栏、`justify-content: space-between`，下边 **2px 墨线**（全系统唯一 2px 分隔线）；标题 28/700/1.15/0.02em，计数 12/0.06em 在其下 8px；CTA 40px 黄胶囊，右缘与表右缘对齐。
-- **名录**：`<table>` 语义保留；表头 11px 等宽/0.14em、下 1px 墨线；行高约 65px（td 上下 18px + 内容行高），行间 1px 墨线；时间 12px 等宽；技能 22px 胶囊；操作是 13px 墨色下划线文字链。无卡片、无阴影、无外框。
-- **分页**：`nav` 在 `total > 0` 时总在（计数行始终显示），按钮组只在 `total > query.size` 时出现；按钮 32px 胶囊、12px 字，disabled 用 8% 墨底 + 45% 墨边、字仍是墨色。
-- **三态**：空态是 1px 虚线空地（`margin-top: 28px`、`padding: 64px 32px`）+ 18/600 标题 + 13px 说明 + 唯一黄 CTA；加载态是 3 行骨架（td 上下 26px、12px 高、14% 墨底）+「正在读取…」；错误态走拦截器 toast，页面回落空态（见下方限制）。
-- **水湾**：右侧 28% 是水域，「导览图 · 分区」+ 三枚 72×26 分区胶囊：简历区（墨实心 = 当前）、面试区（sky）、报告区（lilac），说明 12px 次级墨；版记右下 10/0.18em 纯墨。
-- **窄屏（≤1099px）**：**不画海岸线**（两条 SVG 都 `display:none`），整页 `--zoo-land`；水侧 aside 整块 `display:none`；`.zoo__grid` 变 block，plot `padding: 32px 24px 24px`；页头改纵向、CTA 左对齐；表格变堆叠条目：`thead` 用 clip 视觉隐藏（列名留在无障碍树），`tr/td` block + `data-label` 行标（11/0.12em 纯墨），技能可换行；分页纵向；页尾显示 `.zoo__foot--mobile` 版记。
+- **页面壳**：`.roster` 两栏 grid、`align-items: start`；左栏 `.roster__main` `min-width: 0`。
+- **页头**：`.roster__head` 左右分栏、`justify-content: space-between`，下 18px 内边距 + **2px 墨线**（全系统唯一 2px 分隔线）；标题 26/700/1.2/0.02em；计数 11px 等宽/0.1em 次级墨，标题下 8px；CTA 38px 黄胶囊（`0 20px`、13px/600），列表态与加载态渲染、空态不渲染——一屏只有一块黄。
+- **指标条**：`total > 0` 且非加载时显示。11px 等宽/0.1em 次级墨，4px 墨点（40% 透明度）分隔三段，`padding: 12px 0 14px`、下 1px 纸线；内容是「本页 N 条 · 本页技能 K 种 · 口径：当前页」——**只统计分页接口返回的当前页，口径必须明写，不许把当前页数字写成全库数字**。
+- **名录**：`<table>` 语义保留；表头新增「展位」列（展位 / 姓名 / 目标岗位 / 技能 / 创建时间 / 操作）。表头 11px 等宽/0.14em 次级墨、下 1px **墨线**；行间 1px **纸线**（`--zoo-paper-line`）——改版后行线从墨降级为纸线，页头 2px 与表头 1px 才是墨；行高约 65px 不变；**展位号 12px 等宽/0.08em 次级墨、两位补零、跨页连续编号 `(page-1)*size+idx+1`**；时间 12px 等宽/0.04em；技能 22px 胶囊；操作是 13px 墨色下划线文字链。行 hover 为 5% 墨底（骨架行关闭）。
+- **分页**：`nav` 在 `total > 0` 时总在；计数 11px 等宽/0.1em 次级墨「共 N 份 · 第 p / P 页」；按钮组只在 `total > query.size` 时出现；按钮 32px 胶囊、12px 字、透明底 1px 墨边，disabled 45% 墨边 + 6% 墨底、字仍是墨色。
+- **三态**：空态是 1px 虚线空地（`margin-top: 26px`、`padding: 60px 32px`）+ 18/600 标题 + 13px 说明 + 唯一黄 CTA「创建第一份」；加载态是 3 行骨架（td 上下 26px、条 12px 高、14% 墨底）+「正在读取…」；错误态走拦截器 toast，页面回落空态（见下方限制）。
+- **水湾**：右栏 `aside` **奶油底 `--zoo-water` + 1px 墨边、`position: sticky; top: 24px`、`padding: 20px 18px 16px`**，自上而下：分区标注（8px 珊瑚圆点 + 1px 墨边，文字「简历区 · 你在这里」12px/600）→「下一步」三步（小标题 10px 等宽/0.18em 次级墨，块与标注之间 1px 35% 墨线分隔；步骤编号 10px 等宽次级墨、正文 12px/1.7 墨色，内链是墨色下划线文字：01 编辑（**空态时换成「先创建第一份」内链**）→ 02 去开始面试内链 → 03 报告待回填）→ 版记「简历区 · 名录口径：当前登录账号」（10px 等宽/0.12em 次级墨，上 1px 纸线）。
+- **窄屏（≤1099px）**：只做兜底——grid 变单列、水湾 `position: static` 落到主栏下方；不做移动端堆叠迭代（用户明确不在范围）。
 
 ### 简历名录页：已知限制与未取证
 
 - **错误态 = 空态**：请求失败时 `total` 仍为 0，加载结束后页面显示空态；`<script setup>` 被冻结，无法加 `error` ref 区分。只有拦截器 toast 兜底，视觉上空态与真错误无法区分。
 - **toast 真机颜色未取证**：`.el-message--success/error` 有覆盖样式，但没有截图/真机证据。
-- **1100–1200 中间宽度未取证**：72/28 栅格 + 固定 1440 岸线在临界宽度（1099 两侧）的实际观感没有截图。
-- **hover / active 未取证**：表格行 6% 墨底、分页按钮 10% 墨底、删除确认主按钮的 hover/active 都只在 CSS 层，没有交互截图。
+- **1100–1200 中间宽度未取证**：两栏 grid 在临界宽度（1099 两侧）的实际观感没有截图。
+- **hover / active 未取证**：表格行 5% 墨底、分页按钮 10% 墨底、CTA 的 hover/active 都只在 CSS 层，没有交互截图。
 - **删除是幂等的**：D7 口径下没有"删除失败"态；失败只可能来自网络/鉴权，统一走拦截器。
-- **移动端表格**：`thead` 是 clip 视觉隐藏而不是 `display:none`，列名仍在无障碍树；`data-label` 行标用纯墨，不用次级墨。
+- **本轮证据（合成数据取证，后端未起）**：`.impeccable/review/roster-1440.png`（1440 满数据）、`roster-empty.png`（空态）、`roster-12rows.png`（12 行跨页展位号）、`roster-pager.png`（分页），2026-11-25 截取。
+
+### 开始面试页（/interviews/new）
+
+第三页与名录页同款构图：纸面上的一节 `.create`，**两栏 grid `minmax(0, 1fr) 320px`、gap 36px**（右栏 320px），左栏 `max-width: 560px`。2026-11-25 首评 ship。
+
+- **页头三相位共用**：标题「开始面试」26/700/1.2/0.02em + 副句 13px 次级墨（标题下 8px），下 18px 内边距 + 2px 墨线；**标题与墨线不随状态消失**，`aria-labelledby` 引用也不悬空。
+- **表单态**：EP `el-form label-position="top"`、上 22px。「选择简历」是 `el-select`（**base.css 接缝把 wrapper 钉回胶囊**，见「Element Plus 接缝」），选项文案「姓名（目标岗位）」，下拉 popper 方角 + 1px 墨边；简历为空时 13px 次级墨提示 + 墨色 `el-link`「先去创建一份」。「题目数量」是 `el-input-number` 1–10（胶囊壳、内部加减段归 0 圆角）+ 12px 次级墨注「1-10 题；生成失败重试沿用本数」。主操作是唯一黄胶囊「创建并生成题目」（38px、`0 20px`、13px/600），未选简历时 disabled（45% 墨边 + 6% 墨底、字仍墨色），提交中文案「创建中…」防连点。
+- **等待态**：奶油状态块 `.phase`（`margin-top: 22px`、`padding: 26px 24px`、1px 墨边、`--zoo-water` 底）；标题 18/600 + 说明 13px/1.7 次级墨；**游标条**：320×10 的 1px 墨框容器，内嵌 40% 宽的墨色块，`transform` 以 `create-run 1.4s steps(6, end) infinite` 从 -110% 走到 360%——steps() 的机械步进配导览图墨线世界，不是平滑扫过；`prefers-reduced-motion: reduce` 下 `animation: none` 关停。网络层熔断（hook `isFailed`）时补一枚 32px 透明胶囊「连接不稳，重试」。
+- **失败态**：同一状态块，边换 `--zoo-alert` 红、标题换红字（红压奶油底达标）；正文说明「场次还在，重投同一场即可」；主操作换成黄胶囊「重试生成」（retry 沿用原 interviewId 与题数）。业务失败（status=3）与网络熔断是两回事，视觉上前者红边块、后者等待块内加 ghost 按钮。
+- **水湾**：与名录页同款奶油面板（sticky、1px 墨边、`20px 18px 16px`），分区标注是 **8px 天蓝圆点**「面试区 · 你在这里」（12px/600）；下面是四步流程（编号 10px 等宽次级墨、正文 12px/1.7，步骤是 8px×10px 内边距的胶囊行）：01 选简历定题量 → 02 生成等待 → 03 跳答题页 → 04 报告 + 「待回填」10px 墨边胶囊徽章；**当前相位步用墨实心胶囊高亮**（表单态亮 01，等待/失败态亮 02），高亮步文字换奶油色。版记「面试区 · 出题 → 作答 → 报告」。
+- **窄屏（≤1099px）**：同名录页兜底——单列、水湾 static、左栏取消 560px 上限。
+- **本轮证据（合成数据取证，后端未起）**：`.impeccable/review/create-form.png`（表单态）、`create-dropdown.png`（下拉展开）、`create-waiting.png`（等待态静态帧）、`create-failed.png`（status=3 失败态）；游标条动画节奏与 prefers-reduced-motion 分支是单帧截图证明不了的，未取证。
 
 ### 与契约的偏差（2026-11-25 复核）
 
@@ -487,7 +523,7 @@ components:
 - **比例尺仍不做**：本产品没有"距离"这个事实，编刻度就是假数据；用版记 + 指北替代。这是刻意不做，不是遗漏。
 - **768 / 1024 视口未取证**：这两个宽度没有截图/实测，属证据不足，不是已闭合；1099 断点两侧的中间宽度都要补证。
 - **陆地占宽仍是近似**：契约写"约占 58%"，实现栅格 56/44、岸线最右 53%。
-- **名录页没有独立 surface 契约**：`/resumes` 按实现记录，不计为偏差；它的 72/28 水湾与名录行是本次新增的第二套构图。
+- **名录页与开始面试页没有独立 surface 契约**：两页都按实现记录，不计为偏差；两栏 grid + 水湾步骤面板是内部区的第二套构图（2026-11-25 改版）。
 
 ### Named Rules
 
@@ -495,13 +531,15 @@ components:
 
 **The Coast-Is-The-Only-Boundary Rule（分界只由海岸线定义）.** 水与陆的分界只能来自那条 SVG path（连同它的 1px 墨边）。禁止用 border、背景色块、伪元素、卡片边缘或栅格线伪造第二条海岸线；水域里的图例、陆地里的输入框可以有各自底色，但那只是元素底色，不是水陆分界。
 
-**The Grid-Is-Not-The-Coast Rule（栅格不是岸）.** 56/44 是排版列，不是水陆线；内容必须按 path 的摆动留距，不许把陆地列宽当成"岸的位置"，也不许为了对齐栅格而移动 path。名录页同理：72/28 是列宽，岸线顶部在 68%、最右 72%。
+**The Grid-Is-Not-The-Coast Rule（栅格不是岸）.** 56/44 是排版列，不是水陆线；内容必须按 path 的摆动留距，不许把陆地列宽当成"岸的位置"，也不许为了对齐栅格而移动 path。内部区两页没有岸线，两栏 grid 只是排版列，右栏水湾是面板底色，不是水陆分界。
 
-**The Roster-Not-Cards Rule（名录不是卡片）.** 名录条目是表格行：1px 墨线分行、行高约 65px，没有卡片、没有阴影、没有圆角容器；2px 只允许出现在页头分隔线。
+**The Roster-Not-Cards Rule（名录不是卡片）.** 名录条目是表格行：表头下 1px 墨线、行间 1px 纸线、行高约 65px，没有卡片、没有阴影、没有圆角容器；2px 只允许出现在页头分隔线。
 
-**The Table-Into-Roster Rule（窄屏表格变条目）.** 窄屏保留表格语义：`thead` 用 clip 视觉隐藏（不是 `display:none`），`tr/td` 堆叠成条目，`data-label` 行标用 11px 纯墨；不许为了排版把 `table` 换成 div。
+**The Stated-Scope Rule（指标必须标口径）.** 页面上的统计数字（指标条、计数）只统计真实可见的数据来源并明写口径（「口径：当前页」「名录口径：当前登录账号」）；不许编总数、不许把当前页数字写成全库数字、不许给待回填的入口编死链。
 
-**The Bay-Not-Map Rule（名录页只要水湾）.** 名录页没有信息层：右侧 28% 只是水湾 + 三枚分区胶囊，不铺园路、不铺「你在这里」、不复制登录页地图。地图是登录页的，名录页只继承水与陆、线与墨。
+**The Narrow-Is-Fallback Rule（窄屏只做单列兜底）.** ≤1099px 时内部区两页的 grid 变单列、水湾 `position: static`；不做移动端堆叠、不隐藏表头、不新增断点——移动端明确不在迭代范围，兜底样式只保证不破版。
+
+**The Bay-Not-Map Rule（内部区只要水湾）.** 内部区两页没有信息层：右侧只是奶油底 + 1px 墨边的水湾步骤面板（分区标注 + 下一步 / 流程步骤），不铺园路、不铺「你在这里」地图、不复制登录页那张图。地图与海岸线是登录页的，内部区只继承墨线、胶囊与两级墨。
 
 ## Elevation & Depth
 
@@ -515,7 +553,8 @@ components:
 - **输入错误**（`inset 0 0 0 2px var(--zoo-ink)` + `outline: 2px solid var(--zoo-alert); outline-offset: 2px`）：墨边不动，外框换红；错误优先于聚焦，两者不会同时出现。
 - **tab 焦点**（`outline: 2px solid var(--zoo-ink); outline-offset: 2px`）：与全局 `:focus-visible` 同一语言，不用彩色。
 - **主按钮焦点**（`outline: 2px solid var(--zoo-ink); outline-offset: 3px`）：比输入外框再离远 1px，避开按钮自身 1px 边。
-- **名录行 hover**（`background: rgba(44, 46, 42, 0.06)`）：行级换底，不加边框、不加阴影、不位移。
+- **名录行 hover**（`background: rgba(44, 46, 42, 0.05)`）：行级换底，不加边框、不加阴影、不位移。
+- **状态块**（`border: 1px solid var(--zoo-ink)`；失败态换 `1px solid var(--zoo-alert)`）：开始面试页等待 / 失败相位的奶油底块，靠边色与标题色表达状态，没有阴影。
 - **骨架条**（`background: rgba(44, 46, 42, 0.14)`、高 12px）：加载态的墨色淡条，没有 shimmer、没有渐变。
 - **确认弹窗**（`border: 1px solid var(--zoo-ink); border-radius: 0; box-shadow: none`）：奶油底、方角、无阴影；EP 的遮罩是页面变暗，不是投影。
 - **Toast**（`border-radius: 999px; border: 1px solid var(--zoo-ink); box-shadow: none`）：奶油气泡，成功墨、错误红。
@@ -527,7 +566,8 @@ components:
 
 - 输入边从 2px 到 3px 的过渡继承 Element Plus 的 `--el-transition-box-shadow`：`box-shadow 0.2s cubic-bezier(0.645, 0.045, 0.355, 1)`；`prefers-reduced-motion: reduce` 下页面把它关成 `transition: none`。
 - outline 的出现/消失没有过渡，是即时切换。
-- 按钮的 hover/active 过渡沿用 EP 默认，页面没有自定义 motion；tab 的 active-bar 已被隐藏，没有滑动指示条。
+- 按钮的 hover/active 过渡沿用 EP 默认；tab 的 active-bar 已被隐藏，没有滑动指示条。
+- **生成游标条**（开始面试页等待态）：40% 宽的墨色块在 320×10 的墨框容器里以 `create-run 1.4s steps(6, end) infinite` 平移（translateX -110% → 360%）——steps() 的机械步进配导览图墨线世界，是全站唯一的自定义 motion；`prefers-reduced-motion: reduce` 下 `animation: none` 关停，块停在左端。
 
 ### Named Rules
 
@@ -539,17 +579,17 @@ components:
 
 两档形状，没有第三档：
 
-- **胶囊**（`--zoo-cap: 999px`）：tab、输入框、主按钮、图例胶囊、错误提示胶囊、地图入口胶囊、名录 CTA、技能胶囊、分区胶囊、分页按钮、toast——所有"能按、能填、能读成一枚标签"的东西都是完整胶囊。`--el-border-radius-base` 也指向它，所以 EP 的消息、按钮、输入默认就是胶囊。
+- **胶囊**（`--zoo-cap: 999px`）：tab、输入框、主按钮、图例胶囊、错误提示胶囊、地图入口胶囊、名录 CTA、技能胶囊、分页按钮、toast、开始面试页 CTA / 禁用态 / 流程步 / 「待回填」徽章、EP select wrapper 与 input-number（接缝钉死）——所有"能按、能填、能读成一枚标签"的东西都是完整胶囊。`--el-border-radius-base` 也指向它，所以 EP 的消息、按钮、输入默认就是胶囊。
 - **方角**（`0`）：SVG 陆地的岸线、页面与列的边界、字标锁排（无容器）、名录表格、空态虚线框、确认弹窗（`--el-messagebox-border-radius: 0`）。页面里没有带圆角的容器。
 - **圆**（`50%`）：唯一的例外是错误提示前的 6px 红点。它是标点，不是形状档位，不要因此给控件加圆形变体。
 
 其余形状语言：
 
-- **线宽按职责分，不按"统一细线"**：海岸线与水洞 **1px**（`stroke-width: var(--zoo-line)` + `vector-effect: non-scaling-stroke`，视口怎么拉伸都保持 1px）；信息层园路 **1px**、分区点与「你在这里」外环 **1.5px**、入口胶囊 **1px**；名录表头/行线 **1px**、页头 **2px**、空态 **1px 虚线**；输入静止 **2px**、hover **3px**（都是 inset）；焦点/错误外框 **2px** 实心 outline；tab 与按钮 **1px** 边框。
-- **名录页的形状**：技能胶囊 22px 高、分区胶囊 26px 高、分页按钮 32px 高、CTA 40px 高；确认弹窗方角 0 + 1px 墨边 + 胶囊按钮；toast 胶囊 + 1px 墨边。表格、空态、弹窗都是方角，没有圆角容器。
+- **线宽按职责分，不按"统一细线"**：海岸线与水洞 **1px**（`stroke-width: var(--zoo-line)` + `vector-effect: non-scaling-stroke`，视口怎么拉伸都保持 1px）；信息层园路 **1px**、分区点与「你在这里」外环 **1.5px**、入口胶囊 **1px**；名录表头 **1px 墨线**、行间 **1px 纸线**、页头 **2px**、空态 **1px 虚线**；状态块 **1px**（失败态红）、游标条 **1px 墨框**；输入静止 **2px**、hover **3px**（都是 inset）；焦点/错误外框 **2px** 实心 outline；tab 与按钮 **1px** 边框。
+- **名录页与开始面试页的形状**：技能胶囊 22px 高、CTA 38px 高、分页按钮 32px 高、游标条 320×10、状态块方角 0；流程步与「待回填」徽章是胶囊（999px 底/边）；下拉 popper 是唯一方角的浮层（0 + 1px 墨边）。表格、空态、状态块都是方角，没有圆角容器。
 - **信息层的形状**：园路是 1px 圆头墨线（第三支 `stroke-dasharray: 3 4`）；分区点是 r5 空心圆（奶油填充 + 1.5px 墨边）；「你在这里」是 r8 空心环 + r2.5 实心点；指北箭头是实心墨三角；入口是 22px 高奶油胶囊；版记是纯文字。**双环是地点符号，不是给边加第二层描边。**
 - **代码里没有 2px 圆角**。方角常被口头写成「0/2px」，实查全部 `border-radius` 只有 `var(--zoo-cap)`、`0` 与红点的 `50%`；本文的"2px"一律指输入框边宽，不是圆角。
-- **旧圆角不再漏**：`--ai-radius-sm: 8px` / `--ai-radius-md: 12px` 仍在 `tokens.css` 声明，但 `--el-border-radius-base` 已改指胶囊，EP 组件不会再取到 8px。
+- **旧圆角不再漏**：`--ai-radius-sm: 8px` / `--ai-radius-md: 12px` 仍在 `tokens.css` 声明，但 `--el-border-radius-base` 已改指胶囊。**EP 新版结构另有一漏**：`.el-select__wrapper` 与 `.el-input-number` 不吃 `--el-border-radius-base`，会漏出第三档圆角——`base.css` 末尾已把它们逐个钉回 `var(--zoo-cap)`，input-number 内段归 0，下拉 popper 按弹窗口径走方角 + 1px 墨边（见「Element Plus 接缝」）。
 - **水洞**：宽屏 SVG 里 `<circle cx="500" cy="720" r="100">`，奶油填充 + 1px `--zoo-line` 墨边，画在陆地之后，形成"陆地中段透出水域"的洞；1440×900 下 ⌀200。洞的外接框右缘 600 与同高岸线（y=620/660/720 约 642/679/747）之间仍有 42–147px 绿地，所以洞是闭合的，不与海相通。
 - **不描双层边**：同一条边只允许一层墨线；焦点用边外 2px 的 outline，不是把边框加粗成两层。
 
@@ -563,15 +603,16 @@ components:
 
 ### Buttons
 
-登录页只有一种按钮：整宽黄色胶囊主按钮（`.zoo__submit`，EP `el-button type="primary" size="large"`）。名录页用同一套黄的 compact 版（`.zoo__cta`），外加墨色文字链与胶囊分页按钮。
+登录页只有一种按钮：整宽黄色胶囊主按钮（`.zoo__submit`，EP `el-button type="primary" size="large"`）。内部区两页用同一套黄的 compact 版（原生 `<button>`：名录 `.roster__cta`、面试页 `.create__cta`），外加墨色文字链、胶囊分页按钮与等待态的透明胶囊。
 
 - **Shape**：高 46px、整宽（100%）、`border-radius: 999px`、1px `--zoo-ink` 边框、`margin-top: 6px`。
 - **Default**：底 `--zoo-sun`，字墨 15px/600、`0.02em` 字距，内边距 `0 18px`（EP 的 `size="large"` 本身是 40px 高，46px 是页面覆写）。
 - **Hover / Active**：hover 底 `--zoo-sun-deep`，active 底 `--zoo-sun-press`；边框与文字始终墨色，不位移、不加投影。页面把 EP 的 `--el-button-bg-color` / `-border-color` / `-text-color` 与 `-hover-*` / `-active-*` 共九个变量钉在黄阶与墨上，避免落回 EP 的派生阶。
 - **Focus**：`outline: 2px solid var(--zoo-ink); outline-offset: 3px`。
 - **Loading**：用 EP 的 `:loading`（内联转圈 + 禁用），页面另用 `Submitting` 布尔防连点；没有自定义 loading 视觉。
-- **Compact（名录页）**：40px 高、`padding: 0 22px`、14px/600、非整宽；颜色与状态同上的黄；列表态在页头右端，空态在空地中央。两者互斥，一屏只有一块黄。
-- **Secondary / Ghost**：不存在。登录页次操作是 tab，名录页次操作是墨色文字链（编辑 / 删除）。
+- **Compact（内部区两页）**：38px 高、`padding: 0 20px`、13px/600、非整宽；颜色与状态同上的黄，focus outline offset 2。名录页列表态在页头右端、空态在空地中央（互斥）；面试页是「创建并生成题目」，未选简历时 disabled（45% 墨边 + 6% 墨底、字仍墨色、`not-allowed`），失败态同一枚胶囊换文案「重试生成」。一屏只有一块黄。
+- **Ghost（面试页等待态）**：网络熔断时补的「连接不稳，重试」——32px 高、透明底 1px 墨边、12px 墨字，hover 8% 墨底；它是次操作，不黄。
+- **Secondary / Ghost**：不存在"ghost 主按钮"。登录页次操作是 tab；内部区次操作是墨色文字链（编辑 / 删除 / 步骤内链）与透明胶囊（分页 / 重试连接）。
 
 ### Tabs
 
@@ -605,52 +646,57 @@ components:
 - **State**：静态标签，没有 hover/active/focus，也没有选中态；不要把它们做成筛选器或按钮。
 - **说明文字**：胶囊右侧 12px 间隔，12px `--zoo-ink-soft`（在水域上 5.52:1），左对齐；桌面在块内换行时也从同一列起。图例两行之间间距 16px（窄屏 8px）。
 - **小标题**：12px `--zoo-ink-soft`、`letter-spacing: 0.08em`，文案是「导览图 · 园区里有这些」。
-- **淡紫**：登录页不用；名录页的「报告区」分区胶囊用它（见「水湾分区图例」）。登录页的水域图例与名录页的分区图例是两套不同的图例，不要混用。
+- **淡紫**：登录页不用；外壳分区图例的报告区圆点用它。开始面试页水湾不用淡紫——第 04 步「待回填」徽章是墨边胶囊。登录页的水域图例与内部区的水湾标注是两套不同的图例，不要混用。
 
 ### Roster（名录）
 
-名录是**表格**，不是卡片列表；这一页的全部层级由 1px 墨线与留白建立。
+名录是**表格**，不是卡片列表；这一页的全部层级由墨线、纸线与留白建立。
 
-- **语义**：`<table>` + `<thead>`/`<tbody>`/`<th scope="col">` 保留；窄屏也不换成 div（见「三态」与移动端说明）。
-- **表头**：11px/500 等宽、`letter-spacing: 0.14em`、`padding: 14px 16px 12px 0`、下 1px 墨线；列名为姓名 / 目标岗位 / 技能 / 创建时间 / 操作。
-- **行**：`td` 上下 18px、右 16px、下 1px 墨线、14px/1.5、垂直居中；行高实测约 **65px**（技能行的 22px 胶囊把行盒撑高；骨架行 26px 上下 + 12px 条正好 65px）。无斑马纹、无外框、无卡片、无阴影。
+- **语义**：`<table>` + `<thead>`/`<tbody>`/`<th scope="col">` 保留；不换成 div。
+- **表头**：11px/500 等宽、`letter-spacing: 0.14em`、次级墨、`padding: 14px 16px 12px 0`、下 1px **墨线**；列名为展位 / 姓名 / 目标岗位 / 技能 / 创建时间 / 操作（改版新增「展位」列）。
+- **行**：`td` 上下 18px、右 16px、下 1px **纸线**（`--zoo-paper-line`）、14px/1.5、垂直居中；行高约 65px。无斑马纹、无外框、无卡片、无阴影。
+- **展位号**：12px 等宽/0.08em 次级墨、两位补零；编号跨页连续 `(page-1)*size+idx+1`，翻页不重号。
+- **指标条**：表头与名录之间的数据线——11px 等宽/0.1em 次级墨，4px 墨点（40% 透明）分隔，「本页 N 条 · 本页技能 K 种 · 口径：当前页」，`padding: 12px 0 14px`、下 1px 纸线；只在 `total > 0` 且非加载时显示。
 - **单元格**：姓名与岗位纯文本；技能是 22px 高、1px 墨框、透明底、11px 的胶囊（`margin: 0 6px 6px 0`）；时间用 12px 等宽、`0.04em`、不换行；操作是 13px 墨色下划线文字链，`margin-right: 16px`，hover 只把下划线加粗到 2px，focus 用 2px 墨色 outline。
-- **行 hover**：`rgba(44, 46, 42, 0.06)` 换底；不位移、不加边。骨架行 hover 关闭。
-- **页头与表的关系**：页头下 2px 墨线，表头下 1px，行间 1px——整个页面只有页头那一条是 2px。
-- **移动端**：`thead` 用 clip 视觉隐藏（列名仍在无障碍树），`tr/td` 变 block；行 `padding: 14px 0` + 1px 分隔线；`td` flex、`gap: 12px`、`padding: 4px 0`，`::before` 用 `data-label` 画 64px 的行标（11px、0.12em、纯墨）；技能单元格允许换行。
+- **行 hover**：`rgba(44, 46, 42, 0.05)` 换底；不位移、不加边。骨架行 hover 关闭。
+- **页头与表的关系**：页头下 2px 墨线，表头下 1px 墨线，行间 1px 纸线——改版后只有页头与表头是墨，行线让给纸线。
+- **窄屏**：≤1099px 只做单列兜底，不做堆叠（见 Narrow-Is-Fallback Rule）。
 
 ### Pager（分页）
 
 - **结构**：`nav` 在 `total > 0` 时总在；计数行「共 N 份 · 第 p / P 页」始终显示，按钮组只在 `total > query.size` 时出现——只有一页时不留两个死按钮。
-- **计数**：12px、`0.06em`、墨色。
-- **按钮**：32px 高、`padding: 0 16px`、999px 胶囊、1px 墨边、透明底、12px 墨字；hover `rgba(44,46,42,0.1)`；focus 2px 墨色 outline、offset 2；disabled = 8% 墨底 + 45% 墨边 + 仍是墨字（不用低透明度字）+ `cursor: not-allowed`。
-- **布局**：桌面 `space-between`、上 22px；窄屏纵向、左对齐。分页永远不黄。
+- **计数**：11px 等宽、`0.1em`、次级墨（Meter 档）。
+- **按钮**：32px 高、`padding: 0 16px`、999px 胶囊、1px 墨边、透明底、12px 墨字；hover `rgba(44,46,42,0.1)`；focus 2px 墨色 outline、offset 2；disabled = 6% 墨底 + 45% 墨边 + 仍是墨字（不用低透明度字）+ `cursor: not-allowed`。
+- **布局**：上 20px、`space-between`；窄屏单列兜底。分页永远不黄。
 
 ### Empty / Loading（空态与加载）
 
-- **空态**：1px 虚线墨框的空地，`margin-top: 28px`、`padding: 64px 32px`、居中；标题 18px/600，说明 13px，CTA 是 40px 黄胶囊「创建第一份」。空态时页头 CTA 不渲染，所以一屏只有这一块黄。
-- **加载态**：表头保留，下面 3 行骨架；`td` 上下 26px、条高 12px、宽 40–80%、底色 14% 墨；没有 shimmer、没有渐变、没有整屏转圈。计数行显示「正在读取…」，页头 CTA 保持可见。
+- **空态**：1px 虚线墨框的空地，`margin-top: 26px`、`padding: 60px 32px`、居中；标题 18px/600，说明 13px 次级墨，CTA 是 38px 黄胶囊「创建第一份」。空态时页头 CTA 不渲染，所以一屏只有这一块黄。
+- **加载态**：表头保留，下面 3 行骨架；`td` 上下 26px、条高 12px、宽 20–80%、底色 14% 墨；没有 shimmer、没有渐变、没有整屏转圈。计数行显示「正在读取…」，页头 CTA 保持可见。
 - **有数据时翻页**：已有行不换成骨架，只有分页按钮 disabled；这是有意的——避免列表闪烁。
 - **错误态**：没有独立的错误视图，走拦截器 toast，页面回落空态（见「已知限制」）。
 
-### Zone Legend（水湾分区图例）
+### Bay Panel（水湾步骤面板）
 
-- **位置**：名录页右侧 28% 水湾，`padding: 56px 72px 96px 32px`，纵向居中；小标题「导览图 · 分区」12px/0.08em/次级墨。
-- **分区**：三行，`grid-template-columns: 72px 1fr`、列间隔 12px、行距 14px。胶囊 72×26、1px 墨边、999px、11px/600；**当前区**（简历区）墨实心 + 奶油字；面试区 sky、报告区 lilac；说明 12px 次级墨。
-- **版记**：右下 `right: 72px; bottom: 32px`、10px/0.18em、纯墨；窄屏内容区页尾另用 `.zoo__foot--mobile`（margin 18px 0 0）。
-- **窄屏**：整个水湾 aside 收起，图例不压缩、不横向排列，只在页尾留版记。
+名录页与开始面试页共用的右栏面板（2026-11-25 改版后取代旧的「三枚分区胶囊」图例）：
+
+- **位置与壳**：两栏 grid 的右栏（名录 300px / 面试 320px），`position: sticky; top: 24px`、`padding: 20px 18px 16px`、**奶油底 `--zoo-water` + 1px 墨边**、方角 0；它是 1px 墨边面板，不是投影卡片。
+- **分区标注**：面板首行是 8px 彩色圆点（1px 墨边包裹）+ 12px/600 墨字——名录页珊瑚点「简历区 · 你在这里」，面试页天蓝点「面试区 · 你在这里」。圆点是标点，不可点。
+- **步骤**：编号（10px 等宽/0.08em 次级墨，`24px 1fr` 网格）+ 正文（12px/1.7 墨色）。名录页是「下一步」三步（小标题 10px 等宽/0.18em 次级墨，上 1px 35% 墨线分隔），步骤里可以埋墨色下划线内链（去开始面试 / 先创建第一份）；面试页是四步流程（`ol`，行内边距 8px×10px），**当前相位步整行换成墨实心胶囊 + 奶油字**，第 04 步带「待回填」10px 墨边胶囊徽章。
+- **版记**：面板尾行 10px 等宽/0.12em 次级墨、上 1px 纸线——名录「简历区 · 名录口径：当前登录账号」、面试「面试区 · 出题 → 作答 → 报告」。内部区的版记住在面板里，不是页面角落。
+- **窄屏**：面板 `position: static` 落到主栏下方，内容不压缩。
 
 ### Containers / Page Shell
 
-没有卡片容器。页面壳就是那张图：
+没有卡片容器（内部区的水湾面板是 1px 墨边面板，不是投影卡片）。登录页的页面壳就是那张图：
 
 - **`.zoo`**：`position: relative`、`min-height: 100dvh`、`overflow-x: hidden; overflow-y: auto`、底 `--zoo-water`、字 `--zoo-ink`、字体 `--ai-font-sans`。两页共用。
-- **`.zoo__grid`**：登录页 `minmax(0,56%) minmax(0,44%)`；名录页 `minmax(0,72%) minmax(0,28%)`；都 `min-height: 100dvh`，没有外框、没有背景、没有投影。
-- **陆地列**：登录页 `max-width: 520px`、`padding: 56px 0 56px 72px`；名录页 `max-width: 980px`、`padding: 48px 40px 48px 72px`。
-- **水域列（桌面）**：登录页 flex 纵向、右对齐、`gap: 22px`、`padding: 56px 72px 96px 32px`；名录页 `gap: 16px`、`padding: 56px 72px 96px 32px`、三枚分区胶囊。
-- **页脚**：登录页桌面绝对定位 `right: 72px; bottom: 32px`；名录页同；窄屏登录页 static、`margin: 4px 0 0`、左对齐（因为窄屏水域整体左对齐）；名录页窄屏用独立的 `.zoo__foot--mobile`。
+- **`.zoo__grid`**：登录页 `minmax(0,56%) minmax(0,44%)`、`min-height: 100dvh`；内部区两页不用 `.zoo__grid`——页面节直接住进 `AppShell` 外壳的纸面内容区（左侧绿洲侧栏 + 54px 顶栏、顶栏下 1px 墨线），页面本身没有外框、没有背景、没有投影。
+- **陆地列**：登录页 `max-width: 520px`、`padding: 56px 0 56px 72px`。
+- **水域列（登录页桌面）**：flex 纵向、右对齐、`gap: 22px`、`padding: 56px 72px 96px 32px`。
+- **页脚**：登录页桌面绝对定位 `right: 72px; bottom: 32px`，窄屏 static、`margin: 4px 0 0`、左对齐；内部区的版记在水湾面板内部（见 Bay Panel），不是页面角落。
 - **窄屏（≤1099px，登录页）**：信息层 / 标注层 / 版记收起；`.zoo__grid` 改 flex 列；`.zoo__plot` padding `36px 24px 32px`；`.zoo__water` 绝对定位 `top: max(84.1dvh, 620px)`、左右 0、`padding: 6px 24px 12px`、`gap: 8px`、`align-items: flex-start`、`text-align: left`；图例块宽 100%、胶囊高 24。
-- **窄屏（≤1099px，名录页）**：不画海岸线、整页 `--zoo-land`、aside `display:none`、`.zoo__grid` 变 block、plot `padding: 32px 24px 24px`、页尾版记。
+- **窄屏（≤1099px，内部区两页）**：单列兜底——grid 变一列、水湾 static、面试页左栏取消 560px 上限；不画海岸线、不整页铺绿。
 - **水洞**：只在登录页宽屏 SVG 里，不是 DOM 容器，不要用 div 复刻。
 
 ### 页面级信息层（Information Layer）
@@ -721,10 +767,11 @@ components:
 ### Element Plus 接缝（现状）
 
 - **引入顺序**：`element-plus/dist/index.css` → `styles/tokens.css` → `styles/base.css`；EP 基础样式先落地，令牌后覆盖 EP 变量，`base.css` 最后铺浏览器表面并接住弹窗/toast。
-- **全量引入**：`app.use(ElementPlus)` + 全量 CSS，没有按需插件；页面用 `el-tabs / el-form / el-form-item / el-input / el-button / el-message-box / el-message`，表格用原生 `<table>`。
+- **全量引入**：`app.use(ElementPlus)` + 全量 CSS，没有按需插件；页面用 `el-tabs / el-form / el-form-item / el-input / el-select / el-option / el-input-number / el-link / el-button / el-message-box / el-message`，表格用原生 `<table>`。
 - **全局映射已换皮**：`--el-color-primary` = 墨、`--el-color-danger` = 错误红、文字与边框都指向墨/次级墨、`--el-border-radius-base` = 胶囊；EP 的 hover、焦点、消息、密码图标不会再漏蓝或漏 8px 圆角。
 - **页面钉住的 EP 变量**：登录主按钮的九个 `--el-button-*` 全部钉在 `--zoo-sun*` 与 `--zoo-ink`；表单错误只改 `.el-form-item__error` 与 `.el-input__wrapper` 的 box-shadow/outline，不碰 EP 主题变量。
 - **base.css 末尾的弹窗/toast 换皮**：`.el-message-box` 方角、奶油、墨边、无阴影、警告图标墨色、按钮胶囊；主按钮红底白字墨边（hover/active 用 `#a93226` / `#93291f` 两个裸红）。`.el-message--success/error` 都是奶油气泡，success 墨、error 红。
+- **base.css 末尾的表单控件接缝（2026-11-25 新增）**：`.el-select__wrapper` 与 `.el-input-number` 逐个钉回 `border-radius: var(--zoo-cap)`——**EP 新版结构不吃 `--el-border-radius-base`，会漏出第三档圆角**；`.el-input-number__decrease/__increase` 归 0 圆角、透明底（胶囊壳内的分段不再自带圆角块）；`.el-select__popper.el-popper` 方角 0 + 1px 墨边（浮层面板按确认弹窗的口径走）。
 - **仍需注意**：EP 的 tab 第二项 padding 规则需要页面 `!important` 压住（见 Tabs）；EP 的 form label 自带 8px 下边距与 22px 行高；EP 的 messagebox 圆角变量只在实例上被钉成 0，不改全局 `--el-border-radius-base`（它仍是胶囊）。
 - **未映射 warning / info**：`ElMessage.warning` / `info` 仍走 EP 默认色；当前设计页没有使用（骨架页的技能上限提示用了 warning），设计页只有 success / error。
 
@@ -738,29 +785,33 @@ components:
 
 **The Tab-Padding Pin Rule（第二枚 tab 必须钉住 padding）.** tab 的 `padding: 0 18px` 必须保留 `!important`：EP 的 `nth-child(2)` 规则会清零第二枚 tab 的左内边距，没有 `!important` 就一胖一瘦。
 
+**The EP-Cap-Pin Rule（EP 新控件圆角逐个钉死）.** EP 新版 `.el-select__wrapper` / `.el-input-number` 不吃 `--el-border-radius-base`；每引入一个新 EP 表单控件，先在 `base.css` 接缝层把它的圆角钉回 `var(--zoo-cap)`（内段归 0），浮动面板（popper）按弹窗口径 0 + 1px 墨边；否则会漏出第三档圆角。
+
 **The Map-Not-Widget Rule（地图是图层，不是控件）.** 页面地图只表达位置：园路、分区点、入口、你在这里、指北、版记都不可点、无 hover、无 tooltip。窄屏整层收起，不缩成缩略图、不塞回表单下方。
 
 ## Do's and Don'ts
 
 ### Do:
 
-- **Do** 用 `--zoo-*` 令牌；页面里只允许输入白 `#ffffff` 与墨色透明值（行 hover 6%、骨架 14%、禁用底 8% / 边 45%、tab 与分页 hover 10%）；EP 弹窗的 `#a93226` / `#93291f` 是 base.css 接缝里的裸红，不算新令牌。
+- **Do** 用 `--zoo-*` 令牌；页面里只允许输入白 `#ffffff` 与墨色透明值（行 hover 5%、骨架 14%、禁用底 6% / 边 45%、tab 与分页 hover 10%、等待 ghost hover 8%、墨点 40%、35% 分隔线）；EP 弹窗的 `#a93226` / `#93291f` 是 base.css 接缝里的裸红，不算新令牌。
 - **Do** 把水陆分界交给那条 SVG path：宽屏 `viewBox 1440 900` + `width: 1440px`（横向 1:1）、窄屏 `viewBox 390 844` + `width: 100%`，`stroke-width: var(--zoo-line)`（1px）+ `vector-effect: non-scaling-stroke`。
 - **Do** 把页面地图（入口 / 你在这里 / 园路 / 分区点 / 指北 / 标注）全部放在 x≥470、表单右缘之外；x 用绝对像素、y 用页面高度百分比，跟随那条 1440 宽的岸线。
 - **Do** 入口胶囊写成 22px 高、`0 10px` 内边距、10px/0.1em 字（实测 44×22），中心钉在岸线上；版记用 10px/0.18em 纯墨，不加透明度。
 - **Do** 在 ≤1099px 把信息层、标注层、版记整层收起，只留表单与水域图例；这是 2026-11-25 上移后的唯一断点。
-- **Do** 控制件一律 999px 胶囊：tab 34px 高、输入 46px 高、按钮 46px 高、图例胶囊 30px 高；边界一律墨色。
+- **Do** 控制件一律 999px 胶囊：tab 34px 高、输入 46px 高、按钮 46px 高、图例胶囊 30px 高、内部区 CTA 38px 高、分页按钮 32px 高；边界一律墨色。
 - **Do** 主按钮整宽、46px、黄底墨字，并把 EP 的九个 `--el-button-*` 变量钉死；hover 深黄、active 按下黄，不位移。
 - **Do** 输入框用 `inset 2px` 墨边；hover 加厚到 `3px`；聚焦/错误时墨边保持 2px，外面加 `outline: 2px solid` 的墨/红外框、`offset: 2px`。
 - **Do** 错误文字放进奶油胶囊（`3px 10px`、12px、6px 红点、`position: static`），并把错误文案的出口留给 `error-map.ts` 与表单规则。
 - **Do** 绿地上的字只用 `--zoo-ink`；水域说明与占位符才用 `--zoo-ink-soft`。
 - **Do** 水域块桌面右对齐（`align-items: flex-end`、`text-align: right`、块宽 292px 两列 72px/1fr、页脚 `right: 72px`）；窄屏由绝对定位接管、左对齐。
 - **Do** 字标两档都用 `'Zoo Display', var(--ai-font-sans)`、700（`AI` 46/700 + `面试系统` 24/700/0.3em）；正文与控件保持系统栈，不写 Zoo Display。
-- **Do** 名录用表格行 + 1px 墨线：行高约 65px、无卡片无阴影、页头才用 2px 线；列名 / 时间用等宽，正文用系统栈。
-- **Do** 一页只留一块黄：列表态是页头「新建简历」，空态是空地里的「创建第一份」；空态时页头 CTA 不渲染。
+- **Do** 名录用表格行 + 墨/纸两级线：表头下 1px 墨线、行间 1px 纸线（`--zoo-paper-line`）、行高约 65px、无卡片无阴影、页头才用 2px 线；列名 / 时间 / 展位号 / 指标条用等宽，正文用系统栈。
+- **Do** 统计数字标口径：指标条「本页 N 条 · 本页技能 K 种 · 口径：当前页」，水湾版记「名录口径：当前登录账号」；展位号跨页连续 `(page-1)*size+idx+1`、两位补零。
+- **Do** 一页只留一块黄：名录列表态是页头「新建简历」（空态是空地里的「创建第一份」，互斥），面试页表单态是「创建并生成题目」（失败态换「重试生成」，三相位互斥）。
 - **Do** 行内编辑 / 删除只用墨色下划线文字链；危险红只留给删除确认弹窗的主按钮。
-- **Do** 窄屏保留表格语义：`thead` clip 视觉隐藏、`tr/td` 堆叠、`data-label` 行标 11px 纯墨；不要换成 div。
-- **Do** 名录页用 72/28 水湾、coast 高 `100%`（跟随文档）；窄屏整页 `--zoo-land`、不画海岸线、aside 收起。
+- **Do** EP 新版表单控件进接缝层：`.el-select__wrapper` / `.el-input-number` 钉回胶囊、内段归 0、下拉 popper 方角 + 1px 墨边；每引入新 EP 控件先钉圆角。
+- **Do** 内部区两页用两栏 grid + 奶油水湾面板（sticky、1px 墨边、分区圆点 + 步骤 + 版记）；页面本身不画海岸线、不铺地图——整页那张图是登录页的皮。
+- **Do** 窄屏（≤1099px）只做单列兜底：grid 变一列、水湾 static；不迭代移动端。
 - **Do** 窄屏把海岸线换成自上而下那条 path，水域绝对定位在 `top: max(84.1dvh, 620px)`；矮视口靠页面滚动，不裁切水域（登录页）。
 
 ### Don't:
@@ -778,7 +829,7 @@ components:
 - **Don't** 用百分比写信息层的 x：海岸线横向固定 1440px，x 一旦用百分比，窄视口就会把标记滑回表单上。
 - **Don't** 给园路、分区点、入口加 hover / 点击 / tooltip，也不要在 ≤1099px 仍显示信息层。
 - **Don't** 给名录套卡片、圆角容器或阴影；条目之间只允许 1px 墨线，不要斑马纹或悬浮卡片。
-- **Don't** 把行内删除做成红按钮 / 红字，也不要在名录页放第二块黄（空态与列表态互斥是硬约束）。
-- **Don't** 用 `display:none` 隐藏窄屏表头，或把 `table` 换成 div；列名要留在无障碍树里。
-- **Don't** 在窄屏名录页画海岸线或压缩水湾图例——那一页的窄屏是整块绿地。
+- **Don't** 把行内删除做成红按钮 / 红字，也不要在内部区页面放第二块黄（名录列表态/空态互斥、面试页三相位互斥是硬约束）。
+- **Don't** 把名录 `table` 换成 div，或为窄屏发明堆叠行——窄屏只有单列兜底。
+- **Don't** 在内部区页面画海岸线、铺地图信息层或整页铺绿——那是登录页的全屏皮；内部区的世界收在纸面、墨线与水湾面板里。
 - **Don't** 把导览图当贴纸：不要在同一屏里既保留居中卡片又贴一条海岸线；要么整页是图，要么不是这个世界。

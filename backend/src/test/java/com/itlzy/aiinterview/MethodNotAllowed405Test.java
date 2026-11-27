@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** 裁决#29 回归网：框架/协议层错误必须镜像 HTTP，不得混进 500 兜底（11-05 家法的 405 分支） */
+/** 405 回归测试：请求方法不匹配必须返回 HTTP 405，不得落入 500 兜底。 */
 @SpringBootTest
 @AutoConfigureMockMvc
 class MethodNotAllowed405Test {
@@ -20,8 +20,7 @@ class MethodNotAllowed405Test {
 
     @Test
     void postHitsGetEndpoint_should405Not500() throws Exception {
-        // 案发现场复刻：POST /interview/finish——"finish"被路由当成 {id} 撞进 GET /interview/{id}，
-        // 方法不匹配该在 HandlerMapping 阶段抛 HttpRequestMethodNotSupportedException（够不到鉴权拦截器，免 token）
+        // POST 打进 GET 端点：方法不匹配应在路由阶段报错，够不到鉴权拦截器，故免 token
         mockMvc.perform(post("/interview/finish"))
                 .andExpect(status().isMethodNotAllowed())      // HTTP 405
                 .andExpect(jsonPath("$.code").value(405));      // 业务码镜像

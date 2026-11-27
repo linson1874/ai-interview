@@ -25,8 +25,8 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-/** 报告消费者（合同07 J3）：06 四件套复刻卷——ensureGroup/恢复模式/poll自愈/sweep 全同款，
- *  只换命名册三常量（REPORT_*）；处理流程是新的：AI 两段 + Java 本地拼装（golden rule：模型不算数） */
+/** 报告消费者：从 Redis Stream 消费报告生成任务，AI 只写定性段，总分由本地计算。
+ *  @author 林子阳 */
 @Component
 public class InterviewReportConsumer {
 
@@ -52,14 +52,13 @@ public class InterviewReportConsumer {
 
     @PostConstruct
     public void init() {
-        ensureGroup();   // 与 gen 消费者同款编排：先组后账，行序锁死（NOGROUP 血案的家规）
+        ensureGroup();   // 先建组再认领挂账，顺序不可颠倒
         recoverOwnPel();
     }
 
-    // ── 以下 ensureGroup / recoverOwnPel / poll / sweep 四法与 InterviewGenConsumer 逐行同构，
-    //    仅把 STREAM_KEY/GROUP/CONSUMER 换成 REPORT_STREAM_KEY/REPORT_GROUP/REPORT_CONSUMER，
-    //    causeContains 借同包工具（第二刀已摘出）。你照 GenConsumer 打开对照着敲，认亲练习 ──
+    // 以下四个方法与出题消费者同构，仅键名与消费组不同
 
+    /** 创建报告消费组 */
     public void ensureGroup() {
         try {
             redisTemplate.opsForStream().createGroup(
@@ -74,6 +73,7 @@ public class InterviewReportConsumer {
         }
     }
 
+    /** 恢复模式：重发自己名下未 ACK 的挂账 */
     public void recoverOwnPel() {
         List<MapRecord<String, Object, Object>> pending = redisTemplate.opsForStream().read(
                 Consumer.from(InterviewStream.REPORT_GROUP, InterviewStream.REPORT_CONSUMER),
@@ -85,6 +85,7 @@ public class InterviewReportConsumer {
         }
     }
 
+    /** 每秒轮询取一条消息消费；消费组丢失时自愈重建 */
     @Scheduled(fixedDelay = 1000)
     public void poll() {
         try {
@@ -107,6 +108,7 @@ public class InterviewReportConsumer {
         }
     }
 
+    /** 每 5 分钟把闲置超过 600 秒的挂账夺回重投 */
     @Scheduled(fixedDelay = 300_000)
     public void sweep() {
         PendingMessages all = redisTemplate.opsForStream()
@@ -127,11 +129,11 @@ public class InterviewReportConsumer {
         }
     }
 
-    /** 单条消息的一生（报告版）：⓪阈值闸 → ①抢单 → ②查题单 → ③AI两段 → ④本地拼装 → ⑤CAS 1→2 → ACK */
+    /** 处理单条消息：毒消息判死 → 抢单 → 查题 → AI 定性段 → 本地计算总分 → 落库 → ACK */
     private void process(MapRecord<String, Object, Object> msg) {
         Long interviewId = Long.valueOf(String.valueOf(msg.getValue().get("interviewId")));
 
-        // ⓪ H4 复刻：delivery≥3 处死 report_status 1→3 + 毒消息也 ACK（死信边同款带前置状态+判行数）
+        // 投递次数≥3 判为毒消息：置为报告失败态并 ACK 结案
         PendingMessages detail = redisTemplate.opsForStream()
                 .pending(InterviewStream.REPORT_STREAM_KEY, InterviewStream.REPORT_GROUP,
                         Range.just(msg.getId().toString()), 1);
@@ -152,38 +154,37 @@ public class InterviewReportConsumer {
             return;
         }
 
-        // ① 抢单 CAS IN(0,1)→1 —— R6 智慧平移：0=首抢，1=接管死者现场（rebuild 重投不烧双份钱的凭据）
+        // 抢单：仅 0（待生成）/1（接管重投）可抢为 1
         int won = interviewMapper.update(null, new LambdaUpdateWrapper<Interview>()
                 .eq(Interview::getId, interviewId)
                 .in(Interview::getReportStatus, 0, 1)
                 .set(Interview::getReportStatus, 1));
-        if (won == 0) {   // 已就绪(2)/已处死(3)——活不归我干，ACK 结案（H3 抢输者纪律）
+        if (won == 0) {   // 已就绪或已失败，ACK 结案
             redisTemplate.opsForStream().acknowledge(
                     InterviewStream.REPORT_STREAM_KEY, InterviewStream.REPORT_GROUP, msg.getId());
             return;
         }
 
         try {
-            // ② 题单=唯一材料源（H1 读时语义：开工瞬间查库，重生成自动吃最新分数）
+            // 查询题目作为材料源，重新生成时自动使用最新分数
             List<InterviewQuestion> questions = questionMapper.selectList(
                     new LambdaQueryWrapper<InterviewQuestion>()
                             .eq(InterviewQuestion::getInterviewId, interviewId)
                             .orderByAsc(InterviewQuestion::getOrderNo));
-            // 合同10 D 四分口径的总闸：mainQuestions=算术面（分母/计数/明细物理排除追问），
-            // questions 全量只喂叙事面（generateReport 材料两段式）——ScoreCalculator 纯函数零改动
+            // 总分计算只用主题行（物理排除追问），追问行仅作为 AI 叙事材料
             List<InterviewQuestion> mainQuestions = questions.stream()
                     .filter(q -> q.getParentQuestionId() == null).toList();
 
-            // ③ AI 只写两个字段（§4.1；L2/L3 再炸原样抛出→失败边：不ACK留PEL，delivery+1 待重投）
+            // AI 生成摘要与薄弱点；失败则不 ACK 留待重投
             ReportSchema schema = aiService.generateReport(questions);
 
-            // ④ Java 本地拼装（J3 golden rule：模型不算数——算术全在这十行里）
+            // 总分与明细由本地计算，不信任模型输出
             ReportVO vo = new ReportVO();
             vo.setSummary(schema.getSummary());
             vo.setWeakPoints(schema.getWeakPoints());
-            vo.setOverallScore(ScoreCalculator.computeOverallScore(mainQuestions));   // J4 三条款在纯函数里已兑现；X6 分母闸=入参物理不含追问行
+            vo.setOverallScore(ScoreCalculator.computeOverallScore(mainQuestions));   // 分母不含追问行
             vo.setTotalCount(mainQuestions.size());
-            vo.setScoredCount((int) mainQuestions.stream().filter(q -> q.getScore() != null).count());  // J4"已评4题"
+            vo.setScoredCount((int) mainQuestions.stream().filter(q -> q.getScore() != null).count());  // 已评题数
             List<ReportDetailVO> details = new ArrayList<>();
             for (InterviewQuestion q : mainQuestions) {
                 ReportDetailVO d = new ReportDetailVO();
@@ -198,8 +199,7 @@ public class InterviewReportConsumer {
             }
             vo.setDetails(details);
 
-            // ⑤ 落库：完整快照进 report_json + overall_score/summary 独立列冗余（阶段五 SQL 统计的口子）
-            //    CAS 1→2 带前置状态——脏报告走不到这一步（S9：③炸了就抛，压根不 serialize）
+            // 落库：完整快照进 report_json，总分/摘要冗余独立列；CAS 带前置状态，失败不落库
             String json = objectMapper.writeValueAsString(vo);
             int done = interviewMapper.update(null, new LambdaUpdateWrapper<Interview>()
                     .eq(Interview::getId, interviewId)
@@ -213,14 +213,14 @@ public class InterviewReportConsumer {
                 return;
             }
 
-            // ⑥ 活干完才 ACK（H2 账本销案）
+            // 全部完成后 ACK 结案
             redisTemplate.opsForStream().acknowledge(
                     InterviewStream.REPORT_STREAM_KEY, InterviewStream.REPORT_GROUP, msg.getId());
             log.info("报告完成 interviewId={} 总分={} 已评{}/{}题 delivery={}",
                     interviewId, vo.getOverallScore(), vo.getScoredCount(), vo.getTotalCount(), deliveries);
 
         } catch (Exception e) {
-            // 失败边：不ACK、不回翻——留1等 sweep 夺回重投（三次到阈值见⓪），与 gen 消费者同款哲学
+            // 失败：不 ACK、状态留在 1，等下次投递（投递次数+1，达阈值判死）
             log.error("报告生成失败，消息留PEL待重投 interviewId={}", interviewId, e);
         }
     }

@@ -11,6 +11,8 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+/** 用户注册业务逻辑。
+ *  @author 林子阳 */
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -24,17 +26,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void register(RegisterDTO dto) {
-        // 规则1：查重（@TableLogic 会自动加 deleted=0 条件，不用手写）
+        // 用户名查重（逻辑删除条件由框架自动添加）
         Long count = userMapper.selectCount(
                 new LambdaQueryWrapper<User>().eq(User::getUsername, dto.getUsername()));
         if (count > 0) {
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "用户名已存在");
         }
 
-        // 组装实体：只 set 前端允许传的 + 默认值（规则3）
+        // 组装实体
         User user = new User();
         user.setUsername(dto.getUsername());
-        // 规则2：BCrypt 加密，绝不存明文
+        // BCrypt 加密，不存明文
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setNickname(dto.getNickname());
         user.setStatus(1);
@@ -42,7 +44,7 @@ public class UserServiceImpl implements UserService {
         try {
             userMapper.insert(user);
         } catch (DuplicateKeyException e) {
-            // 规则4（裁决#2升为必做）：并发兜底——查重是礼貌拦，uk_username 唯一索引是法律拦
+            // 并发兜底：查重之外的唯一索引拦截
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "用户名已存在");
         }
     }

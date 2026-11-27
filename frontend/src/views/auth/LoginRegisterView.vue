@@ -3,10 +3,10 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import { ArrowRight } from '@element-plus/icons-vue'
 import { login, register } from '@/api/auth'
 import type { LoginParams, RegisterParams } from '@/types/api'
 
-// —— 页面卡 D2-1：登录/注册合并一页两 tab（接口事实源：01 合同 §2 / 02 合同 §2）——
 const router = useRouter()
 const activeTab = ref<'login' | 'register'>('login')
 const loginFormRef = ref<FormInstance>()
@@ -17,7 +17,6 @@ const registerSubmitting = ref(false)
 const loginForm = reactive<LoginParams>({ username: '', password: '' })
 const registerForm = reactive<RegisterParams>({ username: '', password: '', nickname: '' })
 
-// 校验规则镜像合同：01 §2.1（3-32 / 6-32 / nickname ≤32）、02 §2.1（仅 @NotBlank）——不发明新规则
 const loginRules: FormRules = {
   username: [{ required: true, message: '用户名不能为空', trigger: 'blur' }],
   password: [{ required: true, message: '密码不能为空', trigger: 'blur' }],
@@ -36,11 +35,10 @@ const registerRules: FormRules = {
 
 async function onRegister(): Promise<void> {
   const valid = await registerFormRef.value?.validate().catch(() => false)
-  if (!valid || registerSubmitting.value) return // F7：防连点
+  if (!valid || registerSubmitting.value) return
   registerSubmitting.value = true
   try {
     await register(registerForm)
-    // 拍板一：注册成功不自动登录——切登录 tab 并预填 username、清空敏感字段
     ElMessage.success('注册成功，请登录')
     loginForm.username = registerForm.username
     loginForm.password = ''
@@ -48,7 +46,7 @@ async function onRegister(): Promise<void> {
     registerForm.nickname = ''
     activeTab.value = 'login'
   } catch {
-    // 失败文案由拦截器统一弹出（文案出口唯一），页面只复位状态，不重复弹
+    // The shared HTTP interceptor owns authentication error messages.
   } finally {
     registerSubmitting.value = false
   }
@@ -56,14 +54,14 @@ async function onRegister(): Promise<void> {
 
 async function onLogin(): Promise<void> {
   const valid = await loginFormRef.value?.validate().catch(() => false)
-  if (!valid || loginSubmitting.value) return // F7：防连点
+  if (!valid || loginSubmitting.value) return
   loginSubmitting.value = true
   try {
-    const vo = await login(loginForm) // token 落盘与 401 锁释放都在 auth.login 内完成
+    const vo = await login(loginForm)
     ElMessage.success('欢迎回来，' + vo.nickname)
-    router.push('/resumes') // 拍板二：登录第一站=简历列表
+    router.push('/resumes')
   } catch {
-    // 同上：G/H 用例防枚举文案一致性由后端保证，前端不做任何区分
+    // The shared HTTP interceptor owns authentication error messages.
   } finally {
     loginSubmitting.value = false
   }
@@ -71,72 +69,68 @@ async function onLogin(): Promise<void> {
 </script>
 
 <template>
-  <div class="zoo">
-    <!-- 海岸线：宽屏自左涌入，窄屏自上而下；陆地与水域的分界由这条 path 独家定义 -->
-    <svg
-      class="zoo__coast zoo__coast--wide"
-      viewBox="0 0 1440 900"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        class="zoo__land"
-        d="M0 0 H520 C470 120 560 180 600 260 C650 350 640 430 620 500 C590 600 680 660 740 710 C780 745 760 850 700 900 H0 Z"
-      />
-      <circle class="zoo__pond" cx="500" cy="720" r="100" />
+  <main class="dossier-auth">
+    <section class="dossier-stage" aria-labelledby="dossier-title">
+      <header class="dossier-stage__top">
+        <div class="dossier-brand">
+          <span class="dossier-brand__mark" aria-hidden="true"><i /></span>
+          <strong>AI 面试助手</strong>
+        </div>
+        <span class="dossier-stage__edition">个人练习版</span>
+      </header>
 
-      <!-- 信息层：全部限定在表单右缘 452 之外（x≥470），因此任何状态、
-           任何视口高度都不会压到表单；入口骑在岸线上，园路绕开水洞。 -->
-      <g class="zoo__info">
-        <path class="zoo__path" d="M618 470 H568" />
-        <circle class="zoo__here" cx="560" cy="470" r="8" />
-        <circle class="zoo__here-dot" cx="560" cy="470" r="2.5" />
-
-        <path class="zoo__path" d="M560 478 V560" />
-        <path class="zoo__path" d="M560 560 C548 580 520 592 496 598" />
-        <path class="zoo__path" d="M560 560 C580 590 596 610 604 616" />
-        <path class="zoo__path zoo__path--dashed" d="M604 628 C650 700 646 790 626 852" />
-
-        <circle class="zoo__zone" cx="486" cy="600" r="5" />
-        <circle class="zoo__zone" cx="604" cy="622" r="5" />
-        <circle class="zoo__zone" cx="622" cy="860" r="5" />
-
-        <g class="zoo__north" transform="translate(480 62)">
-          <path d="M0 -14 L7 8 L0 3 L-7 8 Z" />
-        </g>
-      </g>
-    </svg>
-
-    <svg
-      class="zoo__coast zoo__coast--narrow"
-      viewBox="0 0 390 844"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        class="zoo__land"
-        d="M0 0 H390 V695 C320 705 250 690 180 700 C110 710 50 700 0 692 Z"
-      />
-    </svg>
-
-    <div class="zoo__grid">
-      <section class="zoo__plot" aria-labelledby="zoo-title">
-        <h1 id="zoo-title" class="zoo__title">
-          <span class="zoo__title-latin">AI</span>
-          <span class="zoo__title-cn">面试系统</span>
+      <div class="dossier-stage__body">
+        <h1 id="dossier-title" class="dossier-stage__title">
+          <span>把简历上的每一句，</span>
+          <span>练成说出口的答案。</span>
         </h1>
-        <p class="zoo__lede">按简历出题，逐题评分，<br />练过的都留下记录。</p>
+        <p class="dossier-stage__lede">
+          管理简历，选择目标岗位，开始一场模拟面试。每一次练习，都留下可以回看的记录。
+        </p>
 
-        <el-tabs v-model="activeTab" class="zoo__tabs">
+        <article class="resume-sheet" aria-label="简历批注示例">
+          <header class="resume-sheet__head">
+            <strong>项目经历</strong>
+            <span>简历节选 · 示例</span>
+          </header>
+          <div class="resume-sheet__skeleton" aria-hidden="true"><i /><i /></div>
+          <p class="resume-sheet__excerpt">
+            主导了一次 <mark>从 0 到 1 的改版</mark>，协调三个小组完成上线。
+          </p>
+          <p class="resume-sheet__note">
+            <span>评估提示</span>
+            继续补充你负责的技术决策与结果指标。
+          </p>
+          <div class="resume-sheet__question">
+            <i aria-hidden="true" />
+            <p><small>模拟提问</small>“这次改版里，最难推动的一项决定是什么？”</p>
+          </div>
+        </article>
+      </div>
+
+      <footer class="dossier-stage__foot">
+        <span>每一次练习，都有迹可循。</span>
+        <span>AI 面试助手 · 个人练习空间</span>
+      </footer>
+    </section>
+
+    <section class="dossier-account" aria-labelledby="account-title">
+      <div class="dossier-account__inner">
+        <header class="dossier-account__heading">
+          <h2 id="account-title">{{ activeTab === 'login' ? '欢迎回来' : '创建账户' }}</h2>
+          <p>
+            {{ activeTab === 'login' ? '登录后继续你的面试练习。' : '创建个人账号，保存简历与面试记录。' }}
+          </p>
+        </header>
+
+        <el-tabs v-model="activeTab" class="dossier-tabs">
           <el-tab-pane label="登录" name="login">
             <el-form
               ref="loginFormRef"
               :model="loginForm"
               :rules="loginRules"
               label-position="top"
-              class="zoo__form"
+              class="dossier-form"
               hide-required-asterisk
               @submit.prevent="onLogin"
             >
@@ -161,22 +155,23 @@ async function onLogin(): Promise<void> {
               <el-button
                 type="primary"
                 size="large"
-                class="zoo__submit"
+                class="dossier-submit"
                 native-type="submit"
                 :loading="loginSubmitting"
               >
-                登录
+                <span>登录并继续</span>
+                <el-icon aria-hidden="true"><ArrowRight /></el-icon>
               </el-button>
             </el-form>
           </el-tab-pane>
 
-          <el-tab-pane label="注册" name="register">
+          <el-tab-pane label="创建账户" name="register">
             <el-form
               ref="registerFormRef"
               :model="registerForm"
               :rules="registerRules"
               label-position="top"
-              class="zoo__form"
+              class="dossier-form"
               hide-required-asterisk
               @submit.prevent="onRegister"
             >
@@ -185,7 +180,7 @@ async function onLogin(): Promise<void> {
                   v-model="registerForm.username"
                   size="large"
                   autocomplete="username"
-                  placeholder="3-32 字符"
+                  placeholder="3-32 个字符"
                 />
               </el-form-item>
               <el-form-item label="密码" prop="password">
@@ -195,7 +190,7 @@ async function onLogin(): Promise<void> {
                   size="large"
                   show-password
                   autocomplete="new-password"
-                  placeholder="6-32 字符"
+                  placeholder="6-32 个字符"
                 />
               </el-form-item>
               <el-form-item label="昵称（可选）" prop="nickname">
@@ -203,560 +198,484 @@ async function onLogin(): Promise<void> {
                   v-model="registerForm.nickname"
                   size="large"
                   autocomplete="nickname"
-                  placeholder="登录后用来称呼你，可留空"
+                  placeholder="登录后用来称呼你"
                 />
               </el-form-item>
               <el-button
                 type="primary"
                 size="large"
-                class="zoo__submit"
+                class="dossier-submit"
                 native-type="submit"
                 :loading="registerSubmitting"
               >
-                注册
+                <span>创建账户</span>
+                <el-icon aria-hidden="true"><ArrowRight /></el-icon>
               </el-button>
             </el-form>
           </el-tab-pane>
         </el-tabs>
-      </section>
 
-      <aside class="zoo__water">
-        <p class="zoo__water-note">导览图 · 园区里有这些</p>
-        <ul class="zoo__legend">
-          <li class="zoo__legend-row">
-            <span class="zoo__chip zoo__chip--coral">简历</span>
-            <span class="zoo__chip-note">填一次，之后都从它出题</span>
-          </li>
-          <li class="zoo__legend-row">
-            <span class="zoo__chip zoo__chip--sky">面试</span>
-            <span class="zoo__chip-note">按简历出题，逐题评分</span>
-          </li>
-          <li class="zoo__legend-row">
-            <span class="zoo__chip zoo__chip--lilac">报告</span>
-            <span class="zoo__chip-note">每场结束生成</span>
-          </li>
-          <li class="zoo__legend-row">
-            <span class="zoo__chip zoo__chip--land">练习</span>
-            <span class="zoo__chip-note">复习与知识问答</span>
-          </li>
-        </ul>
-        <p class="zoo__foot">账号用于保存简历与面试记录</p>
-      </aside>
-    </div>
-
-
-    <!-- 信息层的文字：与海岸线同一坐标系（百分比跟随同一张被拉伸的图），
-         全部落在表单右缘之外 -->
-    <div class="zoo__labels" aria-hidden="true">
-      <span class="zoo__gate" style="left: 626px; top: 52.2%">入口</span>
-      <span class="zoo__label" style="left: 560px; top: 49.8%">你在这里</span>
-      <span class="zoo__label" style="left: 528px; top: 66.7%">简历区</span>
-      <span class="zoo__label" style="left: 600px; top: 71.3%">面试区</span>
-      <span class="zoo__label zoo__label--end" style="left: 610px; top: 95.6%">报告区</span>
-      <span class="zoo__label zoo__label--north" style="left: 480px; top: 2.4%">N</span>
-    </div>
-
-    <p class="zoo__colophon">练习区 · 导览图</p>
-  </div>
+        <p class="dossier-account__foot">账号用于保存简历与面试记录</p>
+      </div>
+    </section>
+  </main>
 </template>
 
 <style scoped>
-.zoo {
-  position: relative;
+.dossier-auth {
+  --el-color-primary: var(--dossier-ink);
+  --el-color-primary-dark-2: #10151b;
+  --el-color-primary-light-3: #60666e;
+  --el-color-primary-light-5: #92979d;
+  --el-color-primary-light-7: #c1c4c7;
+  --el-color-primary-light-8: #d9dbdc;
+  --el-color-primary-light-9: #eceeed;
+  --el-color-danger: var(--dossier-brick);
+  display: grid;
+  grid-template-columns: minmax(0, 56%) minmax(400px, 44%);
   min-height: 100dvh;
-  overflow-x: hidden;
-  overflow-y: auto;
-  background: var(--zoo-water);
-  color: var(--zoo-ink);
+  color: var(--dossier-ink);
+  background: var(--dossier-paper);
   font-family: var(--ai-font-sans);
 }
 
-/* 海岸线层：陆地、水洞都由它画，页面其它部分不许再画分界。
-   横向 1:1（固定 1440px），纵向跟视口——这样信息层的 x 是绝对像素，
-   永远不会随视口变窄滑回表单上；更宽的屏幕只是海更大。 */
-.zoo__coast {
+.dossier-stage {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 100dvh;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 42px clamp(40px, 6vw, 88px) 38px;
+  background: var(--dossier-ink);
+  color: var(--dossier-paper);
+}
+
+.dossier-stage::after {
   position: absolute;
-  top: 0;
-  left: 0;
-  display: block;
-  width: 1440px;
-  height: 100dvh;
-  pointer-events: none;
+  right: clamp(40px, 6vw, 88px);
+  bottom: 32px;
+  left: clamp(40px, 6vw, 88px);
+  height: 1px;
+  background: rgba(245, 245, 241, 0.17);
+  content: '';
 }
 
-.zoo__coast--narrow {
-  display: none;
-  width: 100%;
+.dossier-stage__top,
+.dossier-stage__foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.zoo__land {
-  fill: var(--zoo-land);
-  stroke: var(--zoo-ink);
-  stroke-width: var(--zoo-line);
-  vector-effect: non-scaling-stroke;
-}
-
-.zoo__pond {
-  fill: var(--zoo-water);
-  stroke: var(--zoo-ink);
-  stroke-width: var(--zoo-line);
-  vector-effect: non-scaling-stroke;
-}
-
-/* 信息层：园路、分区点、入口、指北。全部 1px，不许比表单更响。
-   几何全部落在表单右缘（452）之外，所以任何状态都不会压到按钮。 */
-.zoo__path {
-  fill: none;
-  stroke: var(--zoo-ink);
-  stroke-width: 1;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-}
-
-.zoo__path--dashed {
-  stroke-dasharray: 3 4;
-}
-
-.zoo__zone {
-  fill: var(--zoo-water);
-  stroke: var(--zoo-ink);
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-}
-
-.zoo__here {
-  fill: none;
-  stroke: var(--zoo-ink);
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-}
-
-.zoo__here-dot {
-  fill: var(--zoo-ink);
-}
-
-.zoo__north path {
-  fill: var(--zoo-ink);
-}
-
-/* 信息层的文字：与海岸线共用一套坐标系（同一张被拉伸的图） */
-.zoo__labels {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.zoo__label {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  color: var(--zoo-ink);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.zoo__label--end {
-  transform: translate(-100%, -50%);
-}
-
-.zoo__gate {
-  position: absolute;
+.dossier-brand {
   display: inline-flex;
   align-items: center;
-  height: 22px;
-  padding: 0 10px;
-  transform: translate(-50%, -50%);
-  border: 1px solid var(--zoo-ink);
-  border-radius: var(--zoo-cap);
-  background: var(--zoo-water);
-  color: var(--zoo-ink);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  line-height: 1;
-  white-space: nowrap;
+  gap: 11px;
+  font-size: 13px;
 }
 
-.zoo__colophon {
-  position: absolute;
-  left: 48px;
-  bottom: 26px;
-  color: var(--zoo-ink);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  line-height: 1;
-}
-
-.zoo__grid {
-  position: relative;
+.dossier-brand__mark {
   display: grid;
-  grid-template-columns: minmax(0, 56%) minmax(0, 44%);
-  min-height: 100dvh;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--dossier-brass);
 }
 
-/* 陆地一侧 */
-.zoo__plot {
-  align-self: start;
-  width: 100%;
-  max-width: 520px;
-  padding: 56px 0 56px 72px;
+.dossier-brand__mark i {
+  width: 10px;
+  height: 2px;
+  transform: translateY(3px);
+  background: var(--dossier-brass);
 }
 
-.zoo__title {
-  display: flex;
-  flex-direction: column;
+.dossier-stage__edition {
+  color: #8c96a2;
+  font-size: 12px;
+}
+
+.dossier-stage__body {
+  width: min(100%, 620px);
+  margin: auto 0;
+  padding: 54px 0 62px;
+}
+
+.dossier-stage__title {
+  display: grid;
   gap: 2px;
   margin: 0;
+  font-family: var(--dossier-serif);
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
-/* 两档字标：拉丁字头当"地名"，中文当"区位名"。显示声部用自托管的
-   Zoo Display 子集（楷体，只含这几个字形），不是拿系统显示字体顶上去。 */
-.zoo__title-latin {
-  font-family: 'Zoo Display', var(--ai-font-sans);
-  font-size: 46px;
-  font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -0.01em;
+.dossier-stage__title span {
+  display: block;
 }
 
-.zoo__title-cn {
-  font-family: 'Zoo Display', var(--ai-font-sans);
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0.3em;
+.dossier-stage__lede {
+  max-width: 48ch;
+  margin: 18px 0 0;
+  color: #aab2bc;
+  font-size: 14px;
+  line-height: 1.9;
 }
 
-.zoo__lede {
-  margin: 10px 0 0;
-  max-width: 44ch;
+.resume-sheet {
+  width: min(100%, 478px);
+  margin-top: 42px;
+  padding: 25px 30px 23px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  background: var(--dossier-paper);
+  color: var(--dossier-ink);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.34);
+  animation: sheet-arrive 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.resume-sheet__head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(21, 26, 33, 0.14);
+}
+
+.resume-sheet__head strong {
+  font-family: var(--dossier-serif);
   font-size: 15px;
-  line-height: 1.6;
-}
-
-/* tab 变成两枚胶囊：选中用墨色实心，黄色只留给主操作 */
-.zoo__tabs {
-  margin-top: 34px;
-}
-
-.zoo__tabs :deep(.el-tabs__header) {
-  margin: 0 0 22px;
-}
-
-.zoo__tabs :deep(.el-tabs__nav-wrap::after) {
-  display: none;
-}
-
-.zoo__tabs :deep(.el-tabs__active-bar) {
-  display: none;
-}
-
-.zoo__tabs :deep(.el-tabs__item) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 34px;
-  padding: 0 18px !important;
-  margin-right: 8px;
-  border: 1px solid var(--zoo-ink);
-  border-radius: var(--zoo-cap);
-  background: transparent;
-  color: var(--zoo-ink);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1;
-}
-
-.zoo__tabs :deep(.el-tabs__item.is-active) {
-  background: var(--zoo-ink);
-  color: var(--zoo-water);
   font-weight: 600;
 }
 
-/* Element Plus 的 hover 色被上面同优先级的墨色规则吃掉，这里补回来 */
-.zoo__tabs :deep(.el-tabs__item:not(.is-active):hover) {
-  background: rgba(44, 46, 42, 0.1);
+.resume-sheet__head span {
+  color: var(--dossier-slate);
+  font-size: 11px;
 }
 
-.zoo__tabs :deep(.el-tabs__item:focus-visible) {
-  outline: 2px solid var(--zoo-ink);
+.resume-sheet__skeleton {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.resume-sheet__skeleton i {
+  display: block;
+  height: 7px;
+  border-radius: 2px;
+  background: rgba(21, 26, 33, 0.11);
+}
+
+.resume-sheet__skeleton i:first-child { width: 88%; }
+.resume-sheet__skeleton i:last-child { width: 71%; }
+
+.resume-sheet__excerpt {
+  margin: 18px 0 0;
+  color: #40474f;
+  font-family: var(--dossier-serif);
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.resume-sheet__excerpt mark {
+  color: var(--dossier-ink);
+  background: linear-gradient(transparent 59%, rgba(176, 138, 74, 0.36) 59% 92%, transparent 92%);
+  background-size: 100% 100%;
+  animation: annotation-reveal 900ms 380ms both;
+}
+
+.resume-sheet__note {
+  margin: 10px 0 0 14px;
+  padding-left: 12px;
+  border-left: 2px solid var(--dossier-brass);
+  color: #5e6670;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.resume-sheet__note span {
+  display: block;
+  margin-bottom: 2px;
+  color: #8a6b36;
+  font-size: 10px;
+}
+
+.resume-sheet__question {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(21, 26, 33, 0.14);
+}
+
+.resume-sheet__question > i {
+  width: 2px;
+  flex: 0 0 auto;
+  background: var(--dossier-brass);
+}
+
+.resume-sheet__question p {
+  margin: 0;
+  color: #4a525b;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.resume-sheet__question small {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--dossier-slate);
+  font-size: 10px;
+}
+
+.dossier-stage__foot {
+  z-index: 1;
+  padding-bottom: 2px;
+  color: #89929b;
+  font-size: 11px;
+}
+
+.dossier-account {
+  display: flex;
+  min-width: 0;
+  min-height: 100dvh;
+  flex-direction: column;
+  padding: 44px clamp(36px, 6vw, 92px) 36px;
+  border-left: 1px solid var(--dossier-rule);
+  background: var(--dossier-sheet);
+}
+
+.dossier-account__inner {
+  width: min(100%, 388px);
+  margin: auto 0;
+  padding: 38px 0;
+}
+
+.dossier-account__heading h2 {
+  margin: 0;
+  font-family: var(--dossier-serif);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.dossier-account__heading p {
+  margin: 8px 0 0;
+  color: var(--dossier-slate);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.dossier-tabs {
+  width: 100%;
+  margin-top: 28px;
+}
+
+.dossier-tabs :deep(.el-tabs__header) {
+  margin: 0 0 24px;
+}
+
+.dossier-tabs :deep(.el-tabs__nav-wrap::after) {
+  height: 1px;
+  background: var(--dossier-rule);
+}
+
+.dossier-tabs :deep(.el-tabs__active-bar) {
+  height: 2px;
+  background: var(--dossier-brass);
+}
+
+.dossier-tabs :deep(.el-tabs__item) {
+  height: 40px;
+  padding: 0 14px;
+  color: var(--dossier-slate);
+  font-size: 13px;
+}
+
+.dossier-tabs :deep(.el-tabs__item.is-active) {
+  color: var(--dossier-ink);
+  font-weight: 600;
+}
+
+.dossier-tabs :deep(.el-tabs__item:focus-visible) {
+  outline: 2px solid var(--dossier-brass);
   outline-offset: 2px;
 }
 
-.zoo__tabs :deep(.el-tabs__nav) {
-  border: 0;
+.dossier-form :deep(.el-form-item) {
+  margin-bottom: 18px;
 }
 
-/* 表单：字段也是胶囊，2px 墨边，白底；宽度按方向契约钉在 380px */
-.zoo__form {
-  max-width: 380px;
-}
-
-.zoo__form :deep(.el-form-item) {
-  margin-bottom: 16px;
-}
-
-.zoo__form :deep(.el-form-item__label) {
-  padding-bottom: 6px;
-  color: var(--zoo-ink);
+.dossier-form :deep(.el-form-item__label) {
+  padding-bottom: 7px;
+  color: var(--dossier-ink);
   font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
 }
 
-.zoo__form :deep(.el-input__wrapper) {
-  height: 46px;
-  padding: 0 18px;
+.dossier-form :deep(.el-input__wrapper) {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #d2d5d2;
+  border-radius: 3px;
+  background: #f6f6f3;
+  box-shadow: none;
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.dossier-form :deep(.el-input__wrapper:hover) {
+  border-color: #a7aaa6;
   background: #ffffff;
-  border-radius: var(--zoo-cap);
-  box-shadow: inset 0 0 0 2px var(--zoo-ink);
+  box-shadow: none;
 }
 
-.zoo__form :deep(.el-input__wrapper:hover) {
-  box-shadow: inset 0 0 0 3px var(--zoo-ink);
+.dossier-form :deep(.el-input__wrapper.is-focus) {
+  border-color: var(--dossier-brass);
+  outline: 2px solid rgba(176, 138, 74, 0.18);
+  outline-offset: 1px;
+  background: #ffffff;
+  box-shadow: none;
 }
 
-.zoo__form :deep(.el-input__wrapper:focus-within) {
-  box-shadow: inset 0 0 0 2px var(--zoo-ink);
-  outline: 2px solid var(--zoo-ink);
-  outline-offset: 2px;
-}
-
-.zoo__form :deep(.el-input__inner) {
-  color: var(--zoo-ink);
+.dossier-form :deep(.el-input__inner) {
+  color: var(--dossier-ink);
   font-size: 14px;
 }
 
-.zoo__form :deep(.el-input__inner::placeholder) {
-  color: var(--zoo-ink-soft);
+.dossier-form :deep(.el-input__inner::placeholder) {
+  color: var(--dossier-slate);
 }
 
-.zoo__form :deep(.el-form-item.is-error .el-input__wrapper) {
-  box-shadow: inset 0 0 0 2px var(--zoo-ink);
-  outline: 2px solid var(--zoo-alert);
-  outline-offset: 2px;
+.dossier-form :deep(.el-form-item.is-error .el-input__wrapper) {
+  border-color: var(--dossier-brick);
+  outline: 2px solid rgba(169, 70, 57, 0.12);
+  box-shadow: none;
 }
 
-/* 错误文字坐在奶油色胶囊里：红字压在绿地上只有 3.04:1，换底才够读（奶油 4.81:1）；
-   同时配一枚红点，语义不只靠颜色传达。 */
-.zoo__form :deep(.el-form-item__error) {
-  position: static;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 3px 10px;
-  background: var(--zoo-water);
-  border-radius: var(--zoo-cap);
-  color: var(--zoo-alert);
+.dossier-form :deep(.el-form-item__error) {
+  padding-top: 5px;
+  color: var(--dossier-brick);
   font-size: 12px;
-  line-height: 1.4;
 }
 
-.zoo__form :deep(.el-form-item__error)::before {
-  content: '';
-  display: block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--zoo-alert);
-}
-
-.zoo__submit {
+.dossier-submit {
+  display: flex;
   width: 100%;
-  height: 46px;
-  margin-top: 6px;
-  border: 1px solid var(--zoo-ink);
-  border-radius: var(--zoo-cap);
-  background: var(--zoo-sun);
-  color: var(--zoo-ink);
-  font-size: 15px;
+  min-height: 48px;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 4px;
+  border: 1px solid var(--dossier-ink);
+  border-radius: 3px;
+  background: var(--dossier-ink);
+  color: var(--dossier-sheet);
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  /* 钉住 Element Plus 的按钮变量：hover/active 都留在黄与墨里，不漂到浅蓝阶 */
-  --el-button-bg-color: var(--zoo-sun);
-  --el-button-border-color: var(--zoo-ink);
-  --el-button-text-color: var(--zoo-ink);
-  --el-button-hover-bg-color: var(--zoo-sun-deep);
-  --el-button-hover-border-color: var(--zoo-ink);
-  --el-button-hover-text-color: var(--zoo-ink);
-  --el-button-active-bg-color: var(--zoo-sun-press);
-  --el-button-active-border-color: var(--zoo-ink);
-  --el-button-active-text-color: var(--zoo-ink);
+  transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  --el-button-bg-color: var(--dossier-ink);
+  --el-button-border-color: var(--dossier-ink);
+  --el-button-text-color: var(--dossier-sheet);
+  --el-button-hover-bg-color: var(--dossier-ink-2);
+  --el-button-hover-border-color: var(--dossier-ink-2);
+  --el-button-hover-text-color: var(--dossier-sheet);
+  --el-button-active-bg-color: #10151b;
+  --el-button-active-border-color: #10151b;
+  --el-button-active-text-color: var(--dossier-sheet);
 }
 
-.zoo__submit:hover {
-  background: var(--zoo-sun-deep);
+.dossier-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(21, 26, 33, 0.16);
 }
 
-.zoo__submit:active {
-  background: var(--zoo-sun-press);
+.dossier-submit:active {
+  transform: translateY(0);
 }
 
-.zoo__submit:focus-visible {
-  outline: 2px solid var(--zoo-ink);
+.dossier-submit .el-icon {
+  transition: transform 180ms ease;
+}
+
+.dossier-submit:hover .el-icon {
+  transform: translateX(3px);
+}
+
+.dossier-submit:focus-visible {
+  outline: 2px solid var(--dossier-brass);
   outline-offset: 3px;
 }
 
-/* 水域一侧：图例胶囊 + 页脚 */
-.zoo__water {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 22px;
-  padding: 56px 72px 96px 32px;
-  text-align: right;
-}
-
-.zoo__water-note {
-  margin: 0;
-  color: var(--zoo-ink-soft);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-}
-
-.zoo__legend {
-  display: grid;
-  gap: 16px;
-  width: 292px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* 两列定宽：胶囊列对齐、说明列紧随其后——整块右靠，但 chip 与 note 必须成对 */
-.zoo__legend-row {
-  display: grid;
-  grid-template-columns: 72px 1fr;
-  align-items: center;
-  gap: 12px;
-  justify-items: start;
-}
-
-.zoo__chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 72px;
-  height: 30px;
-  padding: 0;
-  border-radius: var(--zoo-cap);
-  color: var(--zoo-ink);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.zoo__chip--coral {
-  background: var(--zoo-coral);
-}
-
-.zoo__chip--sky {
-  background: var(--zoo-sky);
-}
-
-.zoo__chip--lilac {
-  background: var(--zoo-lilac);
-}
-
-.zoo__chip--land {
-  background: var(--zoo-land);
-}
-
-.zoo__chip-note {
-  color: var(--zoo-ink-soft);
-  font-size: 12px;
-  text-align: left;
-}
-
-.zoo__foot {
-  position: absolute;
-  right: 72px;
-  bottom: 32px;
-  margin: 0;
-  color: var(--zoo-ink-soft);
+.dossier-account__foot {
+  margin: 23px 0 0;
+  color: var(--dossier-slate);
   font-size: 11px;
+  line-height: 1.6;
 }
 
-/* 窄屏：海岸线改为自上而下，陆地在上一半，水域与图例沉到下方 */
-@media (max-width: 1099px) {
-  /* 窄屏只留任务：内嵌小地图与版记整层收起 */
-  .zoo__info,
-  .zoo__labels,
-  .zoo__colophon {
-    display: none;
-  }
+@keyframes sheet-arrive {
+  from { opacity: 0; transform: translateY(18px) rotate(-0.45deg); }
+  to { opacity: 1; transform: translateY(0) rotate(0); }
+}
 
-  /* 矮视口下让页面可滚，而不是把水域内容裁掉 */
-  .zoo {
-    overflow: visible;
-  }
+@keyframes annotation-reveal {
+  from { background-size: 0 100%; }
+  to { background-size: 100% 100%; }
+}
 
-  .zoo__coast--wide {
-    display: none;
-  }
+@media (max-width: 1120px) and (min-width: 901px) {
+  .dossier-auth { grid-template-columns: minmax(0, 54fr) minmax(400px, 46fr); }
+  .dossier-stage { padding-inline: 42px; }
+  .dossier-stage::after { right: 42px; left: 42px; }
+  .dossier-stage__title { font-size: 44px; }
+  .dossier-account { padding-inline: 42px; }
+}
 
-  .zoo__coast--narrow {
-    display: block;
+@media (max-width: 900px) {
+  .dossier-auth { display: flex; flex-direction: column; }
+  .dossier-account {
+    order: -1;
+    min-height: 660px;
+    padding: 36px 28px 30px;
+    border-right: 0;
+    border-bottom: 1px solid var(--dossier-rule);
+    border-left: 0;
   }
+  .dossier-account__inner { margin: auto; }
+  .dossier-stage { min-height: 620px; padding: 30px 34px 36px; }
+  .dossier-stage::after { right: 34px; bottom: 24px; left: 34px; }
+  .dossier-stage__body { margin: auto; padding: 42px 0 50px; }
+  .dossier-stage__title { font-size: 42px; }
+  .resume-sheet { margin-top: 30px; }
+}
 
-  .zoo__grid {
-    display: flex;
-    flex-direction: column;
-    min-height: 100dvh;
-  }
-
-  .zoo__plot {
-    flex: 0 0 auto;
-    max-width: none;
-    padding: 36px 24px 32px;
-  }
-
-  /* 水域内容钉在岸线以下：84.1% 是窄屏 path 陆地底边 ~710/844 的位置；
-     下限 620px 保证矮视口时不压到表单。 */
-  .zoo__water {
-    position: absolute;
-    top: max(84.1dvh, 620px);
-    left: 0;
-    right: 0;
-    gap: 8px;
-    align-items: flex-start;
-    padding: 6px 24px 12px;
-    text-align: left;
-  }
-
-  .zoo__legend {
-    width: 100%;
-    gap: 8px;
-  }
-
-  .zoo__chip {
-    height: 24px;
-  }
-
-  .zoo__foot {
-    position: static;
-    right: auto;
-    margin: 0;
-    font-size: 11px;
-    line-height: 16px;
-  }
-
-  .zoo__legend {
-    width: 100%;
-  }
-
-  .zoo__foot {
-    position: static;
-    right: auto;
-    margin: 4px 0 0;
-  }
+@media (max-width: 560px) {
+  .dossier-account { min-height: 620px; padding: 28px 22px; }
+  .dossier-account__inner { padding: 24px 0; }
+  .dossier-account__heading h2 { font-size: 27px; }
+  .dossier-tabs { margin-top: 24px; }
+  .dossier-tabs :deep(.el-tabs__header) { margin-bottom: 20px; }
+  .dossier-form :deep(.el-form-item) { margin-bottom: 15px; }
+  .dossier-stage { min-height: 600px; padding: 24px 22px 32px; }
+  .dossier-stage::after { right: 22px; left: 22px; }
+  .dossier-stage__body { padding: 36px 0 44px; }
+  .dossier-stage__title { font-size: 34px; line-height: 1.36; }
+  .dossier-stage__lede { font-size: 13px; }
+  .resume-sheet { margin-top: 24px; padding: 21px 20px 19px; }
+  .dossier-stage__foot { align-items: flex-start; flex-direction: column; gap: 4px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .zoo__form :deep(.el-input__wrapper) {
-    transition: none;
-  }
+  .resume-sheet,
+  .resume-sheet__excerpt mark { animation: none; }
+  .dossier-submit,
+  .dossier-submit .el-icon,
+  .dossier-form :deep(.el-input__wrapper) { transition: none; }
 }
 </style>

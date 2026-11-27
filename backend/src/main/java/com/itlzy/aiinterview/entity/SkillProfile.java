@@ -11,10 +11,8 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * 合同09 掌握度曲线（投影层，决策点 D）：一人一轴一键一行(uk)，坏了可从 t_review_log 全量重建。
- * axis 判别列物理隔离两轴(E1"两轴不许混用"的表结构形态)；mastery 是本地算术(W8 golden rule：模型不算数)。
- */
+/** 掌握度曲线实体：一人一轴一键一行，可从判分事件全量重建。
+ *  @author 林子阳 */
 @Data
 @TableName("t_skill_profile")
 public class SkillProfile {
@@ -24,19 +22,19 @@ public class SkillProfile {
 
     private Long userId;
 
-    /** 轴判别：tag=方向轴(kb_question.tags 快照) / category=题型轴(07 四值) */
+    /** 轴类型：tag 方向轴 / category 题型轴 */
     private String axis;
 
-    /** G2 不可变快照：PG 改 tag 不回刷历史曲线——跨引擎幽灵键条款 */
+    /** 轴键（不可变快照，源数据变更不回刷历史曲线） */
     private String axisKey;
 
-    /** 掌握度 0-100 = 最近 window 次判分均值×20 */
+    /** 掌握度 0-100 = 最近窗口判分均值×20 */
     private BigDecimal mastery;
 
-    /** 08 脚本：窗口自存（CSV 左旧右新）——方向轴跨引擎无法 JOIN 重算，denormalize 换自包含 */
+    /** 最近判分窗口（CSV 左旧右新，跨引擎无法关联重算故自存） */
     private String recentScores;
 
-    /** 累计事件数：样本稀的 62% 和样本厚的 62% 不是一回事 */
+    /** 累计事件数 */
     private Integer sampleCount;
 
     @TableLogic

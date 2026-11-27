@@ -1,0 +1,87 @@
+.record-list-preview,
+.interview-detail-preview { width: min(100%, 1120px); margin: 29px auto 0; }
+.record-list-heading,
+.record-list-row,
+.record-list-copy,
+.record-list-status,
+.record-detail-hero,
+.record-detail-stats,
+.record-detail-agenda > header,
+.record-detail-actions,
+.record-detail-actions > div:last-child { display: flex; align-items: center; }
+.record-list-heading { justify-content: space-between; gap: 18px; padding-bottom: 15px; border-bottom: 1px solid var(--rule); }
+.record-list-heading h2 { font-size: 17px; font-weight: 740; }
+.record-list-heading p { margin-top: 4px; color: var(--muted); font-size: 12px; }
+.record-list-heading > span { color: var(--muted); font-size: 12px; }
+.record-list-row { width: 100%; gap: 16px; min-height: 89px; padding: 14px 12px; border: 0; border-bottom: 1px solid var(--rule); color: var(--ink); background: transparent; text-align: left; transition: background-color 160ms ease; }
+.record-list-row:hover { background: #f5f2f8; }
+.record-type-icon { display: grid; flex: none; place-items: center; width: 38px; height: 38px; border-radius: 7px; color: var(--accent-deep); background: var(--accent-soft); font-size: 18px; }
+.record-list-copy { flex: 1; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.record-list-copy strong { font-size: 14px; font-weight: 700; }
+.record-list-copy > span, .record-list-date { color: var(--muted); font-size: 12px; }
+.record-list-score { display: grid; justify-items: end; min-width: 61px; }
+.record-list-score b { color: var(--accent-deep); font-size: 23px; line-height: 1; font-variant-numeric: tabular-nums; }
+.record-list-score small { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.record-list-status { gap: 5px; min-width: 66px; color: #286247; font-size: 11px; }
+.record-list-arrow { color: #817a87; }
+.record-list-note { margin-top: 10px; color: #77717e; font-size: 10px; text-align: right; }
+
+.record-back-link { display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; color: var(--muted); background: transparent; font-size: 12px; }
+.record-back-link:hover { color: var(--accent-deep); }
+.record-detail-hero { justify-content: space-between; gap: 22px; margin-top: 15px; padding: 23px 25px; border: 1px solid #e3dbea; border-radius: 8px; background: #f5f1f9; }
+.record-detail-copy { min-width: 0; }
+.record-detail-state { display: inline-flex; align-items: center; gap: 6px; color: #286247; font-size: 11px; font-weight: 650; }
+.record-detail-state > span { width: 7px; height: 7px; border-radius: 50%; background: #3b8863; }
+.record-detail-state.state-generating { color: var(--accent-deep); }
+.record-detail-state.state-generating > span { background: var(--accent); animation: report-pulse 1.3s ease-in-out infinite; }
+.record-detail-copy h2 { margin-top: 8px; font-size: 23px; line-height: 1.35; font-weight: 760; }
+.record-detail-copy > p { display: flex; align-items: center; gap: 8px; margin-top: 7px; color: var(--muted); font-size: 12px; }
+.record-detail-copy > p i { width: 3px; height: 3px; border-radius: 50%; background: #a39da9; }
+.record-detail-date { display: block; margin-top: 12px; color: #6c6572; font-size: 11px; }
+.record-detail-score { display: grid; flex: none; justify-items: center; gap: 3px; min-width: 90px; }
+.record-detail-score strong { color: var(--accent-deep); font-size: 43px; line-height: 1; font-variant-numeric: tabular-nums; }
+.record-detail-score span { color: var(--muted); font-size: 11px; }
+.record-detail-stats { flex-wrap: wrap; gap: 0; margin-top: 20px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+.record-detail-stats > div { display: grid; flex: 1; gap: 4px; min-width: 120px; padding: 0 17px; }
+.record-detail-stats > div:first-child { padding-left: 0; }
+.record-detail-stats > div + div { border-left: 1px solid var(--rule); }
+.record-detail-stats span { color: var(--muted); font-size: 11px; }
+.record-detail-stats strong { color: var(--ink); font-size: 14px; font-variant-numeric: tabular-nums; }
+.record-detail-agenda { margin-top: 25px; }
+.record-detail-agenda > header { justify-content: space-between; gap: 16px; }
+.record-detail-agenda h3 { font-size: 16px; font-weight: 740; }
+.record-detail-agenda p { margin-top: 4px; color: var(--muted); font-size: 12px; }
+.record-detail-agenda > header > span { color: var(--muted); font-size: 11px; }
+.agenda-topics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.agenda-topics > span { display: flex; align-items: center; gap: 8px; min-height: 56px; padding: 11px 13px; border-radius: 6px; color: #49434e; background: #f6f4f7; font-size: 12px; }
+.agenda-topics .el-icon { flex: none; color: var(--accent); font-size: 16px; }
+.record-detail-actions { justify-content: space-between; gap: 18px; margin-top: 29px; padding: 18px 0 0; border-top: 1px solid var(--rule); }
+.record-detail-actions h3 { font-size: 15px; font-weight: 720; }
+.record-detail-actions p { margin-top: 4px; color: var(--muted); font-size: 12px; }
+.record-detail-actions > div:last-child { gap: 8px; }
+.record-detail-actions .el-button { height: 38px; margin-left: 0; }
+.record-detail-actions .record-repeat-button { border: 0; color: #514c57; background: #f1eff3; }
+.record-detail-actions .record-repeat-button:hover { background: #e8e5ec; }
+
+@media (max-width: 660px) {
+  .record-list-preview, .interview-detail-preview { margin-top: 18px; }
+  .record-list-row { flex-wrap: wrap; gap: 8px 11px; }
+  .record-list-copy { flex-basis: calc(100% - 56px); }
+  .record-list-date { margin-left: 49px; }
+  .record-list-status { margin-left: auto; }
+  .record-list-arrow { display: none; }
+  .record-detail-hero { padding: 18px; }
+  .record-detail-copy h2 { font-size: 19px; }
+  .record-detail-score { min-width: 66px; }
+  .record-detail-score strong { font-size: 34px; }
+  .record-detail-stats > div { min-width: 50%; padding: 8px 11px; }
+  .record-detail-stats > div:nth-child(3) { border-left: 0; }
+  .agenda-topics { grid-template-columns: 1fr; gap: 7px; }
+  .record-detail-actions { align-items: flex-start; flex-direction: column; }
+  .record-detail-actions > div:last-child { width: 100%; }
+  .record-detail-actions .el-button { flex: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .record-list-row { transition: none; }
+}

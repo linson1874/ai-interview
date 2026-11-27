@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/** 场次轮询面（合同06 §2 GET /interview/{id}）：questions 仅 status=1 时非空（R1 题目窗口条款） */
+/** 场次详情响应：questions 仅在题目就绪状态非空 */
 @Data
 public class InterviewDetailVO {
 

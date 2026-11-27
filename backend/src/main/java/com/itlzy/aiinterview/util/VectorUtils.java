@@ -1,9 +1,7 @@
 package com.itlzy.aiinterview.util;
 
-/**
- * float[] → pgvector 字面量 "[a,b,c]"（08 在案账兑现：toLiteral 曾有三处私有副本，
- * 合同09 入队映射是第四个调用方——五而无一，抽公共出口）。
- */
+/** 向量工具：float[] 转为 pgvector 字面量 "[a,b,c]"。
+ *  @author 林子阳 */
 public final class VectorUtils {
 
     private VectorUtils() {

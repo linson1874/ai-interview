@@ -85,3 +85,101 @@ export interface InterviewDetailVO {
   createTime: string
   questions: QuestionItemVO[] | null
 }
+
+/** 07 §2：作答请求体（后端 AnswerDTO 镜像：@NotBlank、≤1000 字） */
+export interface AnswerParams {
+  answer: string
+}
+
+/** 07 §2 J2/S1：作答同步评分返回，三字段同批产出（S13 降级时 code=1 data=null，走拦截器 reject） */
+export interface AnswerScoreVO {
+  score: number
+  comment: string
+  refAnswer: string
+}
+
+/** 10 §E：模型用量收据（S1 回显衣钵，只随响应走不落库） */
+export interface UsageVO {
+  promptTokens: number
+  completionTokens: number
+}
+
+/**
+ * 10 §A/E：追问回执。strategy 为中文三值字面（#60 同一路字符串）；depth 是
+ * 派生值随响应走不落库（D 反幽灵字段判例）；source 供审计展示不进话术；usage 仅 llm 路径非 null
+ */
+export interface FollowupVO {
+  questionId: number
+  question: string
+  strategy: '下钻' | '换角度' | '降档'
+  source: 'kb' | 'llm'
+  depth: 1 | 2
+  usage: UsageVO | null
+}
+
+/** 07 §2 J3/S3：报告逐题明细行（题面+作答+判分三值；score=null = 未评分，P11 分母剔除） */
+export interface ReportDetailVO {
+  id: number
+  category: string
+  difficulty: number
+  question: string
+  userAnswer: string | null
+  score: number | null
+  scoreComment: string | null
+}
+
+/** 07 §2 J3/S3：薄弱点（category 四值枚举闸门执法；evidence 引题 id 供前端溯源） */
+export interface WeakPointVO {
+  category: '八股' | '项目' | '场景' | 'HR'
+  reason: string
+  evidence: number[]
+}
+
+/**
+ * 07 §2 J3：报告响应（分级：未交卷 code=1 拦截器弹；0/1/3 只回壳 reportStatus；
+ * 2 全量。overallScore=null = 已评<3 样本闸 P10——前端必须显式呈现"仅定性"）
+ */
+export interface ReportVO {
+  reportStatus: 0 | 1 | 2 | 3
+  overallScore: number | null
+  scoredCount: number | null
+  totalCount: number | null
+  summary: string | null
+  weakPoints: WeakPointVO[] | null
+  details: ReportDetailVO[] | null
+}
+
+/**
+ * 09 C(c)：今日复习清单项。materialSource 是诚实标签必须呈现（A 裁决三级阶梯：
+ * kb=题池已人工审核 / llm=AI 参考答案未经人工审核 / none=裸题干）；
+ * status=processing 的项照常列出但提交会被 CAS 弹回明示文案（W7 复活路径靠它可见）
+ */
+export interface ReviewItemVO {
+  itemId: number
+  question: string
+  material: string | null
+  materialSource: 'kb' | 'llm' | 'none'
+  boxNo: number
+  lastScore: number | null
+  nextReviewAt: string
+  status: 'due' | 'processing'
+}
+
+/** 09：复习提交请求体（itemId=复习域自己的 id，不是场次题 id；answer 口径沿 07 同一把尺） */
+export interface ReviewAnswerParams {
+  itemId: number
+  answer: string
+}
+
+/** 09 B：复习判分回执——转移可见化是灵魂："回盒一"还是"前进到盒2"必须让用户看见 */
+export interface ReviewAnswerVO {
+  score: number
+  comment: string
+  refAnswer: string
+  /** 转移后的盒号（不是转移前！用户关心下一步） */
+  boxNo: number
+  /** promote / demote / freeze（t_review_log.result 同词汇表） */
+  result: 'promote' | 'demote' | 'freeze'
+  /** 下次到期——"3 天后再见"是复习闭环给用户的唯一承诺 */
+  nextReviewAt: string
+}

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/** 决策器手算对拍（X1-X4 的算术面，零 token 零库）：B 四边逐格复算 */
+/** 追问决策器手算对拍测试（零 token 零库）。 */
 class FollowupDecisionTest {
 
     @Test

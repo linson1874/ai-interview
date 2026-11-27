@@ -4,7 +4,7 @@ import com.itlzy.aiinterview.util.LenientScoringConverter;
 import com.itlzy.aiinterview.vo.ScoringSchema;
 import org.junit.jupiter.api.Test;
 
-/** L2 清洗层单测——new 就能用，不碰网络不碰容器，Day8 花钱冒烟的真身这次免费重演 */
+/** 评分输出清洗器单元测试。 */
 class LenientScoringConverterTest {
 
     private final LenientScoringConverter converter = new LenientScoringConverter();
@@ -33,13 +33,13 @@ class LenientScoringConverterTest {
             converter.convert("   ");
             throw new AssertionError("空输出应抛 IllegalArgumentException——L2 不吞错");
         } catch (IllegalArgumentException expected) {
-            // 收到预期异常=通过，别笑，这是断言"炸"的标准姿势
+            // 收到预期异常即通过
         }
     }
 
     @Test
     void 探针一_缺字段会怎样() {
-        // ⚠️ 探针用例：无断言，print 实测真相，工单③ Service 硬闸门写法以它为准
+        // 探针用例：无断言，仅打印实测行为
         try {
             ScoringSchema s = converter.convert("{\"score\":5}");
             System.out.println("[探针1] 缺字段=通过 score=" + s.getScore()
@@ -51,7 +51,7 @@ class LenientScoringConverterTest {
 
     @Test
     void 探针二_超界分会怎样() {
-        // 预测：Lenient 层放行（它只管 JSON 语法不管语义）——所以 0-5 区间校验必须活在工单③
+        // 预测：清洗层只管 JSON 语法，超界分由上层校验拦截
         try {
             ScoringSchema s = converter.convert("{\"score\":9,\"comment\":\"被注入了\",\"refAnswer\":\"x\"}");
             System.out.println("[探针2] 超界=通过 score=" + s.getScore());

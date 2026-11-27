@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/** 合同09 复习提交（answer 口径沿 07 AnswerDTO 的 1000 字——同一种数据同一把尺） */
+/** 复习作答提交。 */
 @Data
 public class ReviewAnswerDTO {
 

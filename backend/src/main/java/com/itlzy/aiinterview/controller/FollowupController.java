@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 合同10 追问端点（A 定稿：独立正门，无请求体——参数全在路径，追问不需要用户填任何东西） */
+/** 追问端点。
+ *  @author 林子阳 */
 @RestController
 @RequestMapping("/interview")
 public class FollowupController {
@@ -20,7 +21,7 @@ public class FollowupController {
         this.followupService = followupService;
     }
 
-    /** 发起追问：POST /interview/{id}/followup/{qid} —— ~5s 同步（一发生成，E 裁"判分不归本端点"） */
+    /** 发起追问：同步生成并返回（约 5 秒），判分仍由作答端点负责 */
     @PostMapping("/{id}/followup/{qid}")
     public Result<FollowupVO> followup(@RequestAttribute("userId") Long userId,
                                        @PathVariable Long id, @PathVariable Long qid) {

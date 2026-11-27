@@ -17,13 +17,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * 合同09 E 节调度器（v1 形态 = 投影修理工 + 到期雷达，不是判分员）。
- * 1. 单实例 fixedDelay 串行，不加认领层（E 裁决：机制不为未发生的部署形态付费）；
- * 2. 账本是真相源：/review/today 查 MySQL 的 idx_user_due，ZSET 只做全局到期观测——
- *    投影级故障爆炸半径=观测盲区，业务零感（06"队列可死、账本不死"平移）；
- * 3. 判分不在这里：v1 判分由用户提交驱动（/review/answer 端点），本类自动判分=替用户答题，语义越权。
- */
+/** 复习调度器：定期用数据库账本重建 Redis 到期投影，并探测到期项；判分由用户提交驱动，不在本类。
+ *  @author 林子阳 */
 @Slf4j
 @Component
 public class ReviewScheduler {
@@ -38,22 +33,19 @@ public class ReviewScheduler {
         this.redisTemplate = redisTemplate;
     }
 
-    /** 启动编排：账本→投影全量重建（06 原型③ NOGROUP 自愈平移）。
-     *  收口单一 @PostConstruct：同类多个的执行顺序 JVM 不保证（NOGROUP 血案家法） */
+    /** 启动时按账本全量重建投影 */
     @PostConstruct
     public void init() {
         syncProjection();
     }
 
-    /** 周期对账（5 分钟，06 sweep 同款节拍）：救钩子"账本成功、ZADD 失败"的漏网行，
-     *  把投影滞后账本的窗口封顶在 5 分钟 */
+    /** 每 5 分钟对账：以数据库账本为准重建 Redis 投影，封顶投影滞后窗口 */
     @Scheduled(fixedDelay = 300_000)
     public void syncProjection() {
         try {
             List<ReviewItem> all = reviewItemMapper.selectList(new LambdaQueryWrapper<ReviewItem>()
                     .isNotNull(ReviewItem::getNextReviewAt));
-            // DEL+全量 ZADD 而非逐条 upsert：逻辑删除的幽灵成员一并清掉；n<=300 的 O(n) 不值得省。
-            // DEL 与 ZADD 之间崩溃=投影空窗，但投影可死账本不死，下轮对账/重启自愈
+            // 删后全量重建而非逐条更新：逻辑删除的幽灵成员一并清掉；中途崩溃下轮自愈
             redisTemplate.delete(ReviewKeys.QUEUE_KEY);
             if (all.isEmpty()) {
                 log.info("复习投影对账：账本空，队列已清空");
@@ -72,8 +64,7 @@ public class ReviewScheduler {
         }
     }
 
-    /** 到期雷达（60s）：ZRANGEBYSCORE 0..now 不删除（E 主链第 1 步）。
-     *  v1 捞到到期只打日志——判分/回队归 /review/answer 端点；本方法同时是 v2 推送的挂载点 */
+    /** 每 60 秒探测到期项，仅记日志不删除（领取与判分由作答端点负责） */
     @Scheduled(fixedDelay = 60_000)
     public void peekDue() {
         try {

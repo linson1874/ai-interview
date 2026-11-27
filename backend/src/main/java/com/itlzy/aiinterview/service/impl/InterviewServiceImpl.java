@@ -2,6 +2,7 @@ package com.itlzy.aiinterview.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itlzy.aiinterview.common.BusinessException;
 import com.itlzy.aiinterview.common.InterviewStream;
@@ -25,9 +26,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+/** 面试场次业务逻辑：创建/详情/作答/交卷/报告/分页/取消。
+ *  @author 林子阳 */
 @Service
 public class InterviewServiceImpl implements InterviewService {
 
@@ -36,10 +41,10 @@ public class InterviewServiceImpl implements InterviewService {
     private final InterviewMapper interviewMapper;
     private final InterviewQuestionMapper questionMapper;
     private final ResumeService resumeService;
-    private final AiService aiService;            // 合同07 评分链路入口（同步链路直调，不走流——J1 拍板）
+    private final AiService aiService;                 // 同步评分入口
     private final ObjectMapper objectMapper;
-    private final StringRedisTemplate redisTemplate;   // 和门票存根同款模板，String 序列化=XRANGE 肉眼可读（H1 排障纪律吃到红利）
-    private final ReviewService reviewService;         // 合同09 入队钩子（内部自吞异常，不连坐主链）
+    private final StringRedisTemplate redisTemplate;   // String 序列化，消息体肉眼可读
+    private final ReviewService reviewService;         // 复习入队钩子（内部自吞异常，不影响主链）
 
     public InterviewServiceImpl(InterviewMapper interviewMapper,
                                 InterviewQuestionMapper questionMapper,
@@ -59,18 +64,18 @@ public class InterviewServiceImpl implements InterviewService {
 
     @Override
     public InterviewCreateVO create(Long userId, CreateInterviewDTO dto) {
-        // 1. 归属门：复用 03 的 detail()——404 门+防枚举语义一并继承（05 同款先例，不许新发明）
+        // 校验简历归属，不存在或非本人直接 404
         resumeService.detail(userId, dto.getResumeId());
 
-        // 2. 落库 status=0（排队）。IdType.AUTO 的 insert 会把自增 id 回填进实体——下一发 XADD 的内容就是它
+        // 落库排队态；insert 回填自增 id，供消息体使用
         Interview interview = new Interview();
         interview.setUserId(userId);
         interview.setResumeId(dto.getResumeId());
         interview.setStatus(0);
-        interview.setQuestionCount(dto.getCount() == null ? 5 : dto.getCount());   // 缺省主源在此（03脚本注释认领）
+        interview.setQuestionCount(dto.getCount() == null ? 5 : dto.getCount());   // 未传时缺省 5 题
         interviewMapper.insert(interview);
 
-        // 3. 上输送带（双写补偿逻辑收口在 enqueueWithCompensation，retry 重投复用同一发）
+        // 投递出题消息
         enqueueWithCompensation(interview.getId());
 
         InterviewCreateVO vo = new InterviewCreateVO();
@@ -78,10 +83,10 @@ public class InterviewServiceImpl implements InterviewService {
         return vo;
     }
 
-    /** 轮询面（合同06 §2 GET）：归属门 D5 双条件查询；题目仅 status=1 附带（R1 窗口条款） */
+    /** 查询场次详情：仅题目就绪状态附带题目列表 */
     @Override
     public InterviewDetailVO detail(Long userId, Long interviewId) {
-        // 归属即消失：查无=404，不区分"不存在/别人的"（03/05 同款语义第三次复用）
+        // 他人或不存在统一 404，不泄露存在性
         Interview interview = interviewMapper.selectOne(new LambdaQueryWrapper<Interview>()
                 .eq(Interview::getId, interviewId)
                 .eq(Interview::getUserId, userId));
@@ -94,7 +99,7 @@ public class InterviewServiceImpl implements InterviewService {
         vo.setStatus(interview.getStatus());
         vo.setQuestionCount(interview.getQuestionCount());
         vo.setCreateTime(interview.getCreateTime());
-        // 只有"题目就绪"才附题；0/4 进行中 questions=null，3 失败也 null（前端看 status 分流）
+        // 仅进行中状态附带题目，其余状态前端看 status 分流
         if (interview.getStatus() == 1) {
             List<QuestionItemVO> items = questionMapper.selectList(new LambdaQueryWrapper<InterviewQuestion>()
                             .eq(InterviewQuestion::getInterviewId, interviewId)
@@ -102,10 +107,10 @@ public class InterviewServiceImpl implements InterviewService {
                             .orderByAsc(InterviewQuestion::getOrderNo))
                     .stream().map(q -> {
                         QuestionItemVO item = new QuestionItemVO();
-                        item.setId(q.getId());               // 07 作答端点的引用键（形状漏项补齐）
+                        item.setId(q.getId());               // 作答端点的引用键
                         item.setCategory(q.getCategory());
                         item.setDifficulty(q.getDifficulty());
-                        item.setQuestion(q.getQuestionContent());   // 表的长名回 VO 的短名，边界翻译在此
+                        item.setQuestion(q.getQuestionContent());   // VO 短名映射表的长名
                         return item;
                     }).toList();
             vo.setQuestions(items);
@@ -113,30 +118,30 @@ public class InterviewServiceImpl implements InterviewService {
         return vo;
     }
 
-    /** 失败返工（合同06 H5）：归属门 → CAS 3→0 → 重投同场。先翻态后投消息的顺序不可反 */
+    /** 重试失败场次：先 CAS 置回排队态再重投消息，顺序不可反 */
     @Override
     public void retry(Long userId, Long id) {
         Interview own = interviewMapper.selectOne(new LambdaQueryWrapper<Interview>()
                 .eq(Interview::getId, id)
                 .eq(Interview::getUserId, userId));
         if (own == null) {
-            throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");   // T8：他人场次=404，不泄存在性
+            throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");   // 他人或不存在统一 404
         }
-        // 只认失败态的 CAS——双击第二下/对进行中场次重试都在这道闸前被弹回（T6）
+        // 仅失败态可通过 CAS，其余状态直接报错
         int won = interviewMapper.update(null, new LambdaUpdateWrapper<Interview>()
                 .eq(Interview::getId, id)
                 .eq(Interview::getStatus, 3)
                 .set(Interview::getStatus, 0));
         if (won == 0) {
-            throw new BusinessException(ResultCode.BUSINESS_FAIL, "生成进行中，无需重试");   // code=1（导师 T6 口径，非 400）
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "生成进行中，无需重试");
         }
-        enqueueWithCompensation(id);   // 重投同一 interviewId，消费者见 IN(0,4) 接活
+        enqueueWithCompensation(id);   // 重投同一场次 id
     }
 
-    /** 作答并同步评分（合同07 J1/J2/S2 的实体化，六步对应工单③卡 e 段） */
+    /** 提交作答并同步评分 */
     @Override
     public AnswerScoreVO answer(Long userId, Long interviewId, Long questionId, AnswerDTO dto) {
-        // ① 场次归属+状态门：非"进行中"不许作答——P5 的 status=2 封卷闸、题目未就绪闸，同一处收口
+        // 场次归属与状态校验：仅进行中可作答
         Interview own = interviewMapper.selectOne(new LambdaQueryWrapper<Interview>()
                 .eq(Interview::getId, interviewId)
                 .eq(Interview::getUserId, userId));
@@ -147,7 +152,7 @@ public class InterviewServiceImpl implements InterviewService {
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "当前场次不可作答");
         }
 
-        // ② 题目归属门：qid 必须属于本场——P3"作答他人题目"的 404 三态统一在此兑现
+        // 题目必须属于本场
         InterviewQuestion q = questionMapper.selectOne(new LambdaQueryWrapper<InterviewQuestion>()
                 .eq(InterviewQuestion::getId, questionId)
                 .eq(InterviewQuestion::getInterviewId, interviewId));
@@ -155,26 +160,23 @@ public class InterviewServiceImpl implements InterviewService {
             throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");
         }
 
-        // ③ 先落答案 + 同发清分（S2 语义定稿的实体化）：评分窗口里库内是"已作答待评分"，
-        //    绝不出现"新答案旧分数"——这就是 P4 断言的前半段
+        // 先落答案并清空旧分，评分期间库内为"已作答待评分"状态
         questionMapper.update(null, new LambdaUpdateWrapper<InterviewQuestion>()
                 .eq(InterviewQuestion::getId, questionId)
                 .set(InterviewQuestion::getUserAnswer, dto.getAnswer())
                 .set(InterviewQuestion::getScore, null));
 
-        // ④ 评分调用（~10s）：炸了走降级边——答案保住、score 留在 null、不阻塞下一题（J1）
+        // 调用大模型评分（约 10 秒）；失败时答案已保留，可重新提交重评
         ScoringSchema scored;
         try {
             scored = aiService.scoreQuestion(q.getQuestionContent(), q.getDifficulty(), dto.getAnswer());
         } catch (Exception e) {
             log.warn("评分失败，答案已保留待重评 questionId={}", questionId, e);
-            // S13（裁决#30）：降级必须明示——code=0+三null 是静默欺骗客户端。
-            // 答案已落库（③步），本方法无事务，抛异常不回滚作答——重交同一答案即重评
+            // 评分失败显式报错；本方法无事务，抛异常不回滚已落库的答案
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "本题评分未成功，可重新提交重评");
         }
 
-        // ⑤ 三值回写 + S2 一致性闸：WHERE user_answer=被评原文——这10秒里用户又重交的话，
-        //    新答案已覆盖库，这条迟到评分等值不匹配→0行→丢弃（P9 的 stale 分支）
+        // 评分回写带一致性闸：仅当答案未被更新时写入；期间用户重交则 0 行命中，丢弃迟到评分
         int fresh = questionMapper.update(null, new LambdaUpdateWrapper<InterviewQuestion>()
                 .eq(InterviewQuestion::getId, questionId)
                 .eq(InterviewQuestion::getUserAnswer, dto.getAnswer())
@@ -183,15 +185,14 @@ public class InterviewServiceImpl implements InterviewService {
                 .set(InterviewQuestion::getRefAnswer, scored.getRefAnswer()));
         if (fresh == 0) {
             log.warn("stale 评分丢弃 questionId={}", questionId);
-            // S13 类推：静默三 null 同样是欺骗。⚠ 文案为技术窗口类推自拟（导师只点了评分失败分支），报备追认
+            // 静默丢弃会欺骗客户端，改为显式报错
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "已有更新版作答提交，本次评分结果已作废");
         }
 
-        // ⑤.5 入队钩子（合同09 C/B：score<=2 错题入复习队列）——挂在回写成功之后：
-        //    只有真落库的分数才配驱动入队（stale 分支已抛出，到不了这）；方法内部全量自吞，主链零感
+        // 错题（score<=2）入复习队列；内部自吞异常，不影响主链；仅真落库的分数才触发
         reviewService.enqueueIfWrong(userId, q, scored.getScore());
 
-        // ⑥ 同步返回三值（P1"三值同列原子落库"的镜像面）
+        // 同步返回评分三值
         AnswerScoreVO vo = new AnswerScoreVO();
         vo.setScore(scored.getScore());
         vo.setComment(scored.getComment());
@@ -199,6 +200,79 @@ public class InterviewServiceImpl implements InterviewService {
         return vo;
     }
 
+    /** 分页查询本人面试记录；按创建时间倒序，次键 id 防翻页漂移 */
+    @Override
+    public PageVO<InterviewListItemVO> page(Long userId, long page, long size, Integer statusFilter) {
+        validatePageParams(page, size, statusFilter);
+        Page<Interview> mpPage = new Page<>(page, size);
+        interviewMapper.selectPage(mpPage, new LambdaQueryWrapper<Interview>()
+                .eq(Interview::getUserId, userId)                                    // 只查本人的记录
+                .eq(statusFilter != null, Interview::getStatus, statusFilter)
+                .orderByDesc(Interview::getCreateTime)
+                .orderByDesc(Interview::getId));
+        return PageVO.of(mpPage, this::toInterviewListItemVO);
+    }
+
+    /** 分页参数校验：越界与非法筛选状态直接报参数错误 */
+    static void validatePageParams(long page, long size, Integer statusFilter) {
+        if (size < 1 || size > 50) {
+            throw new BusinessException(ResultCode.PARAM_INVALID, "每页条数需在1-50之间");
+        }
+        if (page < 1) {
+            throw new BusinessException(ResultCode.PARAM_INVALID, "页码不能小于1");
+        }
+        if (statusFilter != null && statusFilter != 1 && statusFilter != 2
+                && statusFilter != 3 && statusFilter != 5) {
+            throw new BusinessException(ResultCode.PARAM_INVALID, "筛选状态不支持");
+        }
+    }
+
+    /** 列表行 VO 映射，大字段 summary/report_json 不进列表 */
+    private InterviewListItemVO toInterviewListItemVO(Interview iv) {
+        InterviewListItemVO vo = new InterviewListItemVO();
+        vo.setId(iv.getId());
+        vo.setStatus(iv.getStatus());
+        vo.setQuestionCount(iv.getQuestionCount());
+        vo.setOverallScore(iv.getOverallScore());
+        vo.setCreateTime(iv.getCreateTime());
+        vo.setResumeId(iv.getResumeId());
+        return vo;
+    }
+
+    /** 取消未就绪的面试场次（仅排队中/生成中可取消，重复取消视为成功） */
+    @Override
+    public void cancel(Long userId, Long id) {
+        Interview own = interviewMapper.selectOne(new LambdaQueryWrapper<Interview>()
+                .eq(Interview::getId, id)
+                .eq(Interview::getUserId, userId));
+        if (own == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");   // 不区分不存在/他人，避免泄露资源存在性
+        }
+        // 已取消的场次重复取消视为成功
+        if (own.getStatus() == 5) {
+            return;
+        }
+        if (own.getStatus() == 2) {
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "本场已交卷，无法取消");
+        }
+        if (own.getStatus() == 1) {
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "场次进行中，不可取消");
+        }
+        if (own.getStatus() == 3) {
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "生成失败场次不可取消");
+        }
+        // 归属与状态条件在同一条 UPDATE 中校验，将排队中/生成中置为已取消；0 行命中说明状态已被并发迁移
+        int won = interviewMapper.update(null, new LambdaUpdateWrapper<Interview>()
+                .eq(Interview::getId, id)
+                .eq(Interview::getUserId, userId)
+                .in(Interview::getStatus, 0, 4)
+                .set(Interview::getStatus, 5));
+        if (won == 0) {
+            throw new BusinessException(ResultCode.BUSINESS_FAIL, "当前状态不可取消");
+        }
+    }
+
+    /** 交卷：置为已交卷并投递报告生成消息 */
     @Override
     public void finish(Long userId, Long id) {
         Interview own = interviewMapper.selectOne(new LambdaQueryWrapper<Interview>()
@@ -206,7 +280,7 @@ public class InterviewServiceImpl implements InterviewService {
         if (own == null) {
             throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");
         }
-        // 1→2 原子边（06 §1 预埋今天兑现）；双击第二下 CAS 0 行=防抖，与 retry 同构
+        // 仅进行中可交卷，CAS 防重复提交
         int won = interviewMapper.update(null, new LambdaUpdateWrapper<Interview>()
                 .eq(Interview::getId, id)
                 .eq(Interview::getStatus, 1)
@@ -214,22 +288,22 @@ public class InterviewServiceImpl implements InterviewService {
         if (won == 0) {
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "已交卷或场次未完成，请勿重复提交");
         }
-        enqueueReport(id);   // 输送带收口：XADD+0→3 补偿见 enqueueReport（S4 注记随方法走）
+        enqueueReport(id);   // 投递报告生成消息
     }
 
+    /** 查询报告：按报告生成状态分级返回 */
     @Override
     public ReportVO getReport(Long userId, Long interviewId) {
         Interview iv = interviewMapper.selectOne(new LambdaQueryWrapper<Interview>()
                 .eq(Interview::getId, interviewId).eq(Interview::getUserId, userId));
         if (iv == null) {
-            throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");   // 06 归属三态
+            throw new BusinessException(ResultCode.NOT_FOUND, "资源不存在或已删除");
         }
-        // P6 交卷门：未交卷(状态≠2)拒绝——与作答端点同闸（分母保护，status=2 后作答也被弹死）
+        // 未交卷不能查报告
         if (iv.getStatus() != 2) {
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "请先交卷生成报告");
         }
-        // 分级响应：0排队/1生成中/3失败都是合法状态——只回 reportStatus，前端据此轮询或引导 rebuild；
-        // 2就绪才回全套（report_json 是消费者本地拼好的完整快照，GET 零计算——J1"模型不算数"的存储面）
+        // 未就绪只回报告状态，前端据此轮询或引导重生成；就绪时返回完整快照
         if (iv.getReportStatus() != 2 || iv.getReportJson() == null) {
             ReportVO shell = new ReportVO();
             shell.setReportStatus(iv.getReportStatus());
@@ -238,14 +312,58 @@ public class InterviewServiceImpl implements InterviewService {
         try {
             ReportVO vo = objectMapper.readValue(iv.getReportJson(), ReportVO.class);
             vo.setReportStatus(2);
+            attachFollowups(interviewId, vo);   // 读时富化追问树，不改快照
             return vo;
         } catch (Exception e) {
-            // S9 脏报告永不入库，理论读不炸——防御不吞：真炸了引导用户一键自救
+            // 快照损坏时引导用户重新生成
             log.error("report_json 反序列化失败 interviewId={}", interviewId, e);
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "报告数据异常，请点击重新生成");
         }
     }
 
+    /** 报告主题行挂追问树：读时富化，不改动 report_json 快照；无追问为空数组；depth 沿父链派生 */
+    private void attachFollowups(Long interviewId, ReportVO vo) {
+        if (vo.getDetails() == null || vo.getDetails().isEmpty()) {
+            return;
+        }
+        List<InterviewQuestion> followupRows = questionMapper.selectList(new LambdaQueryWrapper<InterviewQuestion>()
+                .eq(InterviewQuestion::getInterviewId, interviewId)
+                .isNotNull(InterviewQuestion::getParentQuestionId)
+                .orderByAsc(InterviewQuestion::getId));
+        if (followupRows.isEmpty()) {
+            vo.getDetails().forEach(d -> d.setFollowups(List.of()));
+            return;
+        }
+        Map<Long, List<InterviewQuestion>> byParent = followupRows.stream()
+                .collect(Collectors.groupingBy(InterviewQuestion::getParentQuestionId));
+        vo.getDetails().forEach(d -> d.setFollowups(buildFollowupChildren(d.getId(), byParent, 1)));
+    }
+
+    /** 递归组装追问树：一父至多一子，叶子返回空数组 */
+    static List<ReportFollowupVO> buildFollowupChildren(Long parentId,
+                                                         Map<Long, List<InterviewQuestion>> byParent,
+                                                         int depth) {
+        List<InterviewQuestion> children = byParent.get(parentId);
+        if (children == null || children.isEmpty()) {
+            return List.of();
+        }
+        List<ReportFollowupVO> result = new ArrayList<>();
+        for (InterviewQuestion q : children) {
+            ReportFollowupVO f = new ReportFollowupVO();
+            f.setId(q.getId());
+            f.setQuestion(q.getQuestionContent());   // VO 短名映射表的长名
+            f.setStrategy(q.getStrategy());          // 策略中文字面直接使用库内值
+            f.setDepth(depth);
+            f.setScore(q.getScore());
+            f.setScoreComment(q.getScoreComment());
+            f.setUserAnswer(q.getUserAnswer());
+            f.setFollowups(buildFollowupChildren(q.getId(), byParent, depth + 1));
+            result.add(f);
+        }
+        return result;
+    }
+
+    /** 手动重新生成报告 */
     @Override
     public void rebuildReport(Long userId, Long interviewId) {
         Interview iv = interviewMapper.selectOne(new LambdaQueryWrapper<Interview>()
@@ -256,9 +374,7 @@ public class InterviewServiceImpl implements InterviewService {
         if (iv.getStatus() != 2) {
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "请先交卷生成报告");
         }
-        // S4 防抖（retry 同构）：正在生成(1)时 CAS 0 行弹死。
-        // IN(0,2,3) 比 S4 原文(2/3)多一个 0：救"CAS后XADD前崩溃"的孤魂——report 链没有 outbox，
-        // rebuild 是唯一救路；重复投不烧双份钱，因消费者抢单 CAS IN(0,1) 天然幂等。⚠ 扩展项，验收时报导师过目
+        // 生成中(1)防抖；合法前置集里的 0 用于救"CAS 后投递前崩溃"的孤儿状态，重复投递由消费者幂等兜底
         int won = interviewMapper.update(null, new LambdaUpdateWrapper<Interview>()
                 .eq(Interview::getId, interviewId)
                 .in(Interview::getReportStatus, 0, 2, 3)
@@ -269,8 +385,7 @@ public class InterviewServiceImpl implements InterviewService {
         enqueueReport(interviewId);
     }
 
-    /** 报告输送带（finish 与 rebuild 共用——同一条 XADD+补偿边不许有两个副本）：
-     *  XADD 失败→0→3 补偿（3 是 rebuild 合法入口，一键自救，不上发件箱——S4） */
+    /** 投递报告生成消息（交卷与重新生成共用）；投递失败置为报告失败态，供手动重试 */
     private void enqueueReport(Long interviewId) {
         try {
             redisTemplate.opsForStream().add(
@@ -288,11 +403,7 @@ public class InterviewServiceImpl implements InterviewService {
         }
     }
 
-    /** R7（v1.2 裁决）事务性发件箱补投：系统动作救"丢失(0不碰)"——每60s扫 status=0 且
-     *  update_time 60s 没动的行，复用 enqueueWithCompensation 重上输送带（不改状态、不碰状态机边）。
-     *  若消息其实已在飞，消费者抢单CAS+先删后插自然去重。覆盖两类孤魂：insert与XADD之间崩溃、
-     *  演练DEL火化消息（活标本 id=1、2：部署后 60s 内自愈即为其验收）。
-     *  与 retry 分工：retry=用户动作救"失败(3→0)"；补投=系统动作救"丢失(0)" */
+    /** 补投兜底：每 60 秒扫描排队超过 60 秒未动的场次重投消息；不改状态，重复消息由消费者幂等去重 */
     @Scheduled(fixedDelay = 60_000)
     public void outboxResend() {
         List<Interview> orphans = interviewMapper.selectList(new LambdaQueryWrapper<Interview>()
@@ -303,23 +414,23 @@ public class InterviewServiceImpl implements InterviewService {
             try {
                 enqueueWithCompensation(o.getId());
             } catch (Exception e) {
-                // 单行失败不炸整批：enqueueWithCompensation 内部已把该行补偿翻3，这里只需继续救下一魂
+                // 单行失败不影响整批：内部已补偿为失败态，继续处理下一行
                 log.warn("发件箱补投失败（内部已补偿为失败态）interviewId={}", o.getId());
             }
         }
     }
 
-    /** XADD 带 MAXLEN~（R4）；双写无分布式事务，XADD 失败→就地翻3，不留"永远排队"的孤魂（决策③，F组演练验真） */
+    /** 投递出题消息；投递失败置为失败态，不留永远排队的孤儿 */
     private void enqueueWithCompensation(Long interviewId) {
         try {
             redisTemplate.opsForStream().add(
                     InterviewStream.STREAM_KEY,
-                    Map.of("interviewId", String.valueOf(interviewId)),   // H1：线索不是行李，就这一个字段
+                    Map.of("interviewId", String.valueOf(interviewId)),   // 消息体只带场次 id
                     RedisStreamCommands.XAddOptions.maxlen(InterviewStream.MAX_LEN)
-                            .approximateTrimming(true));       // = XADD ... MAXLEN ~ 10000，javap 验过货
+                            .approximateTrimming(true));
         } catch (Exception e) {
             log.error("XADD失败，场次回滚为失败态 interviewId={}", interviewId, e);
-            // 翻3也走状态机边（WHERE 带前置状态），不是裸 UPDATE
+            // 带前置状态的定向置为失败
             interviewMapper.update(null, new LambdaUpdateWrapper<Interview>()
                     .eq(Interview::getId, interviewId)
                     .eq(Interview::getStatus, 0)

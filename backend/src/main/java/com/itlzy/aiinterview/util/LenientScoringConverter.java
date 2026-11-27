@@ -7,10 +7,7 @@ import org.springframework.ai.converter.StructuredOutputConverter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** 评分输出清洗器（合同07 工单②）——整版分叉自 LenientQuestionsConverter，只换 schema 类型三件套。
- *  为什么复制不抽父类：两个 schema 将随阶段四/五各自演化（出题带 category/difficulty，
- *  评分后续可能带 evidence 引用），此刻抽公共父类=为未来的分叉提前打石膏。
- *  37 行的重复是教学版的价格，不是架构的债。 */
+/** 评分输出清洗器：剥离代码围栏与杂质后交给 JSON 解析。结构相似但与出题清洗器各自演化，不抽父类。 */
 public class LenientScoringConverter implements StructuredOutputConverter<ScoringSchema> {
 
     private static final Pattern FENCE = Pattern.compile("```(?:json)?\\s*([\\s\\S]*?)```");
@@ -32,7 +29,7 @@ public class LenientScoringConverter implements StructuredOutputConverter<Scorin
         return delegate.convert(json);
     }
 
-    /** 无围栏的寒暄脏：截第一个 { 到最后一个 }；压根没花括号就原样交给 delegate 抛——L2 不吞错 */
+    /** 无代码围栏时截取第一个 { 到最后一个 }；无花括号则原样交由解析器报错 */
     private String extractBraces(String s) {
         int start = s.indexOf('{');
         int end = s.lastIndexOf('}');

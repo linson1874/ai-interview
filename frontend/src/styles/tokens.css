@@ -1,59 +1,66 @@
 /**
- * 设计令牌（全局唯一出处）。
- * 当前视觉世界：**动物园导览图**（2026-11-24 定稿）——奶油水域 + 苹果绿陆地 +
- * 一条 SVG 海岸线，控制件一律胶囊形。全站以 --zoo-* 为准。
- * 下方 --ai-* 是上一版"品类标准"世界的遗留令牌，仅为未迁移页面保留，不要再新增使用。
+ * 设计令牌（全局唯一出处）。当前主题为「面试档案」：深墨、纸白、黄铜批注。
+ * --dossier-* 是新页面的语义令牌；--zoo-* 保留为旧业务页兼容别名。
  */
 :root {
   color-scheme: light;
 
+  --dossier-ink: #151a21;
+  --dossier-ink-2: #222a34;
+  --dossier-paper: #f5f5f1;
+  --dossier-sheet: #ffffff;
+  --dossier-brass: #b08a4a;
+  --dossier-brass-light: #d9c5a0;
+  --dossier-slate: #626c77;
+  --dossier-rule: #dcded9;
+  --dossier-brick: #a94639;
+  --dossier-brick-soft: #f4e8e6;
+  --dossier-success: #486657;
+  --dossier-success-soft: #e8efea;
+  --dossier-serif: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;
+
+  /* Legacy aliases keep existing feature views on the same visual system. */
+  --zoo-water: var(--dossier-paper);
+  --zoo-land: var(--dossier-brass-light);
+  --zoo-ink: var(--dossier-ink);
+  --zoo-ink-soft: var(--dossier-slate);
+  --zoo-sun: var(--dossier-brass);
+  --zoo-sun-deep: #9a743c;
+  --zoo-sun-press: #80602e;
+  --zoo-coral: var(--dossier-brick-soft);
+  --zoo-sky: #e8ecee;
+  --zoo-lilac: #eee9df;
+  --zoo-alert: var(--dossier-brick);
+  --zoo-cap: 4px;
+  --zoo-line: 1px;
+  --zoo-paper: var(--dossier-sheet);
+  --zoo-paper-line: var(--dossier-rule);
+  --zoo-rail: var(--dossier-paper);
+
   /* 表面 */
-  --ai-bg: #f7f8fa;
-  --ai-surface: #ffffff;
-  --ai-surface-sunken: #f2f4f7;
-  --ai-border: #e4e7ec;
-  --ai-border-strong: #cfd4dc;
+  --ai-bg: var(--dossier-paper);
+  --ai-surface: var(--dossier-sheet);
+  --ai-surface-sunken: #eeefeb;
+  --ai-border: var(--dossier-rule);
+  --ai-border-strong: #b9bdb8;
 
   /* 文字三级 */
-  --ai-ink: #101828;
-  --ai-ink-2: #475467;
-  --ai-ink-3: #667085;
+  --ai-ink: var(--dossier-ink);
+  --ai-ink-2: var(--dossier-slate);
+  --ai-ink-3: #77818a;
 
   /* 动作 */
-  --ai-primary: #1d4ed8;
-  --ai-primary-hover: #1a45c0;
-  --ai-primary-active: #163aa3;
-  --ai-primary-soft: rgba(29, 78, 216, 0.12);
+  --ai-primary: var(--dossier-ink);
+  --ai-primary-hover: var(--dossier-ink-2);
+  --ai-primary-active: #10151b;
+  --ai-primary-soft: rgba(176, 138, 74, 0.14);
 
   /* 语义 */
-  --ai-danger: #c0392b;
-  --ai-danger-soft: rgba(192, 57, 43, 0.1);
+  --ai-danger: var(--dossier-brick);
+  --ai-danger-soft: var(--dossier-brick-soft);
 
   /* 深度：偏移 + 软模糊；页面里不许再写裸色值 */
-  --ai-shadow-card: 0 1px 3px rgba(16, 24, 40, 0.06);
-
-  /* ── 导览图世界（2026-11-24 定稿，全站唯一视觉世界）────────────────
-     奶油是水域、苹果绿是陆地，一条平滑海岸线分开；控制件一律胶囊形。
-     珊瑚/蓝/淡紫只做图例与状态，绝不上主按钮；主操作只有黄。 */
-  --zoo-water: #f5f1e4;
-  --zoo-land: #8ed462;
-  --zoo-ink: #2c2e2a;
-  --zoo-ink-soft: #5b616b;
-  --zoo-sun: #f5e211;
-  --zoo-sun-deep: #e5d200;
-  --zoo-sun-press: #d4c300;
-  --zoo-coral: #ff705d;
-  --zoo-sky: #2ba0ff;
-  --zoo-lilac: #ebc1ff;
-  --zoo-alert: #c0392b;
-  --zoo-cap: 999px;
-  --zoo-line: 1px;
-
-  /* 内部区（后台）：导览图的"图例面板"这一支——奶油纸 + 墨线，
-     绿色只作分区标记，不再整页铺绿地。 */
-  --zoo-paper: #fffdf8;
-  --zoo-paper-line: #e7e0cf;
-  --zoo-rail: #f7f2e4;
+  --ai-shadow-card: 0 1px 3px rgba(21, 26, 33, 0.08);
 
   /* 形状：全站两档圆角，不给第三档开口子 */
   --ai-radius-sm: 8px;
@@ -74,13 +81,13 @@
 
   /* Element Plus 对齐：主色对齐世界的墨色，避免 EP 默认蓝从 tab hover、
      焦点环、密码图标这些缝里漏出来；light-1..9 是手写混合阶，改主色时同步改这几行。 */
-  --el-color-primary: var(--zoo-ink);
-  --el-color-primary-dark-2: #1d1f1c;
-  --el-color-primary-light-3: #6f726c;
-  --el-color-primary-light-5: #969a93;
-  --el-color-primary-light-7: #bdbeb8;
-  --el-color-primary-light-8: #d0d1cc;
-  --el-color-primary-light-9: #e4e4e0;
+  --el-color-primary: var(--dossier-ink);
+  --el-color-primary-dark-2: #10151b;
+  --el-color-primary-light-3: #60666e;
+  --el-color-primary-light-5: #92979d;
+  --el-color-primary-light-7: #c1c4c7;
+  --el-color-primary-light-8: #d9dbdc;
+  --el-color-primary-light-9: #eceeed;
   --el-color-danger: var(--zoo-alert);
 
   --el-text-color-primary: var(--zoo-ink);
@@ -88,9 +95,9 @@
   --el-text-color-secondary: var(--zoo-ink-soft);
   --el-text-color-placeholder: var(--zoo-ink-soft);
   --el-border-color: var(--zoo-ink);
-  --el-border-color-light: var(--zoo-ink);
-  --el-border-color-lighter: var(--zoo-ink);
-  /* EP 控件默认也是胶囊（本项目没有第三种圆角）；弹窗单独在 base.css 钉方角 */
+  --el-border-color-light: var(--dossier-rule);
+  --el-border-color-lighter: var(--dossier-rule);
+  /* Controls use the compact corners of a paper dossier. */
   --el-border-radius-base: var(--zoo-cap);
   --el-font-family: var(--ai-font-sans);
 }

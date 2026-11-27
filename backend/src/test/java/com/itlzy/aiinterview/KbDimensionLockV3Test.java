@@ -8,9 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** 合同08 V3（免费）：维度锁死——embedding 列是 vector(1024)，塞 3 维坐标必须当场翻脸。
- *  治的病：换了 embedding 模型（维度变了）却静默混存——一半题 1024 维一半 1536 维，
- *  检索距离全成乱码。PG 的 vector 类型是强类型：维度不匹配=物理拒绝，不给沉默腐败的机会。 */
+/** 维度锁测试：向量列维度不匹配时数据库必须拒绝写入，防止混存不同维度的向量。 */
 @SpringBootTest
 class KbDimensionLockV3Test {
 
@@ -28,7 +26,7 @@ class KbDimensionLockV3Test {
                 "报错信息应含维度不匹配线索，实际=" + e);
     }
 
-    /** 异常链取证老纪律（#21 causeContains 同款）：包装层里找真凶 */
+    /** 沿 cause 链查找关键字 */
     private static boolean containCause(Throwable t, String kw) {
         for (Throwable c = t; c != null; c = c.getCause()) {
             if (c.getMessage() != null && c.getMessage().contains(kw)) return true;

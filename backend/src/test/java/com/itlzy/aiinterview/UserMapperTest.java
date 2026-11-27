@@ -16,7 +16,7 @@ class UserMapperTest {
     @Test
     void insertAndQuery() {
         User user = new User();
-        // 用户名带时间戳后缀,保证测试可重复运行不触发 uk_username 唯一索引
+        // 用户名带时间戳后缀，保证可重复运行不撞唯一索引
         user.setUsername("zhangsan_" + System.currentTimeMillis() % 100000);
         user.setPassword("明文占位_注册接口阶段换BCrypt");
         user.setNickname("张三");

@@ -99,30 +99,31 @@ function currentZone(path: string): string {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
   min-height: 100dvh;
-  background: var(--zoo-paper);
+  background: var(--zoo-water);
   color: var(--zoo-ink);
   font-family: var(--ai-font-sans);
 }
 
-/* —— 左：整块陆地绿收成一条导航栏 —— */
+/* The rail uses the login page's ink surface. */
 .shell__rail {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 18px;
   padding: 28px 18px 20px;
-  background: var(--zoo-land);
-  border-right: 1px solid var(--zoo-ink);
+  background: var(--dossier-ink);
+  color: var(--dossier-paper);
+  border-right: 1px solid var(--dossier-ink-2);
 }
 
 .shell__brand {
   padding-bottom: 14px;
-  border-bottom: 1px solid var(--zoo-ink);
+  border-bottom: 1px solid rgba(245, 245, 241, 0.2);
 }
 
 .shell__brand-latin {
   display: block;
-  font-family: 'Zoo Display', var(--ai-font-sans);
+  font-family: var(--dossier-serif);
   font-size: 28px;
   font-weight: 700;
   line-height: 1;
@@ -131,7 +132,7 @@ function currentZone(path: string): string {
 .shell__brand-cn {
   display: block;
   margin-top: 2px;
-  font-family: 'Zoo Display', var(--ai-font-sans);
+  font-family: var(--ai-font-sans);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.28em;
@@ -143,7 +144,7 @@ function currentZone(path: string): string {
   font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   font-size: 10px;
   letter-spacing: 0.18em;
-  color: var(--zoo-ink);
+  color: #b8bec4;
 }
 
 .shell__nav {
@@ -153,6 +154,7 @@ function currentZone(path: string): string {
 }
 
 .shell__item {
+  position: relative;
   display: grid;
   grid-template-columns: 24px 1fr auto;
   align-items: center;
@@ -160,19 +162,29 @@ function currentZone(path: string): string {
   height: 38px;
   padding: 0 10px;
   border-radius: var(--zoo-cap);
-  color: var(--zoo-ink);
+  color: var(--dossier-paper);
   font-size: 13px;
   text-decoration: none;
 }
 
 .shell__item:hover {
-  background: rgba(44, 46, 42, 0.12);
+  background: rgba(245, 245, 241, 0.08);
 }
 
 .shell__item--on,
 .shell__item--on:hover {
-  background: var(--zoo-ink);
-  color: var(--zoo-water);
+  background: rgba(245, 245, 241, 0.1);
+  color: var(--dossier-paper);
+}
+
+.shell__item--on::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 0;
+  width: 2px;
+  background: var(--dossier-brass);
+  content: '';
 }
 
 .shell__item--off {
@@ -194,13 +206,13 @@ function currentZone(path: string): string {
   white-space: nowrap;
 }
 
-/* 徽章：待回填 / 未开发，奶油小胶囊，别用低透明墨（绿地对比度不够） */
+/* Status badges stay muted against the dark rail. */
 .shell__badge {
   padding: 2px 8px;
-  border: 1px solid var(--zoo-ink);
+  border: 1px solid rgba(217, 197, 160, 0.48);
   border-radius: var(--zoo-cap);
-  background: var(--zoo-water);
-  color: var(--zoo-ink);
+  background: rgba(217, 197, 160, 0.14);
+  color: #e5d5b8;
   font-size: 10px;
   letter-spacing: 0.06em;
   line-height: 1.4;
@@ -210,7 +222,7 @@ function currentZone(path: string): string {
 .shell__legend {
   margin-top: auto;
   padding-top: 14px;
-  border-top: 1px solid rgba(44, 46, 42, 0.35);
+  border-top: 1px solid rgba(245, 245, 241, 0.2);
 }
 
 .shell__legend-label {
@@ -218,7 +230,7 @@ function currentZone(path: string): string {
   font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   font-size: 10px;
   letter-spacing: 0.18em;
-  color: var(--zoo-ink);
+  color: #b8bec4;
 }
 
 .shell__zones {
@@ -229,7 +241,7 @@ function currentZone(path: string): string {
   padding: 0;
   list-style: none;
   font-size: 12px;
-  color: var(--zoo-ink);
+  color: #e0e3e5;
 }
 
 .shell__zones li {
@@ -242,7 +254,7 @@ function currentZone(path: string): string {
   display: block;
   width: 8px;
   height: 8px;
-  border: 1px solid var(--zoo-ink);
+  border: 1px solid rgba(245, 245, 241, 0.7);
   border-radius: 50%;
 }
 
@@ -259,7 +271,7 @@ function currentZone(path: string): string {
 }
 
 .shell__dot--practice {
-  background: var(--zoo-land);
+  background: var(--dossier-brass);
 }
 
 .shell__colophon {
@@ -267,10 +279,10 @@ function currentZone(path: string): string {
   font-size: 10px;
   letter-spacing: 0.18em;
   line-height: 1;
-  color: var(--zoo-ink);
+  color: #89929b;
 }
 
-/* —— 右：顶栏 + 内容 —— */
+/* Main work area. */
 .shell__main {
   display: flex;
   flex-direction: column;
@@ -284,8 +296,8 @@ function currentZone(path: string): string {
   gap: 24px;
   height: 54px;
   padding: 0 36px;
-  border-bottom: 1px solid var(--zoo-ink);
-  background: var(--zoo-paper);
+  border-bottom: 1px solid var(--dossier-rule);
+  background: var(--zoo-water);
 }
 
 .shell__crumb {
@@ -305,7 +317,7 @@ function currentZone(path: string): string {
 .shell__logout {
   height: 30px;
   padding: 0 14px;
-  border: 1px solid var(--zoo-ink);
+  border: 1px solid #aeb4b8;
   border-radius: var(--zoo-cap);
   background: transparent;
   color: var(--zoo-ink);
@@ -316,11 +328,11 @@ function currentZone(path: string): string {
 }
 
 .shell__logout:hover {
-  background: rgba(44, 46, 42, 0.08);
+  background: rgba(21, 26, 33, 0.06);
 }
 
 .shell__logout:focus-visible {
-  outline: 2px solid var(--zoo-ink);
+  outline: 2px solid var(--dossier-brass);
   outline-offset: 2px;
 }
 
@@ -335,5 +347,6 @@ function currentZone(path: string): string {
   flex: 1;
   min-width: 0;
   padding: 30px 36px 40px;
+  background: var(--zoo-water);
 }
 </style>

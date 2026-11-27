@@ -14,12 +14,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-@Slf4j                      // Lombok：生成 log 日志对象（相当于自动 new 了个 logger）
-@RestControllerAdvice       // 声明：全项目 Controller 的异常都归我翻译
+/** 全局异常处理：把各层抛出的异常统一翻译成标准响应。
+ *  @author 林子阳 */
+@Slf4j
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /** 业务失败（Service 主动鸣哨）→ 按异常自带码装盘
-     *  v1.1配套：码值≥400（镜像HTTP家族）时同步设置HTTP状态，如NOT_FOUND→HTTP 404；业务码0~3仍走HTTP 200 */
+    /** 业务异常：按异常自带的码返回；码值≥400 时同步设置对应 HTTP 状态码，业务码仍走 HTTP 200 */
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusiness(BusinessException e, HttpServletResponse response) {
         if (e.getResultCode().getCode() >= 400) {
@@ -27,52 +28,51 @@ public class GlobalExceptionHandler {
         }
         return Result.of(e.getResultCode(), e.getMessage());
     }
-    /** 参数校验失败 → code=2，把第一条校验提示语带出去 */
+    /** 参数校验失败 → code=2，取第一条校验提示语返回 */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Result<Void> handleValidation(MethodArgumentNotValidException e) {
-        // 密码同时违反两条规则时会有多个 FieldError，取第一个即可（前端只展示一条）
         FieldError first = e.getBindingResult().getFieldErrors().get(0);
-        return Result.of(ResultCode.PARAM_INVALID, first.getDefaultMessage());  // msg 就是注解里写的"密码至少6位"
+        return Result.of(ResultCode.PARAM_INVALID, first.getDefaultMessage());
     }
 
-    /** 接口不存在（URL/方法写错）→ HTTP 404 + code=404；靠 Spring“就近匹配”从下面 500 兜底手里抢回来（裁决 #1） */
+    /** 请求路径不存在 → HTTP 404 + code=404 */
     @ExceptionHandler(NoResourceFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)   // 让 HTTP 状态码也返回 404，不再被误报成系统故障
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public Result<Void> handleNotFound(NoResourceFoundException e) {
         return Result.of(ResultCode.NOT_FOUND, "接口不存在，请检查请求地址");
     }
 
-    /**请求体根本不是合法JSON->HTTP 400 + code=400 */
+    /** 请求体不是合法 JSON → HTTP 400 + code=400 */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> handleUnreadable(HttpMessageNotReadableException e){
         return Result.of(ResultCode.BAD_REQUEST, "请求体不是合法JSON");
     }
 
-    /** 方法与路径不匹配（如 POST /interview/finish 打进 GET /interview/{id}）→ HTTP 405 + code=405（裁决#29：框架错镜像 HTTP，不得混入 500） */
+    /** 请求方法与路径不匹配 → HTTP 405 + code=405 */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     public Result<Void> handleMethodNotSupported(HttpRequestMethodNotSupportedException e) {
         return Result.of(ResultCode.METHOD_NOT_ALLOWED, "请求方法与接口不匹配，请检查文档");
     }
 
-    /** 上游大模型异常（key失效/欠费/超时/网络）→ HTTP 200 + code 500 + 固定文案 */
+    /** 上游大模型服务异常 → code=500 + 固定文案，不暴露内部细节 */
     @ExceptionHandler(NonTransientAiException.class)
     public Result<Void> handleAiUpstream(NonTransientAiException e) {
-        log.error("AI上游异常", e);   // 对内：全量堆栈可查（Day5纪律延续）
-        return Result.of(ResultCode.SERVER_ERROR, "AI 服务暂时不可用，请稍后重试");  // 对外：固定人话，不带e.getMessage()
+        log.error("AI上游异常", e);
+        return Result.of(ResultCode.SERVER_ERROR, "AI 服务暂时不可用，请稍后重试");
     }
 
-    /** 并发重复注册漏网到这一层的 → code=1（Service 内已必做处理，这里给其他未来自查漏写的 Service 兑底） */
+    /** 并发注册导致用户名唯一索引冲突的兜底 → code=1 */
     @ExceptionHandler(DuplicateKeyException.class)
     public Result<Void> handleDuplicate(DuplicateKeyException e) {
         return Result.of(ResultCode.BUSINESS_FAIL, "用户名已存在");
     }
 
-    /** 兜底：没预料到的异常 → code=500，日志记详细原因，对外只说"系统繁忙" */
+    /** 兜底：未预料到的异常 → code=500，详细原因只记日志，对外统一返回系统繁忙 */
     @ExceptionHandler(Exception.class)
     public Result<Void> handleUnknown(Exception e) {
-        log.error("系统异常", e);   // ⚠️ 面试点：异常必须记日志，否则线上事故无从查起
+        log.error("系统异常", e);
         return Result.of(ResultCode.SERVER_ERROR, "系统繁忙");
     }
 }

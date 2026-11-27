@@ -9,6 +9,8 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+/** JWT 工具：签发与解析。
+ *  @author 林子阳 */
 @Component
 public class JwtUtil {
 
@@ -23,7 +25,7 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    /** 发票：门票上只写 userId（subject）和到期时间，不放任何敏感信息 */
+    /** 签发 token：只写入 userId 与到期时间，不含敏感信息 */
     public String createToken(Long userId) {
         Date now = new Date();
         Date expire = new Date(now.getTime() + expireMinutes * 60 * 1000);
@@ -35,7 +37,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    /** 验票+读票：签名不对/已过期都会抛 JwtException（调用方决定怎么处理） */
+    /** 解析 token 中的 userId：签名不合法或已过期时抛 JwtException */
     public Long parseUserId(String token) {
         String subject = Jwts.parser()
                 .verifyWith(getKey())

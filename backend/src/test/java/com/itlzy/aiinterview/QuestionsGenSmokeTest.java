@@ -31,9 +31,9 @@ class QuestionsGenSmokeTest {
     @Autowired private AiService aiService;
 
     @Test
-    @Disabled("G1付费冒烟：真打DeepSeek烧余额，充值后摘帽运行；跑完把打印的usage回填合同05 §2（承诺项）")
+    @Disabled("付费冒烟：真打大模型消耗余额，充值后手动放开运行")
     void g1GenerateQuestionsSmoke() {
-        // ── 数据准备：自给自足（直调Service绕过@Valid，所以值要手动符合规则）──
+        // 数据准备（直调 Service 绕过参数校验，字段值须手动符合规则）
         String username = "day8g1_" + System.currentTimeMillis();
         RegisterDTO reg = new RegisterDTO();
         reg.setUsername(username);
@@ -57,25 +57,24 @@ class QuestionsGenSmokeTest {
 
         Long resumeId = resumeService.page(userId, 1, 10).getList().get(0).getId();
 
-        // ── 正题：count 不填 → 走 R4 缺省 5 ──
+        // count 不填，走缺省 5 题
         GenerateDTO dto = new GenerateDTO();
         dto.setResumeId(resumeId);
         QuestionsVO result = aiService.generateQuestions(userId, dto);
 
-        // ── 断言 = 合同§6 G1 期望值的逐条翻译 ──
+        // 断言
         assertNotNull(result.getQuestions());
         assertEquals(5, result.getQuestions().size(), "count缺省应出5题(R4)");
         for (var q : result.getQuestions()) {
             assertTrue(List.of("八股", "项目", "场景", "HR").contains(q.getCategory()),
-                    "category必须∈§4枚举，实际=" + q.getCategory());
+                    "category 必须为合法枚举值，实际=" + q.getCategory());
             assertTrue(List.of(1, 2, 3).contains(q.getDifficulty()), "difficulty必须1-3");
             assertFalse(q.getQuestion() == null || q.getQuestion().isBlank(), "题干非空");
         }
         assertNotNull(result.getModel(), "model来自响应元数据回显");
         assertTrue(result.getUsage().getPromptTokens() > 0, "usage非零(G1期望)");
 
-        // ── §2 回填数字在这行打印里：跑完把两个数抄进合同 ──
-        System.out.printf("【§2回填】prompt=%d completion=%d model=%s%n",
+        System.out.printf("prompt=%d completion=%d model=%s%n",
                 result.getUsage().getPromptTokens(),
                 result.getUsage().getCompletionTokens(),
                 result.getModel());

@@ -2,31 +2,36 @@ package com.itlzy.aiinterview.service;
 
 import com.itlzy.aiinterview.dto.AnswerDTO;
 import com.itlzy.aiinterview.dto.CreateInterviewDTO;
-import com.itlzy.aiinterview.vo.AnswerScoreVO;
-import com.itlzy.aiinterview.vo.InterviewCreateVO;
-import com.itlzy.aiinterview.vo.InterviewDetailVO;
-import com.itlzy.aiinterview.vo.ReportVO;
+import com.itlzy.aiinterview.vo.*;
 
+/** 面试场次业务接口。
+ *  @author 林子阳 */
 public interface InterviewService {
 
+    /** 创建面试：秒回场次 id，题目异步生成 */
     InterviewCreateVO create(Long userId, CreateInterviewDTO dto);
 
-    /** 轮询面（合同06 §2 GET）：status=1 才附题目 */
+    /** 查询场次详情：仅题目就绪状态附带题目列表 */
     InterviewDetailVO detail(Long userId, Long interviewId);
 
-    /** 失败返工（合同06 H5）：3→0 返工边 + 重投同场 */
+    /** 重试失败场次 */
     void retry(Long userId, Long id);
 
-    /** 作答并同步评分（合同07 J1）：四步原子——落答案清分→评分→三值回写带 S2 一致性闸；
-     *  评分炸穿三层走降级边：答案保留、score=null，不阻断提交 */
+    /** 提交作答并同步评分；评分失败时答案已保留，可重评 */
     AnswerScoreVO answer(Long userId, Long interviewId, Long questionId, AnswerDTO dto);
 
-    /** 交卷（合同07 J3）：兑现 06 §1 预埋的 1→2 边 + 上报告输送带 */
+    /** 交卷并异步启动报告生成 */
     void finish(Long userId, Long id);
 
-    /** 查报告（合同07 §2）：归属门→交卷门(P6)→按 report_status 分级；就绪时反序列化 report_json */
+    /** 查询报告：按报告生成状态分级返回 */
     ReportVO getReport(Long userId, Long interviewId);
 
-    /** 手动重生（S4）：CAS 翻回 0 + 重投 interview:report；生成中(1)防抖弹死 */
+    /** 手动重新生成报告；生成中防抖 */
     void rebuildReport(Long userId, Long interviewId);
+
+    /** 分页查询本人面试记录，可按状态筛选（1/2/3/5） */
+    PageVO<InterviewListItemVO> page(Long userId, long page, long size, Integer statusFilter);
+
+    /** 取消未就绪场次（排队中/生成中），重复取消视为成功 */
+    void cancel(Long userId, Long id);
 }

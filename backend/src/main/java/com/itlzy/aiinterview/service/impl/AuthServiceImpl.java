@@ -17,18 +17,20 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
+/** 登录/注销/当前用户：JWT 签发与 Redis 登录存根管理。
+ *  @author 林子阳 */
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    public static final String USER_KEY_PREFIX = "login:user:";  // 合同1约定的key格式
+    public static final String USER_KEY_PREFIX = "login:user:";  // Redis 登录存根键前缀
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final StringRedisTemplate redisTemplate;   // data-redis  starter 自带，application-dev.yml 里有连接配置
+    private final StringRedisTemplate redisTemplate;
 
 
-    // TTL 与 JWT 过期同源：只认 application-dev.yml 里的 jwt.expire-minutes
+    // 登录存根 TTL 与 JWT 过期时间同源
     @Value("${jwt.expire-minutes}")
     private long expireMinutes;
 
@@ -42,21 +44,21 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginVO login(LoginDTO dto) {
-        // 规则1：按用户名查
+        // 按用户名查用户
         User user = userMapper.selectOne(
                 new LambdaQueryWrapper<User>().eq(User::getUsername, dto.getUsername()));
 
-        // 规则2：matches(明文, 密文)
+        // 校验密码
         if (user == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new BusinessException(ResultCode.BUSINESS_FAIL, "用户名或密码错误");
         }
 
-        // 规则3：签票 + 覆盖写"人→票"存根，覆盖即踢掉旧设备的票
+        // 签发 token 并覆盖写登录存根（覆盖即踢掉旧设备）
         String token = jwtUtil.createToken(user.getId());
         redisTemplate.opsForValue().set(USER_KEY_PREFIX + user.getId(),
                 token, Duration.ofMinutes(expireMinutes));
 
-        // 规则4：回执只给 token+nickname，password 从头到尾不在候选名单上
+        // 回执不含密码
         LoginVO vo = new LoginVO();
         vo.setToken(token);
         vo.setNickname(user.getNickname());
@@ -65,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserVO me(Long userId) {
-        // 拦截器已验过票，这里只管按 id 查人（selectById 也自动带 deleted=0）
+        // 按 id 查询用户
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.UNAUTHORIZED, "未登录或凭证失效");
@@ -82,7 +84,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout(Long userId) {
-        // 合同4(v0.2)：按"人"撕根。key 不存在 delete 也不报错——天然幂等
+        // 删除登录存根；key 不存在时天然幂等
         redisTemplate.delete(USER_KEY_PREFIX + userId);
     }
 }

@@ -16,19 +16,15 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** 合同08 K4 入库管线（手动触发·付费几分钱）：12 道种子题 → 百炼变向量 → 一律 draft 入库。
- *  纪律三条：
- *  ① 真幂等（工单③'）：逐条对账——已入库题干跳过、缺失题补灌，重跑 N 次终点相同；
- *     embedding 成本同步幂等（只为新题掏钱）——07 抢单 CAS/D7 幂等删除的同款家法；
- *  ② 审核流：脚本只写 draft，approved 由人工 Navicat 过目后 UPDATE 放行（K4"人工改稿"落地，
- *     工单②的审核闸保证没过目的题检索永远看不见）；
- *  ③ V6 记账：tokens 总数打印在案，回填 K3 成本表（数字进文件不进印象，R2 家法）。 */
+/** 题库入库脚本测试（付费，手动跑）：种子题 → 向量化 → draft 入库。
+ *  幂等：逐条对账，已入库跳过、缺答案补写，只为新题付费；
+ *  审核流：脚本只写 draft，approved 由人工放行。 */
 @SpringBootTest
 class KbIngestScriptTest {
 
     private static final String SOURCE_TAG = "seed-v1";
 
-    /** {题干, category题型(E1:八股/项目/场景/HR), difficulty(1-3), tags方向轴(逗号分隔), 答案知识段(工单⑤ #36裁决)} */
+    /** {题干, 题型, 难度(1-3), 方向标签(逗号分隔), 答案知识段} */
     private static final String[][] SEEDS = {
             {"Java 中 HashMap 的底层实现原理是什么？扩容是如何发生的？", "八股", "2", "Java,Spring",
              "结论：数组+链表+红黑树（JDK8起）。定位：hash扰动（高16位异或低16位）后与(容量-1)按位与取桶。冲突：同桶挂链表，链表长度≥8且容量≥64才树化，查询从O(n)变O(logn)。扩容：元素数超过阈值(容量×0.75)翻倍；JDK8不再逐元素rehash，链表按原元素高位是0还是1拆成两条链，要么留在原位要么平移到原位+旧容量，红黑树拆回链表。0.75是空间与冲突率的对换，源自泊松分布的经验值。"},
@@ -63,7 +59,7 @@ class KbIngestScriptTest {
 
     @Test
     void ingestSeedQuestions() {
-        // 真幂等第二跳（工单⑤）：逐条对账分三路——题干缺→INSERT(要 embed)；题干在但答案空→UPDATE 补答案(零 embed)；全齐→跳过
+        // 逐条对账：题干缺则入库（需 embed）；题干在但答案空则补写（零 embed）；全齐则跳过
         List<Map<String, Object>> rows = pgJdbcTemplate.queryForList(
                 "SELECT content, answer_text FROM kb_question WHERE source = ?", SOURCE_TAG);
         Map<String, String> answerByContent = new HashMap<>();
@@ -90,8 +86,7 @@ class KbIngestScriptTest {
         }
 
         List<String> texts = toIngest.stream().map(s -> s[0]).toList();
-        // 分批护栏：百炼 embeddings 单请求 batch<=10（实弹 2026-11-18 HTTP 400 "should not be larger than 10"）——
-        // OpenAI 兼容协议只保门面不保厂商私规，批量上限这类私规靠自己文档化防御
+        // 分批护栏：embedding 单请求上限 10 条
         int batchSize = 10;
         List<float[]> vectors = new ArrayList<>();
         int tokens = 0;

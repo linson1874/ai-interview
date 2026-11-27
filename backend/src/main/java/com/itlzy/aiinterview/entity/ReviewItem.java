@@ -10,10 +10,8 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
-/**
- * 合同09 复习单元（账本-状态层，决策点 D）：身份=场次原题行(A)，盒号/到期为 Leitner 状态(B)，
- * status 是 F2① 提交 CAS 的载体。ZSET review:queue 的真相源——投影可死，账本不死(06 家法)。
- */
+/** 复习单元实体：身份=场次原题，盒号/到期为间隔重复状态；Redis 到期队列的真相源。
+ *  @author 林子阳 */
 @Data
 @TableName("t_review_item")
 public class ReviewItem {
@@ -23,25 +21,25 @@ public class ReviewItem {
 
     private Long userId;
 
-    /** 身份锚：t_interview_question.id（只读引用，F1：不给 07 域的表加列） */
+    /** 关联的面试题目 id（只读引用） */
     private Long interviewQuestionId;
 
-    /** 聚合键：PG kb_question.id，检索映射 top1 且 d<=0.3 才记；NULL=映射失败，只降材料不降身份(A) */
+    /** 题库题目 id（检索映射成功才记录，null 表示映射失败只降材料） */
     private Long kbQuestionId;
 
-    /** Leitner 盒号 1-5；>=4前进 / <=2回盒一 / =3冻结(B) */
+    /** 间隔重复盒号 1-5 */
     private Integer boxNo;
 
-    /** due / processing（F2① CAS 状态机；processing 带租约防死锁，判分回写后归 due） */
+    /** 状态：due 到期 / processing 处理中（带租约防死锁，回写后归 due） */
     private String status;
 
-    /** 到期时刻：Java 单时钟写入(#15)，ZSET score 的真相源 */
+    /** 到期时刻，同时作为 Redis 投影的排序分值来源 */
     private LocalDateTime nextReviewAt;
 
-    /** 上次成功回写时刻——F2② 快照比对键（回写 UPDATE 带 WHERE last_review_at=捞取快照） */
+    /** 上次回写时刻，用作并发快照比对键 */
     private LocalDateTime lastReviewAt;
 
-    /** 上次判分 0-5；入队时=面试初分，复习回写后=复习分 */
+    /** 上次判分 0-5；入队时为面试初分，复习后为复习分 */
     private Integer lastScore;
 
     @TableLogic

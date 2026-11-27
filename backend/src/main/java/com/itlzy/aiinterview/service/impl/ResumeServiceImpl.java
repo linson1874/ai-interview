@@ -19,19 +19,21 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+/** 简历业务逻辑。
+ *  @author 林子阳 */
 @Slf4j
 @Service
 public class ResumeServiceImpl implements ResumeService {
 
     private final ResumeMapper resumeMapper;
-    private final ObjectMapper objectMapper;   // Spring 工具箱里的现成翻译官，用来skills JSON↔数组
+    private final ObjectMapper objectMapper;   // 用于 skills 的 JSON 序列化与反序列化
 
     public ResumeServiceImpl(ResumeMapper resumeMapper, ObjectMapper objectMapper) {
         this.resumeMapper = resumeMapper;
         this.objectMapper = objectMapper;
     }
 
-    /** 合同§2.1+实现备注：skills 先 trim 后判，全空按空数组处理；单条>20字报错。返回清洗后的列表 */
+    /** 校验并清洗技能列表：去首尾空白、单条限长 20 字、至少一项 */
     private List<String> cleanAndValidateSkills(List<String> skills) {
         List<String> cleaned = new ArrayList<>();
         for (String s : skills) {
@@ -49,7 +51,7 @@ public class ResumeServiceImpl implements ResumeService {
         return cleaned;
     }
 
-    /** 数组→JSON字符串（入库方向）； */
+    /** 技能列表序列化为 JSON 字符串入库 */
     private String skillsToJson(List<String> skills) {
         try {
             return objectMapper.writeValueAsString(skills);
@@ -59,7 +61,7 @@ public class ResumeServiceImpl implements ResumeService {
         }
     }
 
-    /** JSON字符串→数组（出库方向）；库里值是我们自己写的，读失败=数据被人为改坏，同样兜底 */
+    /** JSON 字符串反序列化为技能列表；读失败视为数据损坏 */
     private List<String> jsonToSkills(String json) {
         try {
             return objectMapper.readValue(json, objectMapper.getTypeFactory()
@@ -70,7 +72,7 @@ public class ResumeServiceImpl implements ResumeService {
         }
     }
 
-    /** 合同D1b/D5：按"id+本人"查，查不到=不存在/别人的/已删，三种成因同一个404，不留探测信息 */
+    /** 按 id+本人查询简历，不存在/他人/已删统一 404 */
     private Resume getOwnResumeOr404(Long userId, Long id) {
         Resume resume = resumeMapper.selectOne(
                 new LambdaQueryWrapper<Resume>()
@@ -85,13 +87,13 @@ public class ResumeServiceImpl implements ResumeService {
     @Override
     public void create(Long userId, ResumeSaveDTO dto) {
         Resume resume = new Resume();
-        resume.setUserId(userId);                          // 户主=凭证用户，绝不来自请求参数
+        resume.setUserId(userId);                          // 户主取自凭证用户，不信请求参数
         resume.setRealName(dto.getRealName());
         resume.setTargetJob(dto.getTargetJob());
         resume.setEducation(dto.getEducation());
         resume.setSkills(skillsToJson(cleanAndValidateSkills(dto.getSkills())));
         resume.setSelfIntro(dto.getSelfIntro());
-        resumeMapper.insert(resume);                       // id/createTime/deleted 都不用手填
+        resumeMapper.insert(resume);
     }
 
     @Override
@@ -110,14 +112,14 @@ public class ResumeServiceImpl implements ResumeService {
 
     @Override
     public void update(Long userId, Long id, ResumeSaveDTO dto) {
-        Resume resume = getOwnResumeOr404(userId, id);        // 第一步：本人门（404 的三种成因在这一句里统一裁决）
+        Resume resume = getOwnResumeOr404(userId, id);        // 先过本人门
 
         resume.setRealName(dto.getRealName());
         resume.setTargetJob(dto.getTargetJob());
         resume.setEducation(dto.getEducation());
         resume.setSkills(skillsToJson(cleanAndValidateSkills(dto.getSkills())));
         resume.setSelfIntro(dto.getSelfIntro());
-        resumeMapper.updateById(resume);                       // 按主键更新，userId/createTime 等不动
+        resumeMapper.updateById(resume);                       // 按主键更新，其余字段不动
     }
 
     @Override

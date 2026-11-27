@@ -11,13 +11,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** 合同08 V2（免费，0 token）：审核闸硬约束——status='approved' 焊死在 DAO 常量里。
- *  机关：插入行和查询用同一假向量（全 1），余弦距离=0 稳过 0.25 阈值——
- *  pending 查不到时唯一解释就是门闸，不是距离（控制变量）。 */
+/** 审核闸测试：未审核（pending）的题目不得被检索命中；同向量距离为 0 可排除阈值干扰。 */
 @SpringBootTest
 class KnowledgeSearchV2Test {
 
-    /** 1024 个 0.1 的向量文本——和表列 vector(1024) 同维，PG 不报错；不是百炼造的照样能测机制 */
+    /** 1024 维假向量，与表列定义同维，机制测试不需要真实 embedding */
     private static final String FAKE_VECTOR = "[" + "0.1,".repeat(1023) + "0.1]";
 
     @Autowired

@@ -73,7 +73,7 @@ select {
 }
 
 ::selection {
-  background: rgba(44, 46, 42, 0.16);
+  background: rgba(176, 138, 74, 0.24);
   color: var(--zoo-ink);
 }
 
@@ -91,9 +91,9 @@ input:-webkit-autofill:focus {
   caret-color: var(--zoo-ink);
 }
 
-/* 键盘焦点必须看得见；鼠标点击不画环，避免每个按钮都被描一圈 */
+/* Keyboard focus follows the brass annotation color. */
 :focus-visible {
-  outline: 2px solid var(--zoo-ink);
+  outline: 2px solid var(--dossier-brass);
   outline-offset: 2px;
 }
 
@@ -101,9 +101,7 @@ input:-webkit-autofill:focus {
   min-height: 100vh;
 }
 
-/* ── Element Plus 的接缝：弹窗与消息收进导览图世界 ───────────────────
-   本项目唯一的 ElMessageBox 是"删除确认"：方角、1px 墨边、奶油底、无阴影，
-   警告图标改墨色（琥珀会抢"唯一黄"），主按钮按危险语义用红但保留墨边。 */
+/* Keep floating Element Plus surfaces within the dossier palette. */
 .el-message-box {
   --el-messagebox-border-radius: 0;
   border: 1px solid var(--zoo-ink);
@@ -148,7 +146,7 @@ input:-webkit-autofill:focus {
   color: #ffffff;
 }
 
-/* toast：两种语义都用奶油气泡，靠颜色区分——成功=墨、错误=红 */
+/* Toasts use paper surfaces with ink and brick semantic colors. */
 .el-message {
   border-radius: var(--zoo-cap);
   border-width: 1px;
@@ -172,4 +170,21 @@ input:-webkit-autofill:focus {
 
 .el-message--error .el-message__icon {
   color: var(--zoo-alert);
+}
+
+/* Element Plus controls and floating menus use the compact dossier corners. */
+.el-select__wrapper,
+.el-input-number {
+  border-radius: var(--zoo-cap);
+}
+
+.el-input-number__decrease,
+.el-input-number__increase {
+  border-radius: 0;
+  background: transparent;
+}
+
+.el-select__popper.el-popper {
+  border-radius: 0;
+  border: 1px solid var(--zoo-ink);
 }

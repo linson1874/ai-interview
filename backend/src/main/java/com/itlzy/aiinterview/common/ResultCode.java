@@ -2,11 +2,8 @@ package com.itlzy.aiinterview.common;
 
 import lombok.Getter;
 
-/**
- * 错误码总台账（对应接口文档 01 错误码表 v0.4：400/404/405 已镜像入表）
- * 编码规则：业务码占个位小数（0~3）；框架/协议层错误码镜像 HTTP 状态码（404、405、500）
- * 禁止在业务代码里裸写数字，一律通过本枚举取值（文档"禁止私加"在代码层的落地）
- */
+/** 错误码枚举：业务码 0~3；框架层错误码镜像 HTTP 状态码，业务代码一律取值于本枚举。
+ *  @author 林子阳 */
 @Getter
 public enum ResultCode {
 

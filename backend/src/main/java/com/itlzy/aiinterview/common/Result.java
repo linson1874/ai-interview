@@ -2,6 +2,8 @@ package com.itlzy.aiinterview.common;
 
 import lombok.Data;
 
+/** 统一响应体：code + msg + data。
+ *  @author 林子阳 */
 @Data
 public class Result<T> {
     private Integer code;
@@ -14,17 +16,17 @@ public class Result<T> {
         this.data = data;
     }
 
-    /** 通用装盘入口：码值统一来自 ResultCode 枚举（收口魔法数字） */
+    /** 构建响应体，码值统一取自 ResultCode 枚举 */
     public static <T> Result<T> of(ResultCode resultCode, String msg){
         return new Result<>(resultCode.getCode(),msg,null);
     }
 
-    //成功：code=0
+    /** 成功响应：code=0 */
     public static <T> Result<T> ok(String msg){
         return of(ResultCode.SUCCESS,msg);
     }
 
-    /** 成功且携带数据（msg 固定 "ok"，data 放 VO） */
+    /** 成功且携带数据 */
     public static <T> Result<T> okData(T data){
         return new Result<>(ResultCode.SUCCESS.getCode(), "ok", data);
     }
